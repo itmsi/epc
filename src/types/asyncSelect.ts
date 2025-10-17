@@ -55,6 +55,7 @@ export interface PartCatalogueFormData {
     part_id: string;
     type_id: string;
     svg_image: File | null;
+    file_foto: File | null;
     use_csv_upload: boolean;
     csv_file: File | null;
     parts: PartItem[];
@@ -64,6 +65,7 @@ export interface PartItem {
     id: string;
     part_target: string;
     code_product: string;
+    file_foto: string | null;
     name_english: string;
     name_chinese: string;
     quantity: number;

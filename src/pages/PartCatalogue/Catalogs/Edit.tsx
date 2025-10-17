@@ -25,7 +25,9 @@ export default function EditCatalog() {
     // Use the edit catalog hook
     const {
         formData,
+        setFormData,
         validationErrors,
+        setValidationErrors,
         partCatalogueData,
         catalogueDataLoading,
         selectedPartData,
@@ -136,7 +138,7 @@ export default function EditCatalog() {
                     <div className="mx-auto p-4 sm:px-3">
                         <div className="flex flex-col items-center justify-center h-64">
                             <div className="text-red-600 text-lg font-medium mb-4">Catalog not found</div>
-                            <Link to="/epc/catalog/manage">
+                            <Link to="/epc/manage">
                                 <Button variant="outline">
                                     Back to Manage Catalogs
                                 </Button>
@@ -147,6 +149,7 @@ export default function EditCatalog() {
             </>
         );
     }
+
 
     return (
         <>
@@ -161,7 +164,7 @@ export default function EditCatalog() {
                     {/* HEADER */}
                     <div className="flex items-center justify-between h-16 bg-white shadow-sm border-b rounded-2xl p-6 mb-8">
                         <div className="flex items-center gap-1">
-                            <Link to="/epc/catalog/manage">
+                            <Link to="/epc/manage">
                                 <Button
                                     variant="outline"
                                     className="flex items-center gap-2 p-1 rounded-full bg-gray-100 hover:bg-gray-200 ring-0 border-none shadow-none me-1"
@@ -325,10 +328,18 @@ export default function EditCatalog() {
                                                     acceptedFormats={['svg', 'image/svg+xml']}
                                                     maxSize={5}
                                                     currentFile={formData.svg_image}
+                                                    existingImageUrl={formData.parts.length > 0 ? formData.parts[0].file_foto : null}
                                                     onFileChange={(file) => {
-                                                        formData.svg_image = file;
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            svg_image: file
+                                                        }));
                                                         if (validationErrors.svg_image) {
-                                                            delete validationErrors.svg_image;
+                                                            setValidationErrors(prev => {
+                                                                const newErrors = { ...prev };
+                                                                delete newErrors.svg_image;
+                                                                return newErrors;
+                                                            });
                                                         }
                                                     }}
                                                     validationError={validationErrors.svg_image}
@@ -368,9 +379,16 @@ export default function EditCatalog() {
                                                         maxSize={10}
                                                         currentFile={formData.csv_file}
                                                         onFileChange={(file) => {
-                                                            formData.csv_file = file;
+                                                            setFormData(prev => ({
+                                                                ...prev,
+                                                                csv_file: file
+                                                            }));
                                                             if (validationErrors.csv_file) {
-                                                                delete validationErrors.csv_file;
+                                                                setValidationErrors(prev => {
+                                                                    const newErrors = { ...prev };
+                                                                    delete newErrors.csv_file;
+                                                                    return newErrors;
+                                                                });
                                                             }
                                                         }}
                                                         validationError={validationErrors.csv_file}
@@ -523,7 +541,7 @@ export default function EditCatalog() {
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => navigate('/epc/catalog/manage')}
+                                    onClick={() => navigate('/epc/manage')}
                                     className="px-6 rounded-full"
                                     disabled={loading}
                                 >

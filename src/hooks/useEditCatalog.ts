@@ -63,6 +63,7 @@ export function useEditCatalog(props: UseEditCatalogProps = {}): UseEditCatalogR
                         id: item.items_id || `part-${index + 1}`,
                         part_target: item.target_id,
                         code_product: item.part_number,
+                        file_foto: item.file_foto || null,
                         name_english: item.catalog_item_name_en,
                         name_chinese: item.catalog_item_name_ch,
                         quantity: item.quantity
@@ -119,7 +120,7 @@ export function useEditCatalog(props: UseEditCatalogProps = {}): UseEditCatalogR
             toast.success('Catalog updated successfully!');
             
             // Navigate back to manage page
-            navigate('/epc/catalog/manage');
+            navigate('/epc/manage');
             
         } catch (error) {
             console.error('Error updating catalog:', error);

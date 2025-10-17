@@ -25,7 +25,9 @@ export default function CreateCatalog() {
     // Use the organized hooks
     const {
         formData,
+        setFormData,
         validationErrors,
+        setValidationErrors,
         partCatalogueData,
         catalogueDataLoading,
         selectedPartData,
@@ -271,9 +273,17 @@ export default function CreateCatalog() {
                                                     maxSize={5}
                                                     currentFile={formData.svg_image}
                                                     onFileChange={(file) => {
-                                                        formData.svg_image = file;
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            svg_image: file
+                                                        }));
+                                                        
                                                         if (validationErrors.svg_image) {
-                                                            delete validationErrors.svg_image;
+                                                            setValidationErrors(prev => {
+                                                                const newErrors = { ...prev };
+                                                                delete newErrors.svg_image;
+                                                                return newErrors;
+                                                            });
                                                         }
                                                     }}
                                                     validationError={validationErrors.svg_image}
@@ -313,9 +323,16 @@ export default function CreateCatalog() {
                                                         maxSize={10}
                                                         currentFile={formData.csv_file}
                                                         onFileChange={(file) => {
-                                                            formData.csv_file = file;
+                                                            setFormData(prev => ({
+                                                                ...prev,
+                                                                csv_file: file
+                                                            }));
                                                             if (validationErrors.csv_file) {
-                                                                delete validationErrors.csv_file;
+                                                                setValidationErrors(prev => {
+                                                                    const newErrors = { ...prev };
+                                                                    delete newErrors.csv_file;
+                                                                    return newErrors;
+                                                                });
                                                             }
                                                         }}
                                                         validationError={validationErrors.csv_file}

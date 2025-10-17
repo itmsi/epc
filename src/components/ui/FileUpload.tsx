@@ -12,6 +12,7 @@ interface FileUploadProps {
     acceptedFormats: string[];
     maxSize?: number; // in MB
     currentFile?: File | null;
+    existingImageUrl?: string | null; // URL for existing image from database
     onFileChange: (file: File | null) => void;
     validationError?: string;
     required?: boolean;
@@ -39,6 +40,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
     acceptedFormats,
     maxSize = 10, // 10MB default
     currentFile,
+    existingImageUrl,
     onFileChange,
     validationError,
     required = false,
@@ -55,24 +57,43 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
     // Create preview URL when file changes
     useEffect(() => {
+        // Cleanup previous URL if exists
+        if (previewState.url && previewState.url.startsWith('blob:')) {
+            URL.revokeObjectURL(previewState.url);
+        }
+
         if (currentFile && isImageFile(currentFile)) {
             const url = URL.createObjectURL(currentFile);
-            setPreviewState(prev => ({ ...prev, url }));
+            setPreviewState({ url });
             
-            // Cleanup previous URL
+            // Return cleanup function
             return () => {
                 if (previewState.url && previewState.url.startsWith('blob:')) {
                     URL.revokeObjectURL(previewState.url);
                 }
             };
         } else {
-            setPreviewState(prev => ({ ...prev, url: null }));
+            setPreviewState({ url: null });
         }
     }, [currentFile]);
 
     // Check if file is an image
     const isImageFile = (file: File): boolean => {
-        return file.type.startsWith('image/') || file.name.toLowerCase().endsWith('.svg');
+        // Return false if file is null/undefined or not a proper File object
+        if (!file || typeof file !== 'object' || !file.name || typeof file.type !== 'string') {
+            return false;
+        }
+        
+        // Check by MIME type
+        if (file.type.startsWith('image/')) {
+            return true;
+        }
+        
+        // Check by file extension for SVG and other image formats
+        const fileName = file.name.toLowerCase();
+        const imageExtensions = ['.svg', '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'];
+        
+        return imageExtensions.some(ext => fileName.endsWith(ext));
     };
 
     // Get preview size classes
@@ -277,13 +298,13 @@ const FileUpload: React.FC<FileUploadProps> = ({
             {/* Validation Error */}
             {validationError && (
                 <p className="text-sm text-red-600 flex items-center">
-                    <span className="mr-1">⚠️</span>
+                    <span className="mr-1">Error</span>
                     {validationError}
                 </p>
             )}
 
             {/* File Preview Section */}
-            {showPreview && currentFile && previewState.url && (
+            {showPreview && ((currentFile && isImageFile(currentFile)) || existingImageUrl) && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-start justify-between mb-3">
                         <h4 className="text-sm font-medium text-gray-900">Preview</h4>
@@ -297,34 +318,78 @@ const FileUpload: React.FC<FileUploadProps> = ({
                         </button>
                     </div>
 
-                    <div className="space-y-2 gap-4 grid-cols-1">
-                        {/* Image Preview */}
-                        <div className={`${getPreviewSizeClasses()} rounded-lg overflow-hidden border border-gray-300 bg-white shadow-sm relative group `}>
-                            <img
-                                src={previewState.url}
-                                alt="Preview"
-                                className="w-full h-full"
-                            />
-                        </div>
 
-                        {/* File Info */}
-                        <div className="flex-1 min-w-0">
-                            <div className="space-y-2">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900 truncate">
-                                        {currentFile.name}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        {currentFile.type || 'Unknown type'}
-                                    </p>
+                    {/* Get the appropriate image source and info */}
+                    {(() => {
+                        const hasNewFile = currentFile && isImageFile(currentFile);
+                        const imageUrl = hasNewFile ? previewState.url : existingImageUrl;
+                        const isLoading = hasNewFile && !previewState.url;
+
+                        if (isLoading) {
+                            return (
+                                <div className="text-center py-4 text-gray-500">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                                    <p>Generating preview...</p>
                                 </div>
-                                
-                                <div className="text-xs text-gray-500 space-y-1">
-                                    <p>Size: {(currentFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                            );
+                        }
+
+                        if (imageUrl) {
+                            const isSvg = hasNewFile 
+                                ? currentFile!.name.toLowerCase().endsWith('.svg')
+                                : existingImageUrl!.toLowerCase().includes('.svg');
+
+                            return (
+                                <div className="space-y-2">
+                                    {/* Image Preview */}
+                                    <div className={`${getPreviewSizeClasses()} rounded-lg overflow-hidden border border-gray-300 bg-white shadow-sm relative group`}>
+                                        {isSvg ? (
+                                            <object
+                                                data={imageUrl}
+                                                type="image/svg+xml"
+                                                className="w-full h-full object-contain"
+                                                style={{ pointerEvents: 'none' }}
+                                            >
+                                                <img
+                                                    src={imageUrl}
+                                                    alt="SVG Preview"
+                                                    className="w-full h-full object-contain"
+                                                />
+                                            </object>
+                                        ) : (
+                                            <img
+                                                src={imageUrl}
+                                                alt="Preview"
+                                                className="w-full h-full object-contain"
+                                            />
+                                        )}
+                                    </div>
+
+                                    {/* File Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="space-y-2">
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900 truncate">
+                                                    {hasNewFile ? currentFile!.name : 'Existing Image'}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    {hasNewFile ? (currentFile!.type || 'Unknown type') : 'Existing image from database'}
+                                                </p>
+                                            </div>
+                                            
+                                            <div className="text-xs text-gray-500 space-y-1">
+                                                {hasNewFile && (
+                                                    <p>Size: {(currentFile!.size / 1024 / 1024).toFixed(2)} MB</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
+                            );
+                        }
+
+                        return null;
+                    })()}
                 </div>
             )}
         </div>

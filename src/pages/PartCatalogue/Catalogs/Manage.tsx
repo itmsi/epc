@@ -93,7 +93,7 @@ export default function ManageCatalogs() {
 
     const handleEdit = (catalog: CatalogItem) => {
         // Navigate to edit page with catalog ID
-        navigate(`/epc/catalog/edit/${catalog.master_pdf_id}`);
+        navigate(`/epc/manage/edit/${catalog.master_pdf_id}`);
     };
 
     const handleDelete = (catalog: CatalogItem) => {

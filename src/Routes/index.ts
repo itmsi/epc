@@ -411,7 +411,7 @@ export const routes: TAppRoute[] = [
         layout: AppLayout,
     },
     {
-        path: '/epc/catalog/edit/:id',
+        path: '/epc/manage/edit/:id',
         name: 'Edit Catalog',
         isProtected: false,
         roles: ['Manage Catalogs'],

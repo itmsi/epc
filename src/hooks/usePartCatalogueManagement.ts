@@ -58,6 +58,7 @@ export const usePartCatalogueManagement = ({
         part_id: '',
         type_id: '',
         svg_image: null,
+        file_foto: null,
         use_csv_upload: false,
         csv_file: null,
         parts: []
@@ -257,6 +258,7 @@ export const usePartCatalogueManagement = ({
             id: generateId(),
             part_target: '',
             code_product: '',
+            file_foto: '',
             name_english: '',
             name_chinese: '',
             quantity: 1
