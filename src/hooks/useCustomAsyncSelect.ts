@@ -6,6 +6,7 @@ import {
     PartCatalogueData 
 } from '@/types/asyncSelect';
 import { AsyncSelectService } from '@/services/customAsyncSelectService';
+import { CatalogAsyncSelectService } from '@/services/catalogAsyncSelectService';
 
 interface UseAsyncSelectProps {
     partType: PartType | '';
@@ -54,19 +55,19 @@ export const useAsyncSelect = ({
         
         switch (partType) {
             case 'cabin':
-                const cabinOptions = AsyncSelectService.transformPartDataToOptions('cabin', partCatalogueData.cabins || []);
+                const cabinOptions = CatalogAsyncSelectService.transformPartDataToOptions('cabin', partCatalogueData.cabins || []);
                 return baseOptions.concat(cabinOptions);
             case 'engine':
-                const engineOptions = AsyncSelectService.transformPartDataToOptions('engine', partCatalogueData.engines || []);
+                const engineOptions = CatalogAsyncSelectService.transformPartDataToOptions('engine', partCatalogueData.engines || []);
                 return baseOptions.concat(engineOptions);
             case 'axle':
-                const axleOptions = AsyncSelectService.transformPartDataToOptions('axle', partCatalogueData.axles || []);
+                const axleOptions = CatalogAsyncSelectService.transformPartDataToOptions('axle', partCatalogueData.axles || []);
                 return baseOptions.concat(axleOptions);
             case 'transmission':
-                const transmissionOptions = AsyncSelectService.transformPartDataToOptions('transmission', partCatalogueData.transmissions || []);
+                const transmissionOptions = CatalogAsyncSelectService.transformPartDataToOptions('transmission', partCatalogueData.transmissions || []);
                 return baseOptions.concat(transmissionOptions);
             case 'steering':
-                const steeringOptions = AsyncSelectService.transformPartDataToOptions('steering', partCatalogueData.steerings || []);
+                const steeringOptions = CatalogAsyncSelectService.transformPartDataToOptions('steering', partCatalogueData.steerings || []);
                 return baseOptions.concat(steeringOptions);
             default:
                 return baseOptions;
@@ -120,12 +121,12 @@ export const useAsyncSelect = ({
             );
 
             // Transform API data to options
-            const newOptions = AsyncSelectService.transformPartDataToOptions(partType, response.data);
+            const newOptions = CatalogAsyncSelectService.transformPartDataToOptions(partType, response.data);
 
             // Add new options to existing ones (prevent duplicates)
             setAllPartOptions(prev => {
-                const existingValues = new Set(prev.map(option => option.value));
-                const uniqueNewOptions = newOptions.filter(option => !existingValues.has(option.value));
+                const existingValues = new Set(prev.map((option: SelectOption) => option.value));
+                const uniqueNewOptions = newOptions.filter((option: SelectOption) => !existingValues.has(option.value));
                 return [...prev, ...uniqueNewOptions];
             });
 

@@ -18,6 +18,7 @@ import {
 import { usePartCatalogueManagement } from '@/hooks/usePartCatalogueManagement';
 import { useAsyncSelect } from '@/hooks/useCustomAsyncSelect';
 import { AsyncSelectService } from '@/services/customAsyncSelectService';
+import { CatalogAsyncSelectService } from '@/services/catalogAsyncSelectService';
 
 export default function CreateCatalog() {
     const navigate = useNavigate();
@@ -53,12 +54,12 @@ export default function CreateCatalog() {
     const getPartOptions = (): SelectOption[] => {
         if (!formData.part_type) return [{ value: '', label: 'Select Part Type First' }];
 
-        const baseOptions = AsyncSelectService.createDefaultOptions(formData.part_type);
+        const baseOptions = AsyncSelectService.createDefaultOptions(`Select ${formData.part_type}`);
         const partData = getPartDataByType();
         
         if (!partData.length) return baseOptions;
 
-        const transformedOptions = AsyncSelectService.transformPartDataToOptions(
+        const transformedOptions = CatalogAsyncSelectService.transformPartDataToOptions(
             formData.part_type as PartType, 
             partData
         );

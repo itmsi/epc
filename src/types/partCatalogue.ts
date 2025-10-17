@@ -312,3 +312,13 @@ export interface SteeringFilters {
 export interface SteeringValidationErrors {
   [key: string]: string;
 }
+
+export interface CatalogDataItem {
+    target_id: string;              // part_target
+    diagram_serial_number: string;  // empty string (not available)
+    part_number: string;            // code_product
+    catalog_item_name_en: string;   // name_english
+    catalog_item_name_ch: string;   // name_chinese
+    description: string;            // empty string (not available)
+    quantity: number;               // quantity
+}

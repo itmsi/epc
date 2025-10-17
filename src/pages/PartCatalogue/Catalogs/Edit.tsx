@@ -15,9 +15,11 @@ import {
     PartType, 
     SelectOption 
 } from '@/types/asyncSelect';
-import { useEditCatalog } from '@/hooks/useEditCatalog';
+// import { useEditCatalog } from '@/hooks/useEditCatalog';
 import { useAsyncSelect } from '@/hooks/useCustomAsyncSelect';
 import { AsyncSelectService } from '@/services/customAsyncSelectService';
+import { CatalogAsyncSelectService } from '@/services/catalogAsyncSelectService';
+import { useEditCatalog } from '@/hooks/useManageCatalogs';
 
 export default function EditCatalog() {
     const navigate = useNavigate();
@@ -67,12 +69,12 @@ export default function EditCatalog() {
     const getPartOptions = React.useCallback((): SelectOption[] => {
         if (!formData.part_type) return [{ value: '', label: 'Select Part Type First' }];
 
-        const baseOptions = AsyncSelectService.createDefaultOptions(formData.part_type);
+        const baseOptions = AsyncSelectService.createDefaultOptions(`Select ${formData.part_type}`);
         const partData = getPartDataByType();
         
         if (!partData.length) return baseOptions;
 
-        const transformedOptions = AsyncSelectService.transformPartDataToOptions(
+        const transformedOptions = CatalogAsyncSelectService.transformPartDataToOptions(
             formData.part_type as PartType, 
             partData
         );

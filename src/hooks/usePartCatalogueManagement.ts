@@ -8,7 +8,7 @@ import {
     CatalogValidationErrors,
     PartItem 
 } from '@/types/asyncSelect';
-import { AsyncSelectService } from '@/services/customAsyncSelectService';
+import { CatalogAsyncSelectService } from '@/services/catalogAsyncSelectService';
 
 interface UsePartCatalogueManagementProps {
     onPartTypeChange?: (partType: string) => void;
@@ -292,7 +292,7 @@ export const usePartCatalogueManagement = ({
 
     // Get options for sub type selection
     const getSubTypeOptions = useCallback(() => {
-        return AsyncSelectService.transformSubTypeDataToOptions(formData.part_type as PartType, subTypes);
+        return CatalogAsyncSelectService.transformSubTypeDataToOptions(formData.part_type as PartType, subTypes);
     }, [formData.part_type, subTypes]);
 
     // Validate form
@@ -360,7 +360,7 @@ export const usePartCatalogueManagement = ({
         setLoading(true);
         try {
             // Call the catalog creation service
-            const response = await import('@/services/catalogManageService').then(
+            const response = await import('@/services/partCatalogueService').then(
                 ({ CatalogManageService }) => CatalogManageService.createCatalog(formData)
             );
 

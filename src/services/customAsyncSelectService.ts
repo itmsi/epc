@@ -1,16 +1,17 @@
-import { SelectOption, PartType } from '@/types/asyncSelect';
+import { SelectOption } from '@/types/asyncSelect';
 
 /**
- * Service for AsyncSelect operations including search, filtering, and data transformation
+ * Generic Master AsyncSelect Service
+ * Provides universal functionality for AsyncSelect components across different modules
  */
 export class AsyncSelectService {
     /**
      * Filter options based on search query (case-insensitive)
      */
     static filterOptions(options: SelectOption[], searchQuery: string): SelectOption[] {
-        if (!searchQuery) return options;
+        if (!searchQuery?.trim()) return options;
         
-        const query = searchQuery.toLowerCase();
+        const query = searchQuery.toLowerCase().trim();
         return options.filter(option => 
             option.label.toLowerCase().includes(query) ||
             String(option.value).toLowerCase().includes(query)
@@ -18,133 +19,101 @@ export class AsyncSelectService {
     }
 
     /**
-     * Transform part catalogue data to select options
+     * Generic data transformation to SelectOption
      */
-    static transformPartDataToOptions(partType: PartType, data: any[]): SelectOption[] {
+    static transformToOptions<T extends Record<string, any>>(
+        data: T[],
+        valueKey: keyof T,
+        labelKey?: keyof T,
+        labelKeys?: (keyof T)[],
+        labelSeparator: string = ' - '
+    ): SelectOption[] {
         if (!data || !Array.isArray(data)) return [];
 
-        switch (partType) {
-            case 'cabin':
-                return data.map((cabin: any) => ({
-                    value: cabin.cabines_id,
-                    label: `${cabin.cabines_name_en} - ${cabin.cabines_name_cn}`
-                }));
-            case 'engine':
-                return data.map((engine: any) => ({
-                    value: engine.engines_id,
-                    label: `${engine.engines_name_en} - ${engine.engines_name_cn}`
-                }));
-            case 'axle':
-                return data.map((axle: any) => ({
-                    value: axle.axel_id,
-                    label: `${axle.axel_name_en} - ${axle.axel_name_cn}`
-                }));
-            case 'transmission':
-                return data.map((transmission: any) => ({
-                    value: transmission.transmission_id,
-                    label: `${transmission.transmission_name_en} - ${transmission.transmission_name_cn}`
-                }));
-            case 'steering':
-                return data.map((steering: any) => ({
-                    value: steering.steering_id,
-                    label: `${steering.steering_name_en} - ${steering.steering_name_cn}`
-                }));
-            default:
-                return [];
-        }
+        return data.map((item: T) => {
+            let label: string;
+            
+            if (labelKeys && labelKeys.length > 0) {
+                label = labelKeys
+                    .map(key => String(item[key] || ''))
+                    .filter(Boolean)
+                    .join(labelSeparator);
+            } else if (labelKey) {
+                label = String(item[labelKey] || '');
+            } else {
+                label = String(item[valueKey] || '');
+            }
+
+            return {
+                value: item[valueKey],
+                label: label || String(item[valueKey])
+            };
+        });
     }
 
     /**
-     * Transform sub-type data to select options
+     * Transform sub-type data to select options for hierarchical data
      */
-    static transformSubTypeDataToOptions(partType: PartType, subTypes: any[]): SelectOption[] {
+    static transformSubTypeToOptions<T extends Record<string, any>>(
+        subTypes: T[],
+        valueKey: keyof T,
+        labelKeys: (keyof T)[],
+        includeEmptyOption: boolean = true,
+        emptyOptionText: string = 'Select Type',
+        labelSeparator: string = ' - '
+    ): SelectOption[] {
         if (!subTypes || !Array.isArray(subTypes)) return [];
 
-        const baseOptions = [{ value: '', label: 'Select Type' }];
+        const baseOptions = includeEmptyOption ? [{ value: '', label: emptyOptionText }] : [];
+        
+        const transformedOptions = this.transformToOptions(
+            subTypes, 
+            valueKey, 
+            undefined, 
+            labelKeys, 
+            labelSeparator
+        );
 
-        switch (partType) {
-            case 'cabin':
-                return baseOptions.concat(
-                    subTypes.map((type: any) => ({
-                        value: type.type_cabine_id,
-                        label: `${type.type_cabine_name_en} - ${type.type_cabine_name_cn}`
-                    }))
-                );
-            case 'engine':
-                return baseOptions.concat(
-                    subTypes.map((type: any) => ({
-                        value: type.type_engine_id,
-                        label: `${type.type_engine_name_en} - ${type.type_engine_name_cn}`
-                    }))
-                );
-            case 'axle':
-                return baseOptions.concat(
-                    subTypes.map((type: any) => ({
-                        value: type.type_axel_id,
-                        label: `${type.type_axel_name_en} - ${type.type_axel_name_cn}`
-                    }))
-                );
-            case 'transmission':
-                return baseOptions.concat(
-                    subTypes.map((type: any) => ({
-                        value: type.type_transmission_id,
-                        label: `${type.type_transmission_name_en} - ${type.type_transmission_name_cn}`
-                    }))
-                );
-            case 'steering':
-                return baseOptions.concat(
-                    subTypes.map((type: any) => ({
-                        value: type.type_steeringwheel_id,
-                        label: `${type.type_steeringwheel_name_en} - ${type.type_steeringwheel_name_cn}`
-                    }))
-                );
-            default:
-                return baseOptions;
-        }
+        return [...baseOptions, ...transformedOptions];
     }
 
     /**
-     * Create a load options function for AsyncSelect
+     * Create load options function for AsyncSelect with search capability
      */
     static createLoadOptions(
         allOptions: SelectOption[], 
         searchEnabled: boolean = true
     ) {
-        return async (searchQuery: string): Promise<SelectOption[]> => {
+        return async (searchQuery: string = ''): Promise<SelectOption[]> => {
+            await new Promise(resolve => setTimeout(resolve, 0));
+            
             if (!searchEnabled) {
-                return Promise.resolve(allOptions);
+                return allOptions;
             }
             
-            const filteredOptions = this.filterOptions(allOptions, searchQuery);
-            return Promise.resolve(filteredOptions);
+            return this.filterOptions(allOptions, searchQuery);
         };
     }
 
     /**
-     * Get the selected option value for form data
+     * Get selected option from options array by value
      */
     static getSelectedOption(
-        value: string | number, 
+        value: string | number | null | undefined, 
         options: SelectOption[]
     ): SelectOption | null {
-        if (!value) return null;
-        return options.find(option => option.value === value) || null;
+        if (value === null || value === undefined || value === '') return null;
+        return options.find(option => String(option.value) === String(value)) || null;
     }
 
     /**
      * Create default options with placeholder
      */
     static createDefaultOptions(
-        partType: string, 
-        data: any[] | null = null
+        placeholderText: string = 'Select option',
+        includeEmpty: boolean = true
     ): SelectOption[] {
-        const placeholder = { value: '', label: `Select ${partType}` };
-        
-        if (!data || !Array.isArray(data)) {
-            return [placeholder];
-        }
-
-        return [placeholder];
+        return includeEmpty ? [{ value: '', label: placeholderText }] : [];
     }
 
     /**
@@ -152,7 +121,7 @@ export class AsyncSelectService {
      */
     static debounce<T extends (...args: any[]) => any>(
         func: T, 
-        wait: number
+        wait: number = 300
     ): (...args: Parameters<T>) => void {
         let timeout: NodeJS.Timeout;
         
@@ -163,12 +132,104 @@ export class AsyncSelectService {
     }
 
     /**
-     * Validate if an option exists in the available options
+     * Validate if option value exists in available options
      */
     static validateOption(
-        value: string | number, 
+        value: string | number | null | undefined, 
         options: SelectOption[]
     ): boolean {
-        return options.some(option => option.value === value);
+        if (value === null || value === undefined || value === '') return false;
+        return options.some(option => String(option.value) === String(value));
+    }
+
+    /**
+     * Sort options alphabetically
+     */
+    static sortOptions(
+        options: SelectOption[], 
+        direction: 'asc' | 'desc' = 'asc'
+    ): SelectOption[] {
+        return [...options].sort((a, b) => {
+            const comparison = a.label.localeCompare(b.label);
+            return direction === 'asc' ? comparison : -comparison;
+        });
+    }
+
+    /**
+     * Group options by specified criteria
+     */
+    static groupOptions(
+        options: SelectOption[],
+        groupBy: (option: SelectOption) => string
+    ): Record<string, SelectOption[]> {
+        return options.reduce((groups, option) => {
+            const group = groupBy(option);
+            if (!groups[group]) {
+                groups[group] = [];
+            }
+            groups[group].push(option);
+            return groups;
+        }, {} as Record<string, SelectOption[]>);
+    }
+
+    /**
+     * Paginate options for large datasets
+     */
+    static paginateOptions(
+        options: SelectOption[],
+        page: number = 1,
+        pageSize: number = 50
+    ): {
+        data: SelectOption[];
+        totalPages: number;
+        currentPage: number;
+        totalItems: number;
+        hasMore: boolean;
+    } {
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const data = options.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(options.length / pageSize);
+
+        return {
+            data,
+            totalPages,
+            currentPage: page,
+            totalItems: options.length,
+            hasMore: page < totalPages
+        };
+    }
+
+    /**
+     * Create options from enum or constant object
+     */
+    static createOptionsFromEnum<T extends Record<string, string | number>>(
+        enumObject: T,
+        labelTransform?: (key: string, value: string | number) => string
+    ): SelectOption[] {
+        return Object.entries(enumObject).map(([key, value]) => ({
+            value: value,
+            label: labelTransform ? labelTransform(key, value) : key
+        }));
+    }
+
+    /**
+     * Merge multiple option arrays while removing duplicates
+     */
+    static mergeOptions(...optionArrays: SelectOption[][]): SelectOption[] {
+        const seen = new Set<string>();
+        const merged: SelectOption[] = [];
+
+        for (const options of optionArrays) {
+            for (const option of options) {
+                const key = String(option.value);
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    merged.push(option);
+                }
+            }
+        }
+
+        return merged;
     }
 }
