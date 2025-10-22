@@ -8,32 +8,32 @@ import CustomAsyncSelect from '@/components/form/select/CustomAsyncSelect';
 import FileUpload from '@/components/ui/FileUpload/FileUpload';
 import { MdEdit, MdKeyboardArrowLeft, MdSave, MdDelete, MdAdd } from 'react-icons/md';
 import PageMeta from '@/components/common/PageMeta';
-import Papa from 'papaparse';
-import toast from 'react-hot-toast';
 
-// Import organized types, hooks, and services
-import { 
-    PART_TYPES, 
-    PartType, 
-    SelectOption 
-} from '@/types/asyncSelect';
-import { CatalogAsyncSelectService, useAsyncSelect } from '@/hooks/useCustomAsyncSelect';
-import { AsyncSelectService } from '@/services/customAsyncSelectService';
-import { useEditCatalog } from '@/hooks/useManageCatalogs';
+// Import organized types and new enhanced hook
+import { PART_TYPES } from '@/types/asyncSelect';
+import { useEditCatalogEnhanced } from '@/hooks/useEditCatalogEnhanced';
 
 export default function EditCatalog() {
     const navigate = useNavigate();
     
-    // State untuk search input
-    const [searchInputValue, setSearchInputValue] = React.useState('');
-    
-    // Use the edit catalog hook
+    // Use the enhanced hook for business logic
     const {
+        // Search state
+        searchInputValue,
+        handleSearchInputChange,
+        
+        // Part options management  
+        partOptions,
+        loadPartOptions,
+        
+        // CSV handling
+        handleCSVUpload,
+        
+        // Form management from existing edit hook
         formData,
         setFormData,
         validationErrors,
         setValidationErrors,
-        partCatalogueData,
         catalogueDataLoading,
         selectedPartData,
         subTypes,
@@ -46,172 +46,13 @@ export default function EditCatalog() {
         handleSubmit,
         loadingCatalog,
         submitting,
-        catalogData
-    } = useEditCatalog();
-
-    // Use the async select hook for pagination and search
-    const asyncSelectHook = useAsyncSelect({
-        partType: formData.part_type as PartType,
-        partCatalogueData
-    });
-
-    // Helper to get part data by type
-    const getPartDataByType = React.useCallback(() => {
-        switch (formData.part_type) {
-            case 'cabin': return partCatalogueData.cabins || [];
-            case 'engine': return partCatalogueData.engines || [];
-            case 'axle': return partCatalogueData.axles || [];
-            case 'transmission': return partCatalogueData.transmissions || [];
-            case 'steering': return partCatalogueData.steerings || [];
-            default: return [];
-        }
-    }, [formData.part_type, partCatalogueData]);
+        catalogData,
+        
+        // Async select hook
+        asyncSelectHook
+    } = useEditCatalogEnhanced();
 
     // Get options for part selection
-    const getPartOptions = React.useCallback((): SelectOption[] => {
-        if (!formData.part_type) return [{ value: '', label: 'Select Part Type First' }];
-
-        const baseOptions = AsyncSelectService.createDefaultOptions(`Select ${formData.part_type}`);
-        const partData = getPartDataByType();
-        
-        if (!partData.length) return baseOptions;
-
-        const transformedOptions = CatalogAsyncSelectService.transformPartDataToOptions(
-            formData.part_type as PartType, 
-            partData
-        );
-        
-        return baseOptions.concat(transformedOptions);
-    }, [formData.part_type, getPartDataByType]);
-
-    // Memoize part options to prevent unnecessary recalculations
-    const partOptions = React.useMemo(() => {
-        if (asyncSelectHook.partOptions.length > 0) {
-            return asyncSelectHook.partOptions;
-        }
-        return getPartOptions();
-    }, [asyncSelectHook.partOptions, getPartOptions]);
-
-    // Create load options function for AsyncSelect with search capability
-    const loadPartOptions = React.useCallback(async (searchQuery: string): Promise<SelectOption[]> => {
-        const allOptions = getPartOptions();
-        return AsyncSelectService.createLoadOptions(allOptions, true)(searchQuery);
-    }, [getPartOptions]);
-
-    // Handle search input change
-    const handleSearchInputChange = (inputValue: string) => {
-        setSearchInputValue(inputValue);
-        console.log('Search input changed to:', `"${inputValue}"`);
-    };
-
-    // Clear search input when part type changes
-    React.useEffect(() => {
-        setSearchInputValue('');
-    }, [formData.part_type]);
-
-    // Parse CSV file and convert to parts data
-    const parseCSVFile = (file: File): Promise<any[]> => {
-        return new Promise((resolve, reject) => {
-            Papa.parse<Record<string, string>>(file, {
-                header: true,
-                skipEmptyLines: true,
-                transform: (value: string) => {
-                    // Trim whitespace from all values
-                    return typeof value === 'string' ? value.trim() : value;
-                },
-                complete: (results: Papa.ParseResult<Record<string, string>>) => {
-                    if (results.errors.length > 0) {
-                        console.error('CSV parsing errors:', results.errors);
-                        toast.error('CSV parsing failed: ' + results.errors[0].message);
-                        reject(new Error('CSV parsing failed: ' + results.errors[0].message));
-                        return;
-                    }
-
-                    try {
-                        // Map CSV data to internal part structure
-                        const parsedParts: any[] = results.data.map((row: any, index: number) => {
-                            // Validate required fields
-                            const requiredFields = ['target_id', 'part_number', 'catalog_item_name_en', 'catalog_item_name_ch', 'quantity'];
-                            const missingFields = requiredFields.filter(field => !row[field]);
-                            
-                            if (missingFields.length > 0) {
-                                throw new Error(`Row ${index + 1}: Missing required fields: ${missingFields.join(', ')}`);
-                            }
-
-                            // Convert to internal format
-                            return {
-                                id: `csv-${Date.now()}-${index}`,
-                                part_target: row.target_id || '',
-                                code_product: row.part_number || '',
-                                quantity: parseInt(row.quantity) || 1,
-                                name_english: row.catalog_item_name_en || '',
-                                name_chinese: row.catalog_item_name_ch || '',
-                                file_foto: null
-                            };
-                        });
-
-                        toast.success(`Successfully parsed ${parsedParts.length} parts from CSV`);
-                        resolve(parsedParts);
-                    } catch (error: any) {
-                        toast.error('Error processing CSV data: ' + error.message);
-                        reject(error);
-                    }
-                },
-                error: (error: Error) => {
-                    toast.error('Failed to parse CSV file: ' + error.message);
-                    reject(new Error('Failed to parse CSV file: ' + error.message));
-                }
-            });
-        });
-    };
-
-    // Handle CSV file upload and parsing
-    const handleCSVUpload = React.useCallback(async (file: File | null) => {
-        if (!file) return;
-
-        // Update form data with the file
-        setFormData(prev => ({
-            ...prev,
-            csv_file: file
-        }));
-
-        // Clear CSV validation errors
-        if (validationErrors.csv_file) {
-            setValidationErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors.csv_file;
-                return newErrors;
-            });
-        }
-
-        try {
-            // Parse CSV and populate parts
-            const parsedParts = await parseCSVFile(file);
-            
-            // Update form data with parsed parts
-            setFormData(prev => ({
-                ...prev,
-                parts: parsedParts
-            }));
-
-            toast.success(`Successfully imported ${parsedParts.length} parts from CSV`);
-        } catch (error: any) {
-            console.error('CSV upload error:', error);
-            toast.error('Failed to process CSV file: ' + error.message);
-            
-            // Clear the file from form data if parsing failed
-            setFormData(prev => ({
-                ...prev,
-                csv_file: null
-            }));
-        }
-    }, [setFormData, validationErrors.csv_file, setValidationErrors]);
-
-    // Check if data is loading
-    const isDataLoading = () => {
-        return catalogueDataLoading || asyncSelectHook.isLoading || loadingCatalog;
-    };
-
     // Handle form submission with navigation
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -220,6 +61,11 @@ export default function EditCatalog() {
         if (Object.keys(validationErrors).length === 0) {
             navigate('/epc/manage');
         }
+    };
+
+    // Check if data is loading
+    const isDataLoading = () => {
+        return catalogueDataLoading || asyncSelectHook.isLoading || loadingCatalog;
     };
 
     // Show loading screen while fetching catalog data

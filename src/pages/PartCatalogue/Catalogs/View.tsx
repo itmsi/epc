@@ -3,56 +3,93 @@ import { useNavigate, Link, useParams } from 'react-router-dom';
 import Input from '@/components/form/input/InputField';
 import Label from '@/components/form/Label';
 import Button from '@/components/ui/button/Button';
+import CustomSelect from '@/components/form/select/CustomSelect';
+import CustomAsyncSelect from '@/components/form/select/CustomAsyncSelect';
 import FileUpload from '@/components/ui/FileUpload/FileUpload';
-import { MdEdit, MdKeyboardArrowLeft, MdDelete } from 'react-icons/md';
+import { MdEdit, MdKeyboardArrowLeft, MdDelete, MdSave, MdCancel, MdAdd } from 'react-icons/md';
 import PageMeta from '@/components/common/PageMeta';
 import ConfirmationModal from '@/components/ui/modal/ConfirmationModal';
 
 // Import organized types, hooks, and services
 import { 
-    PART_TYPES, 
-    PartType, 
-    SelectOption 
+    PART_TYPES
 } from '@/types/asyncSelect';
-import { CatalogAsyncSelectService, useAsyncSelect } from '@/hooks/useCustomAsyncSelect';
-import { AsyncSelectService } from '@/services/customAsyncSelectService';
-import { useEditCatalog } from '@/hooks/useManageCatalogs';
+import { useEditCatalogEnhanced } from '@/hooks/useEditCatalogEnhanced';
 import { CatalogManageService } from '@/services/partCatalogueService';
 import { useConfirmation } from '@/hooks/useConfirmation';
 import toast from 'react-hot-toast';
 
 export default function ViewCatalog() {
     const navigate = useNavigate();
+    const { id } = useParams();
     
-    // Use the edit catalog hook
+    // Edit mode state - local to this component
+    const [isEditMode, setIsEditMode] = React.useState(false);
+    
+    // Use the enhanced hook for all business logic
     const {
+        // Search state
+        searchInputValue,
+        handleSearchInputChange,
+        
+        // Part options management
+        partOptions,
+        loadPartOptions,
+        
+        // CSV handling
+        handleCSVUpload,
+        
+        // Form management from existing edit hook
         formData,
         setFormData,
         validationErrors,
         setValidationErrors,
-        partCatalogueData,
         catalogueDataLoading,
         selectedPartData,
         subTypes,
         getSubTypeOptions,
+        handleSelectChange,
         handleInputChange,
+        handleAddPart,
+        handleRemovePart,
         handlePartChange,
         handleSubmit,
-        loading,
         loadingCatalog,
-        catalogData
-    } = useEditCatalog();
-
-    // Use the async select hook for pagination and search
-    const asyncSelectHook = useAsyncSelect({
-        partType: formData.part_type as PartType,
-        partCatalogueData
-    });
-
-    const { id } = useParams();
+        submitting,
+        catalogData,
+        
+        // Async select hook
+        asyncSelectHook
+    } = useEditCatalogEnhanced();
     
     // Use confirmation hook for delete action
     const { showConfirmation, modalProps } = useConfirmation();
+
+    // Handle edit mode toggle
+    const handleEditToggle = () => {
+        setIsEditMode(!isEditMode);
+    };
+
+    // Handle save in edit mode
+    const handleSaveClick = async () => {
+        const fakeEvent = {
+            preventDefault: () => {}
+        } as React.FormEvent;
+        
+        await handleSubmit(fakeEvent);
+        
+        if (Object.keys(validationErrors).length === 0) {
+            setIsEditMode(false); // Exit edit mode on successful save
+            toast.success('Catalog updated successfully!');
+        }
+    };
+
+    // Handle cancel edit mode
+    const handleCancel = () => {
+        setIsEditMode(false);
+        // You might want to reset form data here if needed
+        // toast.info('Edit cancelled');
+    };
 
     // Handle delete catalog
     const handleDelete = React.useCallback(async () => {
@@ -86,56 +123,9 @@ export default function ViewCatalog() {
         }
     }, [id, navigate, showConfirmation]);
 
-    // Helper to get part data by type
-    const getPartDataByType = React.useCallback(() => {
-        switch (formData.part_type) {
-            case 'cabin': return partCatalogueData.cabins || [];
-            case 'engine': return partCatalogueData.engines || [];
-            case 'axle': return partCatalogueData.axles || [];
-            case 'transmission': return partCatalogueData.transmissions || [];
-            case 'steering': return partCatalogueData.steerings || [];
-            default: return [];
-        }
-    }, [formData.part_type, partCatalogueData]);
-
-    // Get options for part selection
-    const getPartOptions = React.useCallback((): SelectOption[] => {
-        if (!formData.part_type) return [{ value: '', label: 'Select Part Type First' }];
-
-        const baseOptions = AsyncSelectService.createDefaultOptions(`Select ${formData.part_type}`);
-        const partData = getPartDataByType();
-        
-        if (!partData.length) return baseOptions;
-
-        const transformedOptions = CatalogAsyncSelectService.transformPartDataToOptions(
-            formData.part_type as PartType, 
-            partData
-        );
-        
-        return baseOptions.concat(transformedOptions);
-    }, [formData.part_type, getPartDataByType]);
-
-    // Memoize part options to prevent unnecessary recalculations
-    const partOptions = React.useMemo(() => {
-        if (asyncSelectHook.partOptions.length > 0) {
-            return asyncSelectHook.partOptions;
-        }
-        return getPartOptions();
-    }, [asyncSelectHook.partOptions, getPartOptions]);
-
     // Check if data is loading
     const isDataLoading = () => {
         return catalogueDataLoading || asyncSelectHook.isLoading || loadingCatalog;
-    };
-
-    // Handle form submission with navigation
-    const onSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        await handleSubmit(e);
-        
-        if (Object.keys(validationErrors).length === 0) {
-            navigate('/epc/manage');
-        }
     };
 
     // Show loading screen while fetching catalog data
@@ -143,7 +133,7 @@ export default function ViewCatalog() {
         return (
             <>
                 <PageMeta
-                    title="Edit Catalog"
+                    title="View Catalog"
                     description="View catalog for part catalogue"
                     image=""
                 />
@@ -164,8 +154,8 @@ export default function ViewCatalog() {
         return (
             <>
                 <PageMeta
-                    title="Edit Catalog"
-                    description="Edit catalog for part catalogue"
+                    title="View Catalog"
+                    description="View catalog for part catalogue"
                     image=""
                 />
                 <div className="bg-gray-50 overflow-auto">
@@ -187,8 +177,8 @@ export default function ViewCatalog() {
     return (
         <>
             <PageMeta
-                title="Edit Catalog"
-                description="Edit catalog for part catalogue"
+                title={isEditMode ? "Edit Catalog" : "View Catalog"}
+                description={isEditMode ? "Edit catalog for part catalogue" : "View catalog for part catalogue"}
                 image=""
             />
             <div className="bg-gray-50 overflow-auto">
@@ -207,29 +197,63 @@ export default function ViewCatalog() {
                             </Link>
                             <div className="border-l border-gray-300 h-6 mx-3"></div>
                             
-                            <h1 className="ms-2 font-primary-bold font-normal text-xl">View Catalog</h1>
+                            <h1 className="ms-2 font-primary-bold font-normal text-xl">
+                                {isEditMode ? 'Edit Catalog' : 'View Catalog'}
+                            </h1>
                             
                         </div>
                         <div className='flex gap-3'>
-                            <Button
-                                variant="outline"
-                                className="rounded-lg w-full md:w-30 flex items-center justify-center gap-2 ring-[#0253a5] font-secondary"
-                                onClick={() => navigate(`/epc/manage/edit/${ id }`)}
-                            >
-                                <MdEdit size={20} className="text-primary" /> Edit
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="rounded-lg w-full md:w-30 flex items-center justify-center gap-2 ring-[#e7000b] font-secondary py-2"
-                                onClick={() => handleDelete()}
-                            >
-                                <MdDelete size={20} className="text-red-600" /> Delete
-                            </Button>
+                            {!isEditMode ? (
+                                // View mode buttons
+                                <>
+                                    <Button
+                                        variant="outline"
+                                        className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 ring-[#0253a5] font-secondary py-2 hover:bg-[#0253a5] hover:text-white"
+                                        onClick={handleEditToggle}
+                                        disabled={submitting}
+                                    >
+                                        <MdEdit size={20} className="text-primary group-hover:text-white" /> Edit
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 ring-[#e7000b] font-secondary py-2 hover:bg-red-600 hover:text-white"
+                                        onClick={() => handleDelete()}
+                                        disabled={submitting}
+                                    >
+                                        <MdDelete size={20} className="text-red-600 group-hover:text-white" /> Delete
+                                    </Button>
+                                </>
+                            ) : (
+                                // Edit mode buttons
+                                <>
+                                    <Button
+                                        type="button"
+                                        variant="primary"
+                                        className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 ring-[#0253a5] font-secondary py-2 bg-[#0253a5] text-white"
+                                        disabled={submitting}
+                                        onClick={handleSaveClick}
+                                    >
+                                        <MdSave size={20} /> Save
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 font-secondary py-2"
+                                        onClick={handleCancel}
+                                        disabled={submitting}
+                                    >
+                                        <MdCancel size={20} /> Cancel
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     </div>
 
                     {/* Form Section */}
-                    <form className="bg-white rounded-2xl shadow-sm" onSubmit={onSubmit}>
+                    <form 
+                        id="edit-catalog-form"
+                        className="bg-white rounded-2xl shadow-sm" 
+                        onSubmit={(e) => e.preventDefault()}
+                    >
                         <div className="p-8">
                             <div className='min-h-[800px]' >
                                     
@@ -247,7 +271,7 @@ export default function ViewCatalog() {
                                             placeholder="Enter Code Cabin"
                                             value={formData.code_cabin}
                                             onChange={handleInputChange}
-                                            readonly={true}
+                                            readonly={!isEditMode}
                                         />
                                         {validationErrors.code_cabin && (
                                             <p className="mt-1 text-sm text-red-600">
@@ -257,15 +281,24 @@ export default function ViewCatalog() {
                                     </div>
                                     <div>
                                         <Label htmlFor="part_type">Part Type *</Label>
-                                        <Input
-                                            type="text"
-                                            name="part_type"
-                                            id="part_type"
-                                            placeholder="Enter Part Type"
-                                            value={formData.part_type}
-                                            onChange={handleInputChange}
-                                            readonly={true}
-                                        />
+                                        {isEditMode ? (
+                                            <CustomSelect
+                                                placeholder="Select Part Type"
+                                                onChange={handleSelectChange('part_type')}
+                                                options={PART_TYPES}
+                                                value={formData.part_type ? PART_TYPES.find(pt => pt.value === formData.part_type) : null}
+                                                error={validationErrors.part_type}
+                                            />
+                                        ) : (
+                                            <Input
+                                                type="text"
+                                                name="part_type"
+                                                id="part_type"
+                                                placeholder="Part Type"
+                                                value={PART_TYPES.find(pt => pt.value === formData.part_type)?.label || formData.part_type}
+                                                readonly={true}
+                                            />
+                                        )}
                                         {validationErrors.part_type && (
                                             <p className="mt-1 text-sm text-red-600">
                                                 {validationErrors.part_type}
@@ -277,15 +310,32 @@ export default function ViewCatalog() {
                                     {formData.part_type && (
                                         <div>
                                             <Label htmlFor="part_id">Select {PART_TYPES.find(pt => pt.value === formData.part_type)?.label} *</Label>
-                                            <Input
-                                                type="text"
-                                                name="part_type"
-                                                id="part_type"
-                                                placeholder="Enter Part Type"
-                                                value={formData.part_id ? (partOptions.find((po) => String(po.value) === formData.part_id)?.label || 'Selected part') : 'No part selected'}
-                                                onChange={handleInputChange}
-                                                readonly={true}
-                                            />
+                                            {isEditMode ? (
+                                                <CustomAsyncSelect
+                                                    name='part_id'
+                                                    placeholder={`Select ${PART_TYPES.find(pt => pt.value === formData.part_type)?.label}`}
+                                                    onChange={handleSelectChange('part_id')}
+                                                    value={formData.part_id ? partOptions.find((po: any) => String(po.value) === formData.part_id) : null}
+                                                    error={validationErrors.part_id}
+                                                    defaultOptions={partOptions}
+                                                    loadOptions={loadPartOptions}
+                                                    onMenuScrollToBottom={asyncSelectHook.handleScrollToBottom}
+                                                    isLoading={isDataLoading()}
+                                                    noOptionsMessage={() => catalogueDataLoading ? `Loading ${formData.part_type} data...` : `No ${formData.part_type} found`}
+                                                    loadingMessage={() => `Loading ${formData.part_type} data...`}
+                                                    isSearchable={true}
+                                                    inputValue={searchInputValue}
+                                                    onInputChange={handleSearchInputChange}
+                                                />
+                                            ) : (
+                                                <Input
+                                                    type="text"
+                                                    name="part_id_display"
+                                                    placeholder="Selected Part"
+                                                    value={formData.part_id ? (partOptions.find((po: any) => String(po.value) === formData.part_id)?.label || 'Selected part') : 'No part selected'}
+                                                    readonly={true}
+                                                />
+                                            )}
                                             {isDataLoading() && (
                                                 <p className="mt-1 text-sm text-gray-500">Loading {formData.part_type} data...</p>
                                             )}
@@ -301,15 +351,23 @@ export default function ViewCatalog() {
                                     {formData.part_id && (
                                         <div>
                                             <Label htmlFor="type_id" className='font-secondary'>Select Type *</Label>
-                                            <Input
-                                                type="text"
-                                                name="part_type"
-                                                id="part_type"
-                                                placeholder="Enter Part Type"
-                                                value={formData.part_id ? (getSubTypeOptions().find(sto => sto.value === formData.type_id)?.label || 'Selected part') : 'No part selected'}
-                                                onChange={handleInputChange}
-                                                readonly={true}
-                                            />
+                                            {isEditMode ? (
+                                                <CustomSelect
+                                                    placeholder="Select Type"
+                                                    onChange={handleSelectChange('type_id')}
+                                                    options={getSubTypeOptions()}
+                                                    value={formData.type_id ? getSubTypeOptions().find((sto: any) => sto.value === formData.type_id) : null}
+                                                    isLoading={catalogueDataLoading}
+                                                />
+                                            ) : (
+                                                <Input
+                                                    type="text"
+                                                    name="type_id_display"
+                                                    placeholder="Selected Type"
+                                                    value={formData.type_id ? (getSubTypeOptions().find((sto: any) => sto.value === formData.type_id)?.label || 'Selected type') : 'No type selected'}
+                                                    readonly={true}
+                                                />
+                                            )}
                                             {validationErrors.type_id && (
                                                 <p className="mt-1 text-sm text-red-600">
                                                     {validationErrors.type_id}
@@ -388,15 +446,45 @@ export default function ViewCatalog() {
                                                     }}
                                                     showPreview={true}
                                                     previewSize="lg"
-                                                    viewMode={true}
+                                                    viewMode={!isEditMode}
+                                                    disabled={!isEditMode}
                                                 />
                                             </div>
+
+                                            {/* CSV Upload for Parts - Only in edit mode */}
+                                            {isEditMode && (
+                                                <div className="md:col-span-2">
+                                                    <FileUpload
+                                                        id="csv_file"
+                                                        name="csv_file"
+                                                        label="Upload CSV File (Optional)"
+                                                        accept=".csv,text/csv"
+                                                        acceptedFormats={['csv', 'text/csv']}
+                                                        maxSize={10}
+                                                        currentFile={formData.csv_file}
+                                                        onFileChange={handleCSVUpload}
+                                                        description="CSV file containing parts data"
+                                                    />
+                                                </div>
+                                            )}
 
                                             {/* Parts Table Section */}
                                             <div className="md:col-span-2">
                                                 <div className="mb-6">
                                                     <div className="flex items-center justify-between mb-4">
                                                         <h3 className="text-lg font-medium text-gray-900">Parts Management</h3>
+                                                        {isEditMode && (
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                onClick={handleAddPart}
+                                                                disabled={submitting}
+                                                                className="rounded-md w-full md:w-40 flex items-center justify-center gap-2"
+                                                            >
+                                                                <MdAdd className="w-4 h-4" />
+                                                                Add Part
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                     
                                                     {/* Parts List */}
@@ -412,6 +500,18 @@ export default function ViewCatalog() {
                                                                             <h4 className="text-md font-medium text-gray-700">
                                                                                 Part #{index + 1}
                                                                             </h4>
+                                                                            {isEditMode && (
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    variant="outline"
+                                                                                    size="sm"
+                                                                                    onClick={() => handleRemovePart(part.id)}
+                                                                                    disabled={submitting}
+                                                                                    className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                                                                                >
+                                                                                    <MdDelete className="w-4 h-4" />
+                                                                                </Button>
+                                                                            )}
                                                                         </div>
 
                                                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
@@ -424,7 +524,7 @@ export default function ViewCatalog() {
                                                                                     onChange={(e) => handlePartChange(part.id, 'part_target', e.target.value)}
                                                                                     placeholder="e.g., part-1"
                                                                                     className="mt-1"
-                                                                                    readonly={true}
+                                                                                    readonly={!isEditMode}
                                                                                 />
                                                                             </div>
 
@@ -437,7 +537,7 @@ export default function ViewCatalog() {
                                                                                     onChange={(e) => handlePartChange(part.id, 'code_product', e.target.value)}
                                                                                     placeholder="Part number"
                                                                                     className="mt-1"
-                                                                                    readonly={true}
+                                                                                    readonly={!isEditMode}
                                                                                 />
                                                                             </div>
 
@@ -452,7 +552,7 @@ export default function ViewCatalog() {
                                                                                     onChange={(e) => handlePartChange(part.id, 'quantity', parseInt(e.target.value) || 0)}
                                                                                     placeholder="Qty"
                                                                                     className="mt-1"
-                                                                                    readonly={true}
+                                                                                    readonly={!isEditMode}
                                                                                 />
                                                                             </div>
 
@@ -465,7 +565,7 @@ export default function ViewCatalog() {
                                                                                     onChange={(e) => handlePartChange(part.id, 'name_english', e.target.value)}
                                                                                     placeholder="Enter English Name"
                                                                                     className="mt-1"
-                                                                                    readonly={true}
+                                                                                    readonly={!isEditMode}
                                                                                 />
                                                                             </div>
 
@@ -479,7 +579,7 @@ export default function ViewCatalog() {
                                                                                     onChange={(e) => handlePartChange(part.id, 'name_chinese', e.target.value)}
                                                                                     placeholder="Enter Chinese Name"
                                                                                     className="mt-1"
-                                                                                    readonly={true}
+                                                                                    readonly={!isEditMode}
                                                                                 />
                                                                             </div>
                                                                         </div>
@@ -488,7 +588,7 @@ export default function ViewCatalog() {
                                                             </>
                                                         ) : (
                                                             <div className="text-center py-8 text-gray-500">
-                                                                <p>No parts added yet. Click "Add Part" to get started.</p>
+                                                                <p>{isEditMode ? 'No parts added yet. Click "Add Part" to get started.' : 'No parts in this catalog.'}</p>
                                                             </div>
                                                         )}
                                                     </div>
@@ -499,18 +599,29 @@ export default function ViewCatalog() {
                                 </div>
                             </div>
 
-                            {/* Footer */}
-                            <div className="flex justify-end gap-4 pt-6 mt-6 border-t border-gray-200">
-                                <Button 
-                                    type="button" 
-                                    variant="outline"
-                                    onClick={() => navigate('/epc/manage')}
-                                    className="px-6 rounded-full"
-                                    disabled={loading}
-                                >
-                                    Cancel
-                                </Button>
-                            </div>
+                            {/* Footer - Only show in view mode */}
+                            {!isEditMode && (
+                                <div className="flex justify-end gap-4 pt-6 mt-6 border-t border-gray-200">
+                                    <Button 
+                                        type="button" 
+                                        variant="outline"
+                                        onClick={() => navigate('/epc/manage')}
+                                        className="px-6 rounded-full"
+                                        disabled={submitting}
+                                    >
+                                        Back to Manage
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        variant="primary"
+                                        onClick={handleSaveClick}
+                                        className="px-6 flex items-center gap-2 rounded-full"
+                                    >
+                                        <MdSave className="w-4 h-4" />
+                                        {submitting ? 'Update...' : 'Update Catalog'}
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </form>
 

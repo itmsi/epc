@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MdArrowBack, MdEdit, MdDelete, MdSave, MdCancel, MdAdd } from 'react-icons/md';
+import { MdArrowBack, MdEdit, MdDelete, MdSave, MdCancel, MdAdd, MdOutlineArrowRightAlt } from 'react-icons/md';
 import Button from '@/components/ui/button/Button';
 import Input from '@/components/form/input/InputField';
 import CustomAsyncSelect from '@/components/form/select/CustomAsyncSelect';
@@ -162,15 +162,6 @@ export default function ViewVin() {
                             ) : (
                                 <>
                                     <Button
-                                        variant="outline"
-                                        onClick={handleCancel}
-                                        disabled={submitting}
-                                        className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 font-secondary py-2"
-                                    >
-                                        <MdCancel className="w-4 h-4" />
-                                        Cancel
-                                    </Button>
-                                    <Button
                                         variant="primary"
                                         onClick={handleSave}
                                         disabled={submitting}
@@ -178,6 +169,15 @@ export default function ViewVin() {
                                     >
                                         <MdSave className="w-4 h-4 text-white" />
                                         {submitting ? 'Saving...' : 'Save'}
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleCancel}
+                                        disabled={submitting}
+                                        className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 font-secondary py-2"
+                                    >
+                                        <MdCancel className="w-4 h-4" />
+                                        Cancel
                                     </Button>
                                 </>
                             )}
@@ -199,7 +199,7 @@ export default function ViewVin() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* VIN Number */}
                                         <div>
-                                            <Label htmlFor="vin_number" className="block text-sm font-medium text-gray-700 mb-1">
+                                            <Label htmlFor="vin_number">
                                                 VIN Number {isEditMode && <span className="text-red-500">*</span>}
                                             </Label>
                                             <Input
@@ -220,7 +220,7 @@ export default function ViewVin() {
                                         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                                             {/* Production Name EN */}
                                             <div>
-                                                <Label htmlFor="production_name_en" className="block text-sm font-medium text-gray-700 mb-1">
+                                                <Label htmlFor="production_name_en">
                                                     Production Name (English) {isEditMode && <span className="text-red-500">*</span>}
                                                 </Label>
                                                 <Input
@@ -240,7 +240,7 @@ export default function ViewVin() {
 
                                             {/* Production Name CN */}
                                             <div>
-                                                <Label htmlFor="production_name_cn" className="block text-sm font-medium text-gray-700 mb-1">
+                                                <Label htmlFor="production_name_cn">
                                                     Production Name (Chinese) {isEditMode && <span className="text-red-500">*</span>}
                                                 </Label>
                                                 <Input
@@ -262,7 +262,7 @@ export default function ViewVin() {
 
                                     {/* Description */}
                                     <div>
-                                        <Label htmlFor='production_description' className="block text-sm font-medium text-gray-700 mb-1">
+                                        <Label htmlFor='production_description'>
                                             Production Description
                                         </Label>
                                         <TextArea
@@ -272,7 +272,6 @@ export default function ViewVin() {
                                             onChange={(e) => handleInputChange('production_description', e.target.value)}
                                             placeholder="Enter production description"
                                             rows={5}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             readonly={!isEditMode}
                                         />
                                     </div>
@@ -282,7 +281,7 @@ export default function ViewVin() {
                                 <div className="mt-8 space-y-4">
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className="text-lg font-medium text-gray-900">
-                                            Master Cabin Details
+                                            Book Part Details
                                         </h3>
                                         {isEditMode && (
                                             <Button
@@ -374,18 +373,19 @@ export default function ViewVin() {
                                                 vinData.master_pdf.map((pdf, index) => (
                                                     <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                                                         <div className="flex items-center justify-between mb-2">
-                                                            <h4 className="text-md font-medium text-gray-700">
-                                                                Master Cabin #{index + 1}
+                                                            <h4 className="mb-1.5 block text-sm text-gray-700">
+                                                                Book Part #{index + 1}
                                                             </h4>
                                                         </div>
-                                                        <div className="text-gray-900">
-                                                            <p className="font-medium">{pdf.master_pdf_name}</p>
-                                                        </div>
+                                                        <Link target='_blank' to={`/epc/manage/view/${pdf.master_pdf_id}`} className="inline-flex items-center justify-center p-5 py-3 text-base font-medium text-gray-500 rounded-lg bg-teal-50 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                            <span className="w-full">{pdf.master_pdf_name}</span>
+                                                            <MdOutlineArrowRightAlt className='text-[24px]' />
+                                                        </Link> 
                                                     </div>
                                                 ))
                                             ) : (
                                                 <div className="text-center py-8 text-gray-500">
-                                                    <p>No master PDF details available.</p>
+                                                    <p>No book part details available.</p>
                                                 </div>
                                             )
                                         )}

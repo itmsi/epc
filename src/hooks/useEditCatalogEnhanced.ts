@@ -9,7 +9,7 @@ import {
     CatalogValidationErrors,
     PartCatalogueData
 } from '@/types/asyncSelect';
-import { usePartCatalogueManagement } from '@/hooks/usePartCatalogueManagement';
+import { useEditCatalog } from '@/hooks/useManageCatalogs';
 import { CatalogAsyncSelectService, useAsyncSelect } from '@/hooks/useCustomAsyncSelect';
 import { AsyncSelectService } from '@/services/customAsyncSelectService';
 
@@ -25,7 +25,7 @@ interface AsyncSelectHookReturn {
     isLoading: boolean;
 }
 
-interface UseCreateCatalogReturn {
+interface UseEditCatalogEnhancedReturn {
     // Search state
     searchInputValue: string;
     setSearchInputValue: (value: string) => void;
@@ -48,7 +48,7 @@ interface UseCreateCatalogReturn {
     setValidationErrors: React.Dispatch<React.SetStateAction<CatalogValidationErrors>>;
     partCatalogueData: PartCatalogueData;
     catalogueDataLoading: boolean;
-    selectedPartData: any; 
+    selectedPartData: any;
     subTypes: any[];
     getSubTypeOptions: () => SelectOption[];
     handleSelectChange: (name: string) => (selectedOption: { value: string; label: string; } | null) => void;
@@ -57,25 +57,27 @@ interface UseCreateCatalogReturn {
     handleRemovePart: (partId: string) => void;
     handlePartChange: (partId: string, field: keyof PartItem, value: string | number) => void;
     handleSubmit: (e: React.FormEvent) => Promise<void>;
-    loading: boolean;
+    loadingCatalog: boolean;
+    submitting: boolean;
+    catalogData: any;
     
     // Async select hook
     asyncSelectHook: AsyncSelectHookReturn;
 }
 
-export const useCreateCatalog = (): UseCreateCatalogReturn => {
+export const useEditCatalogEnhanced = (): UseEditCatalogEnhancedReturn => {
     // Search state
     const [searchInputValue, setSearchInputValue] = useState('');
     
-    // Use the existing part catalogue management hook
-    const partCatalogueHook = usePartCatalogueManagement();
+    // Use the existing edit catalog hook
+    const editCatalogHook = useEditCatalog();
     const {
         formData,
         setFormData,
         validationErrors,
         setValidationErrors,
         partCatalogueData
-    } = partCatalogueHook;
+    } = editCatalogHook;
     
     // Use the async select hook for pagination and search
     const asyncSelectHook = useAsyncSelect({
@@ -252,7 +254,7 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         handleCSVUpload,
         
         // All existing hook functionality
-        ...partCatalogueHook,
+        ...editCatalogHook,
         
         // Async select hook
         asyncSelectHook
