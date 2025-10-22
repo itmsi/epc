@@ -377,7 +377,7 @@ export default function ViewVin() {
                                                                 Book Part #{index + 1}
                                                             </h4>
                                                         </div>
-                                                        <Link target='_blank' to={`/epc/manage/view/${pdf.master_pdf_id}`} className="inline-flex items-center justify-center p-5 py-3 text-base font-medium text-gray-500 rounded-lg bg-teal-50 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        <Link target='_blank' to={`/epc/manage/view/${pdf.master_pdf_id}`} className="inline-flex items-center justify-center p-5 py-3 text-base font-medium text-gray-500 rounded-lg bg-teal-50 hover:text-gray-900 hover:bg-gray-100">
                                                             <span className="w-full">{pdf.master_pdf_name}</span>
                                                             <MdOutlineArrowRightAlt className='text-[24px]' />
                                                         </Link> 

@@ -318,9 +318,9 @@
     @apply bg-gray-200 rounded-full;
   }
 }
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+/* .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #344054;
-}
+} */
 
 @layer utilities {
   /* For Remove Date Icon */
@@ -424,7 +424,7 @@
 
 .stocks-slider-outer .swiper-button-next.swiper-button-disabled,
 .stocks-slider-outer .swiper-button-prev.swiper-button-disabled {
-  @apply bg-white opacity-50 dark:bg-gray-900;
+  @apply bg-white opacity-50;
 }
 
 .stocks-slider-outer .swiper-button-next svg,
@@ -494,7 +494,7 @@
 }
 .flatpickr-months .flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month {
-  @apply !top-7 dark:!fill-white dark:!text-white !bg-transparent;
+  @apply !top-7 !bg-transparent;
 }
 .flatpickr-months .flatpickr-prev-month.flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month.flatpickr-prev-month {
@@ -509,7 +509,7 @@
 }
 span.flatpickr-weekday,
 .flatpickr-months .flatpickr-month {
-  @apply dark:!fill-white dark:!text-white !bg-none;
+  @apply !bg-none;
 }
 .flatpickr-innerContainer {
   @apply !border-b-0;
@@ -614,12 +614,12 @@ span.flatpickr-weekday,
   @apply inline-block mt-1;
   content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.50684 19L15.7568 12.75L9.50684 6.5' stroke='%23344054' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
 }
-.dark .fc-button-group .fc-button.fc-prev-button:before {
+/* .dark .fc-button-group .fc-button.fc-prev-button:before {
   content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.0068 6L9.75684 12.25L16.0068 18.5' stroke='%2398A2B3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
 }
 .dark .fc-button-group .fc-button.fc-next-button:before {
   content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.50684 19L15.7568 12.75L9.50684 6.5' stroke='%2398A2B3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
-}
+} */
 .fc-button-group .fc-button .fc-icon {
   @apply hidden;
 }
@@ -811,9 +811,9 @@ span.flatpickr-weekday,
   @apply !bg-gray-200 !rounded-full;
 }
 
-.dark .simplebar-scrollbar::before {
+/* .dark .simplebar-scrollbar::before {
   @apply !bg-gray-700;
-}
+} */
 
 .simplebar-scrollbar.simplebar-visible:before {
   @apply opacity-100;
