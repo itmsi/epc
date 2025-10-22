@@ -21,6 +21,7 @@ interface FileUploadProps {
     className?: string;
     showPreview?: boolean;          // Show file preview
     previewSize?: 'sm' | 'md' | 'lg'; // Preview size
+    viewMode?: boolean;         // If true, disable file input interactions
 }
 
 interface DragState {
@@ -48,7 +49,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
     description,
     className = '',
     showPreview = true,
-    previewSize = 'md'
+    previewSize = 'md',
+    viewMode = false
 }) => {
     const [dragState, setDragState] = useState<DragState>({ isDragging: false });
     const [previewState, setPreviewState] = useState<PreviewState>({ 
@@ -216,85 +218,85 @@ const FileUpload: React.FC<FileUploadProps> = ({
             <Label htmlFor={id} className='font-secondary'>
                 {label} {required && <span className="text-red-500">*</span>}
             </Label>
-            
-            <div
-                className={`
-                    relative flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md transition-all duration-200
-                    ${disabled 
-                        ? 'bg-gray-100 border-gray-200 cursor-not-allowed opacity-60' 
-                        : dragState.isDragging
-                            ? 'border-blue-400 bg-blue-50 shadow-sm'
-                            : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                    }
-                `}
-                onDragOver={handleDragOver}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-            >
-                <div className="space-y-2 text-center">
-                    {/* Icon */}
-                    <div className={`transition-colors ${dragState.isDragging ? 'text-blue-500' : ''}`}>
-                        {getIcon()}
-                    </div>
+            {!viewMode && (<>
+                <div
+                    className={`
+                        relative flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md transition-all duration-200
+                        ${disabled 
+                            ? 'bg-gray-100 border-gray-200 cursor-not-allowed opacity-60' 
+                            : dragState.isDragging
+                                ? 'border-blue-400 bg-blue-50 shadow-sm'
+                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                        }
+                    `}
+                    onDragOver={handleDragOver}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                >
+                    <div className="space-y-2 text-center">
+                        {/* Icon */}
+                        <div className={`transition-colors ${dragState.isDragging ? 'text-blue-500' : ''}`}>
+                            {getIcon()}
+                        </div>
 
-                    {/* Upload Text */}
-                    <div className="flex text-sm text-gray-600">
-                        <label
-                            htmlFor={id}
-                            className={`
-                                relative font-medium rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500
-                                ${disabled 
-                                    ? 'text-gray-400 cursor-not-allowed' 
-                                    : 'cursor-pointer text-blue-600 hover:text-blue-500'
-                                }
-                            `}
-                        >
-                            <span>
-                                {currentFile ? 'Change file' : `Upload ${getAcceptedFormatsText()} file`}
-                            </span>
-                            <input
-                                id={id}
-                                name={name}
-                                type="file"
-                                accept={accept}
-                                disabled={disabled}
-                                className="sr-only"
-                                onChange={handleInputChange}
-                            />
-                        </label>
-                        <p className={`pl-1 ${disabled ? 'text-gray-400' : ''}`}>
-                            or drag and drop
-                        </p>
-                    </div>
-
-                    {/* File Info */}
-                    <div className="space-y-1">
-                        <p className="text-xs text-gray-500">
-                            {description || `${getAcceptedFormatsText()} files only, max ${maxSize}MB`}
-                        </p>
-                        
-                        {/* Current File Display */}
-                        {currentFile && (
-                            <div className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                                <span className="mr-1">✓</span>
-                                <span className="font-medium">{currentFile.name}</span>
-                                <span className="ml-2 text-xs text-green-600">
-                                    ({(currentFile.size / 1024 / 1024).toFixed(2)} MB)
+                        {/* Upload Text */}
+                        <div className="flex text-sm text-gray-600">
+                            <label
+                                htmlFor={id}
+                                className={`
+                                    relative font-medium rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500
+                                    ${disabled 
+                                        ? 'text-gray-400 cursor-not-allowed' 
+                                        : 'cursor-pointer text-blue-600 hover:text-blue-500'
+                                    }
+                                `}
+                            >
+                                <span>
+                                    {currentFile ? 'Change file' : `Upload ${getAcceptedFormatsText()} file`}
                                 </span>
-                            </div>
-                        )}
-
-                        {/* Drag State Feedback */}
-                        {dragState.isDragging && !disabled && (
-                            <p className="text-sm text-blue-600 font-medium animate-pulse">
-                                Drop file here to upload
+                                <input
+                                    id={id}
+                                    name={name}
+                                    type="file"
+                                    accept={accept}
+                                    disabled={disabled}
+                                    className="sr-only"
+                                    onChange={handleInputChange}
+                                />
+                            </label>
+                            <p className={`pl-1 ${disabled ? 'text-gray-400' : ''}`}>
+                                or drag and drop
                             </p>
-                        )}
+                        </div>
+
+                        {/* File Info */}
+                        <div className="space-y-1">
+                            <p className="text-xs text-gray-500">
+                                {description || `${getAcceptedFormatsText()} files only, max ${maxSize}MB`}
+                            </p>
+                            
+                            {/* Current File Display */}
+                            {currentFile && (
+                                <div className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                                    <span className="mr-1">✓</span>
+                                    <span className="font-medium">{currentFile.name}</span>
+                                    <span className="ml-2 text-xs text-green-600">
+                                        ({(currentFile.size / 1024 / 1024).toFixed(2)} MB)
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Drag State Feedback */}
+                            {dragState.isDragging && !disabled && (
+                                <p className="text-sm text-blue-600 font-medium animate-pulse">
+                                    Drop file here to upload
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
-
+            </>)}
             {/* Validation Error */}
             {validationError && (
                 <p className="text-sm text-red-600 flex items-center">
@@ -308,14 +310,16 @@ const FileUpload: React.FC<FileUploadProps> = ({
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-start justify-between mb-3">
                         <h4 className="text-sm font-medium text-gray-900">Preview</h4>
-                        <button
-                            onClick={handleRemoveFile}
-                            className="text-red-600 hover:text-red-800 text-sm flex items-center gap-1"
-                            disabled={disabled}
-                        >
-                            <MdClose className="w-4 h-4" />
-                            Remove
-                        </button>
+                        {!viewMode && (
+                            <button
+                                onClick={handleRemoveFile}
+                                className="text-red-600 hover:text-red-800 text-sm flex items-center gap-1"
+                                disabled={disabled}
+                            >
+                                <MdClose className="w-4 h-4" />
+                                Remove
+                            </button>
+                        )}
                     </div>
 
 
@@ -344,18 +348,11 @@ const FileUpload: React.FC<FileUploadProps> = ({
                                     {/* Image Preview */}
                                     <div className={`${getPreviewSizeClasses()} rounded-lg overflow-hidden border border-gray-300 bg-white shadow-sm relative group`}>
                                         {isSvg ? (
-                                            <object
-                                                data={imageUrl}
-                                                type="image/svg+xml"
+                                            <img
+                                                src={imageUrl}
+                                                alt="Preview"
                                                 className="w-full h-full object-contain"
-                                                style={{ pointerEvents: 'none' }}
-                                            >
-                                                <img
-                                                    src={imageUrl}
-                                                    alt="SVG Preview"
-                                                    className="w-full h-full object-contain"
-                                                />
-                                            </object>
+                                            />
                                         ) : (
                                             <img
                                                 src={imageUrl}
@@ -373,7 +370,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                                                     {hasNewFile ? currentFile!.name : 'Existing Image'}
                                                 </p>
                                                 <p className="text-xs text-gray-500">
-                                                    {hasNewFile ? (currentFile!.type || 'Unknown type') : 'Existing image from database'}
+                                                    {hasNewFile ? (currentFile!.type || 'Unknown type') : ''}
                                                 </p>
                                             </div>
                                             

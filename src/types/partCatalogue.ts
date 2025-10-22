@@ -315,10 +315,113 @@ export interface SteeringValidationErrors {
 
 export interface CatalogDataItem {
     target_id: string;              // part_target
-    diagram_serial_number: string;  // empty string (not available)
+    diagram_serial_number: string;  // empty string
     part_number: string;            // code_product
     catalog_item_name_en: string;   // name_english
     catalog_item_name_ch: string;   // name_chinese
-    description: string;            // empty string (not available)
+    description: string;            // empty string
     quantity: number;               // quantity
+}
+
+// VIN Types
+export interface Vin {
+  production_id: string;
+  vin_number: string;
+  production_name_en: string;
+  production_name_cn: string;
+  production_description?: string;
+  created_at: string;
+  created_by: string;
+  updated_at: string;
+  updated_by: string;
+  deleted_at: string | null;
+  deleted_by: string | null;
+  is_delete: boolean;
+}
+
+export interface VinFormData {
+  vin_number: string;
+  production_name_en: string;
+  production_name_cn: string;
+  production_description?: string;
+  master_pdf?: { master_pdf_id: string }[];
+}
+
+export interface VinPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface VinApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    items: Vin[];
+    pagination: VinPagination;
+  };
+  timestamp: string;
+}
+
+export interface VinFilters {
+  search: string;
+  sort_order: 'asc' | 'desc' | '';
+}
+
+export interface VinValidationErrors {
+  [key: string]: string;
+}
+
+// Master PDF types
+export interface MasterPdf {
+  master_pdf_id: string;
+  name_pdf: string;
+  description: string | null;
+  master_catalog: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MasterManagePagination {
+  current_page: number;
+  per_page: number;
+  total: number;
+  total_pages: number;
+  has_next_page: boolean;
+  has_prev_page: boolean;
+}
+
+export interface MasterBookApiResponse {
+  success: boolean;
+  message: string;
+  data: MasterPdf[];
+  pagination: MasterManagePagination;
+  timestamp: string;
+}
+
+export interface UseManageVinsProps {
+    initialPage?: number;
+    initialLimit?: number;
+    initialFilters?: Partial<VinFilters>;
+}
+
+export interface VinListRequest {
+    page: number;
+    limit: number;
+    search?: string;
+    sort_order?: 'asc' | 'desc' | '';
+}
+
+
+export interface UseMasterManageProps {
+    initialPage?: number;
+    initialLimit?: number;
+    initialFilters?: Partial<VinFilters>;
+}
+
+export interface MasterManageListRequest {
+    page: number;
+    limit: number;
+    search: string;
 }

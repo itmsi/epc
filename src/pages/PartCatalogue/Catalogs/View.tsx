@@ -1,55 +1,134 @@
-import { useNavigate, Link } from 'react-router-dom';
+import React from 'react';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import Input from '@/components/form/input/InputField';
 import Label from '@/components/form/Label';
 import Button from '@/components/ui/button/Button';
-import CustomSelect from '@/components/form/select/CustomSelect';
-import CustomAsyncSelect from '@/components/form/select/CustomAsyncSelect';
 import FileUpload from '@/components/ui/FileUpload/FileUpload';
-import { MdAdd, MdKeyboardArrowLeft, MdDelete } from 'react-icons/md';
+import { MdEdit, MdKeyboardArrowLeft, MdDelete } from 'react-icons/md';
 import PageMeta from '@/components/common/PageMeta';
+import ConfirmationModal from '@/components/ui/modal/ConfirmationModal';
 
-// Import organized types and new hook
-import { PART_TYPES } from '@/types/asyncSelect';
-import { useCreateCatalog } from '@/hooks/useCreateCatalog';
+// Import organized types, hooks, and services
+import { 
+    PART_TYPES, 
+    PartType, 
+    SelectOption 
+} from '@/types/asyncSelect';
+import { CatalogAsyncSelectService, useAsyncSelect } from '@/hooks/useCustomAsyncSelect';
+import { AsyncSelectService } from '@/services/customAsyncSelectService';
+import { useEditCatalog } from '@/hooks/useManageCatalogs';
+import { CatalogManageService } from '@/services/partCatalogueService';
+import { useConfirmation } from '@/hooks/useConfirmation';
+import toast from 'react-hot-toast';
 
-export default function CreateCatalog() {
+export default function ViewCatalog() {
     const navigate = useNavigate();
     
-    // Use the new organized hook that contains all business logic
+    // Use the edit catalog hook
     const {
-        // Search state
-        searchInputValue,
-        handleSearchInputChange,
-        
-        // Part options management
-        partOptions,
-        loadPartOptions,
-        
-        // CSV handling
-        handleCSVUpload,
-        
-        // Form management
         formData,
         setFormData,
         validationErrors,
         setValidationErrors,
+        partCatalogueData,
         catalogueDataLoading,
         selectedPartData,
         subTypes,
         getSubTypeOptions,
-        handleSelectChange,
         handleInputChange,
-        handleAddPart,
-        handleRemovePart,
         handlePartChange,
         handleSubmit,
         loading,
-        
-        // Async select hook
-        asyncSelectHook
-    } = useCreateCatalog();
+        loadingCatalog,
+        catalogData
+    } = useEditCatalog();
 
-    // Handle form submission
+    // Use the async select hook for pagination and search
+    const asyncSelectHook = useAsyncSelect({
+        partType: formData.part_type as PartType,
+        partCatalogueData
+    });
+
+    const { id } = useParams();
+    
+    // Use confirmation hook for delete action
+    const { showConfirmation, modalProps } = useConfirmation();
+
+    // Handle delete catalog
+    const handleDelete = React.useCallback(async () => {
+        if (!id) {
+            toast.error('Catalog ID is required');
+            return;
+        }
+
+        const confirmed = await showConfirmation({
+            title: 'Delete Catalog',
+            message: 'Are you sure you want to delete this catalog? This action cannot be undone.',
+            confirmText: 'Delete',
+            cancelText: 'Cancel',
+            type: 'danger'
+        });
+
+        if (!confirmed) return;
+
+        try {
+            const response = await CatalogManageService.deleteCatalog(id);
+            
+            if (response.data?.success) {
+                toast.success('Catalog deleted successfully!');
+                navigate('/epc/manage');
+            } else {
+                toast.error(response.data?.message || 'Failed to delete catalog');
+            }
+        } catch (error) {
+            console.error('Error deleting catalog:', error);
+            toast.error('Failed to delete catalog');
+        }
+    }, [id, navigate, showConfirmation]);
+
+    // Helper to get part data by type
+    const getPartDataByType = React.useCallback(() => {
+        switch (formData.part_type) {
+            case 'cabin': return partCatalogueData.cabins || [];
+            case 'engine': return partCatalogueData.engines || [];
+            case 'axle': return partCatalogueData.axles || [];
+            case 'transmission': return partCatalogueData.transmissions || [];
+            case 'steering': return partCatalogueData.steerings || [];
+            default: return [];
+        }
+    }, [formData.part_type, partCatalogueData]);
+
+    // Get options for part selection
+    const getPartOptions = React.useCallback((): SelectOption[] => {
+        if (!formData.part_type) return [{ value: '', label: 'Select Part Type First' }];
+
+        const baseOptions = AsyncSelectService.createDefaultOptions(`Select ${formData.part_type}`);
+        const partData = getPartDataByType();
+        
+        if (!partData.length) return baseOptions;
+
+        const transformedOptions = CatalogAsyncSelectService.transformPartDataToOptions(
+            formData.part_type as PartType, 
+            partData
+        );
+        
+        return baseOptions.concat(transformedOptions);
+    }, [formData.part_type, getPartDataByType]);
+
+    // Memoize part options to prevent unnecessary recalculations
+    const partOptions = React.useMemo(() => {
+        if (asyncSelectHook.partOptions.length > 0) {
+            return asyncSelectHook.partOptions;
+        }
+        return getPartOptions();
+    }, [asyncSelectHook.partOptions, getPartOptions]);
+
+    // Check if data is loading
+    const isDataLoading = () => {
+        return catalogueDataLoading || asyncSelectHook.isLoading || loadingCatalog;
+    };
+
+    // Handle form submission with navigation
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         await handleSubmit(e);
@@ -59,11 +138,57 @@ export default function CreateCatalog() {
         }
     };
 
+    // Show loading screen while fetching catalog data
+    if (loadingCatalog) {
+        return (
+            <>
+                <PageMeta
+                    title="Edit Catalog"
+                    description="View catalog for part catalogue"
+                    image=""
+                />
+                <div className="bg-gray-50 overflow-auto">
+                    <div className="mx-auto p-4 sm:px-3">
+                        <div className="flex items-center justify-center h-64">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                            <span className="ml-3 text-gray-600">Loading catalog data...</span>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    // Show error if catalog not found
+    if (!catalogData && !loadingCatalog) {
+        return (
+            <>
+                <PageMeta
+                    title="Edit Catalog"
+                    description="Edit catalog for part catalogue"
+                    image=""
+                />
+                <div className="bg-gray-50 overflow-auto">
+                    <div className="mx-auto p-4 sm:px-3">
+                        <div className="flex flex-col items-center justify-center h-64">
+                            <div className="text-red-600 text-lg font-medium mb-4">Catalog not found</div>
+                            <Link to="/epc/manage">
+                                <Button variant="outline">
+                                    Back to Manage Catalogs
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
     return (
         <>
-            <PageMeta 
-                title="Create Catalog" 
-                description="Create a new catalog by selecting part type and adding parts details"
+            <PageMeta
+                title="Edit Catalog"
+                description="Edit catalog for part catalogue"
                 image=""
             />
             <div className="bg-gray-50 overflow-auto">
@@ -81,15 +206,32 @@ export default function CreateCatalog() {
                                 </Button>
                             </Link>
                             <div className="border-l border-gray-300 h-6 mx-3"></div>
-                            <MdAdd size={20} className="text-primary" />
-                            <h1 className="ms-2 font-primary-bold font-normal text-xl">Create Catalog</h1>
+                            
+                            <h1 className="ms-2 font-primary-bold font-normal text-xl">View Catalog</h1>
+                            
+                        </div>
+                        <div className='flex gap-3'>
+                            <Button
+                                variant="outline"
+                                className="rounded-lg w-full md:w-30 flex items-center justify-center gap-2 ring-[#0253a5] font-secondary"
+                                onClick={() => navigate(`/epc/manage/edit/${ id }`)}
+                            >
+                                <MdEdit size={20} className="text-primary" /> Edit
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="rounded-lg w-full md:w-30 flex items-center justify-center gap-2 ring-[#e7000b] font-secondary py-2"
+                                onClick={() => handleDelete()}
+                            >
+                                <MdDelete size={20} className="text-red-600" /> Delete
+                            </Button>
                         </div>
                     </div>
 
                     {/* Form Section */}
                     <form className="bg-white rounded-2xl shadow-sm" onSubmit={onSubmit}>
                         <div className="p-8">
-                            <div className='md:min-h-[800px]' >
+                            <div className='min-h-[800px]' >
                                     
                                 <h2 className="text-lg font-primary-bold font-medium text-gray-900 md:col-span-2">
                                     Part Configuration
@@ -105,6 +247,7 @@ export default function CreateCatalog() {
                                             placeholder="Enter Code Cabin"
                                             value={formData.code_cabin}
                                             onChange={handleInputChange}
+                                            readonly={true}
                                         />
                                         {validationErrors.code_cabin && (
                                             <p className="mt-1 text-sm text-red-600">
@@ -114,12 +257,14 @@ export default function CreateCatalog() {
                                     </div>
                                     <div>
                                         <Label htmlFor="part_type">Part Type *</Label>
-                                        <CustomSelect
-                                            placeholder="Select Part Type"
-                                            onChange={handleSelectChange('part_type')}
-                                            options={PART_TYPES}
-                                            value={formData.part_type ? PART_TYPES.find(pt => pt.value === formData.part_type) : null}
-                                            error={validationErrors.part_type}
+                                        <Input
+                                            type="text"
+                                            name="part_type"
+                                            id="part_type"
+                                            placeholder="Enter Part Type"
+                                            value={formData.part_type}
+                                            onChange={handleInputChange}
+                                            readonly={true}
                                         />
                                         {validationErrors.part_type && (
                                             <p className="mt-1 text-sm text-red-600">
@@ -132,23 +277,16 @@ export default function CreateCatalog() {
                                     {formData.part_type && (
                                         <div>
                                             <Label htmlFor="part_id">Select {PART_TYPES.find(pt => pt.value === formData.part_type)?.label} *</Label>
-                                            <CustomAsyncSelect
-                                                name='part_id'
-                                                placeholder={`Select ${PART_TYPES.find(pt => pt.value === formData.part_type)?.label}`}
-                                                onChange={handleSelectChange('part_id')}
-                                                value={formData.part_id ? partOptions.find((po) => String(po.value) === formData.part_id) : null}
-                                                error={validationErrors.part_id}
-                                                defaultOptions={partOptions}
-                                                loadOptions={loadPartOptions}
-                                                onMenuScrollToBottom={asyncSelectHook.handleScrollToBottom}
-                                                isLoading={catalogueDataLoading}
-                                                noOptionsMessage={() => catalogueDataLoading ? `Loading ${formData.part_type} data...` : `No ${formData.part_type} found`}
-                                                loadingMessage={() => `Loading ${formData.part_type} data...`}
-                                                isSearchable={true}
-                                                inputValue={searchInputValue}
-                                                onInputChange={handleSearchInputChange}
+                                            <Input
+                                                type="text"
+                                                name="part_type"
+                                                id="part_type"
+                                                placeholder="Enter Part Type"
+                                                value={formData.part_id ? (partOptions.find((po) => String(po.value) === formData.part_id)?.label || 'Selected part') : 'No part selected'}
+                                                onChange={handleInputChange}
+                                                readonly={true}
                                             />
-                                            {catalogueDataLoading && (
+                                            {isDataLoading() && (
                                                 <p className="mt-1 text-sm text-gray-500">Loading {formData.part_type} data...</p>
                                             )}
                                             {validationErrors.part_id && (
@@ -163,12 +301,14 @@ export default function CreateCatalog() {
                                     {formData.part_id && (
                                         <div>
                                             <Label htmlFor="type_id" className='font-secondary'>Select Type *</Label>
-                                            <CustomSelect
-                                                placeholder="Select Type"
-                                                onChange={handleSelectChange('type_id')}
-                                                options={getSubTypeOptions()}
-                                                value={formData.type_id ? getSubTypeOptions().find(sto => sto.value === formData.type_id) : null}
-                                                isLoading={catalogueDataLoading}
+                                            <Input
+                                                type="text"
+                                                name="part_type"
+                                                id="part_type"
+                                                placeholder="Enter Part Type"
+                                                value={formData.part_id ? (getSubTypeOptions().find(sto => sto.value === formData.type_id)?.label || 'Selected part') : 'No part selected'}
+                                                onChange={handleInputChange}
+                                                readonly={true}
                                             />
                                             {validationErrors.type_id && (
                                                 <p className="mt-1 text-sm text-red-600">
@@ -219,7 +359,7 @@ export default function CreateCatalog() {
 
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* CSV Upload Section - Show after type selection */}
+                                    {/* SVG Image Upload & Parts Section - Show after type selection */}
                                     {selectedPartData && formData.type_id && (
                                         <>
                                             {/* SVG Image Upload */}
@@ -232,6 +372,7 @@ export default function CreateCatalog() {
                                                     acceptedFormats={['svg', 'image/svg+xml']}
                                                     maxSize={5}
                                                     currentFile={formData.svg_image}
+                                                    existingImageUrl={formData.parts.length > 0 ? formData.parts[0].file_foto : null}
                                                     onFileChange={(file) => {
                                                         setFormData(prev => ({
                                                             ...prev,
@@ -247,21 +388,7 @@ export default function CreateCatalog() {
                                                     }}
                                                     showPreview={true}
                                                     previewSize="lg"
-                                                />
-                                            </div>
-
-                                            {/* CSV Upload for Parts */}
-                                            <div className="md:col-span-2">
-                                                <FileUpload
-                                                    id="csv_file"
-                                                    name="csv_file"
-                                                    label="Upload CSV File (Optional)"
-                                                    accept=".csv,text/csv"
-                                                    acceptedFormats={['csv', 'text/csv']}
-                                                    maxSize={10}
-                                                    currentFile={formData.csv_file}
-                                                    onFileChange={handleCSVUpload}
-                                                    description="CSV file containing parts data"
+                                                    viewMode={true}
                                                 />
                                             </div>
 
@@ -270,17 +397,6 @@ export default function CreateCatalog() {
                                                 <div className="mb-6">
                                                     <div className="flex items-center justify-between mb-4">
                                                         <h3 className="text-lg font-medium text-gray-900">Parts Management</h3>
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            onClick={handleAddPart}
-                                                            disabled={loading}
-                                                            className="rounded-md w-full md:w-40 flex items-center justify-center gap-2"
-                                                            size="sm"
-                                                        >
-                                                            <MdAdd className="w-4 h-4" />
-                                                            Add Part
-                                                        </Button>
                                                     </div>
                                                     
                                                     {/* Parts List */}
@@ -296,15 +412,6 @@ export default function CreateCatalog() {
                                                                             <h4 className="text-md font-medium text-gray-700">
                                                                                 Part #{index + 1}
                                                                             </h4>
-                                                                            <Button
-                                                                                type="button"
-                                                                                onClick={() => handleRemovePart(part.id)}
-                                                                                className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                                                                                variant="outline"
-                                                                                size="sm"
-                                                                            >
-                                                                                <MdDelete className="w-4 h-4" />
-                                                                            </Button>
                                                                         </div>
 
                                                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
@@ -317,6 +424,7 @@ export default function CreateCatalog() {
                                                                                     onChange={(e) => handlePartChange(part.id, 'part_target', e.target.value)}
                                                                                     placeholder="e.g., part-1"
                                                                                     className="mt-1"
+                                                                                    readonly={true}
                                                                                 />
                                                                             </div>
 
@@ -329,6 +437,7 @@ export default function CreateCatalog() {
                                                                                     onChange={(e) => handlePartChange(part.id, 'code_product', e.target.value)}
                                                                                     placeholder="Part number"
                                                                                     className="mt-1"
+                                                                                    readonly={true}
                                                                                 />
                                                                             </div>
 
@@ -343,6 +452,7 @@ export default function CreateCatalog() {
                                                                                     onChange={(e) => handlePartChange(part.id, 'quantity', parseInt(e.target.value) || 0)}
                                                                                     placeholder="Qty"
                                                                                     className="mt-1"
+                                                                                    readonly={true}
                                                                                 />
                                                                             </div>
 
@@ -355,6 +465,7 @@ export default function CreateCatalog() {
                                                                                     onChange={(e) => handlePartChange(part.id, 'name_english', e.target.value)}
                                                                                     placeholder="Enter English Name"
                                                                                     className="mt-1"
+                                                                                    readonly={true}
                                                                                 />
                                                                             </div>
 
@@ -368,6 +479,7 @@ export default function CreateCatalog() {
                                                                                     onChange={(e) => handlePartChange(part.id, 'name_chinese', e.target.value)}
                                                                                     placeholder="Enter Chinese Name"
                                                                                     className="mt-1"
+                                                                                    readonly={true}
                                                                                 />
                                                                             </div>
                                                                         </div>
@@ -376,7 +488,7 @@ export default function CreateCatalog() {
                                                             </>
                                                         ) : (
                                                             <div className="text-center py-8 text-gray-500">
-                                                                <p>No parts added yet. Click "Add Part" or upload a CSV file to get started.</p>
+                                                                <p>No parts added yet. Click "Add Part" to get started.</p>
                                                             </div>
                                                         )}
                                                     </div>
@@ -398,21 +510,15 @@ export default function CreateCatalog() {
                                 >
                                     Cancel
                                 </Button>
-                                <Button 
-                                    type="submit" 
-                                    variant="primary"
-                                    disabled={loading}
-                                    className="px-6 flex items-center gap-2 rounded-full"
-                                >
-                                    
-                                    {loading ? 'Creating...' : 'Create Catalog'}
-                                </Button>
                             </div>
                         </div>
                     </form>
 
                 </div>
             </div>
+
+            {/* Confirmation Modal for Delete */}
+            <ConfirmationModal {...modalProps} />
         </>
     );
 }

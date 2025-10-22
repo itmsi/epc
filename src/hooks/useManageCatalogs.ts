@@ -142,7 +142,7 @@ export function useManageCatalogs(props: UseManageCatalogsProps = {}): UseManage
             limit: initialLimit,
             search: '',
             sort_by: '',
-            sort_order: 'asc',
+            sort_order: 'desc',
             master_pdf_id: '',
             master_catalog: ''
         };
@@ -202,6 +202,7 @@ interface UseEditCatalogReturn extends ReturnType<typeof usePartCatalogueManagem
     
     // Loading states
     loadingCatalog: boolean;
+    submitting: boolean;
     
     // Fetch catalog data
     fetchCatalogData: () => Promise<void>;
@@ -219,6 +220,7 @@ export function useEditCatalog(props: UseEditCatalogProps = {}): UseEditCatalogR
     // Additional states for edit functionality
     const [catalogData, setCatalogData] = useState<EditCatalogData | null>(null);
     const [loadingCatalog, setLoadingCatalog] = useState<boolean>(true);
+    const [submitting, setSubmitting] = useState<boolean>(false);
     
     // Ref to track if catalog data has been fetched to prevent multiple calls
     const hasFetchedCatalog = useRef<boolean>(false);
@@ -260,6 +262,7 @@ export function useEditCatalog(props: UseEditCatalogProps = {}): UseEditCatalogR
                         part_type: masterCategory.master_catalog,
                         part_id: masterCategory.master_category_id,
                         type_id: masterCategory.type_category_id,
+                        use_csv_upload: false, // Default to manual editing
                         parts: transformedParts
                     }));
 
@@ -291,6 +294,11 @@ export function useEditCatalog(props: UseEditCatalogProps = {}): UseEditCatalogR
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         
+        if (!catalogId) {
+            toast.error('Catalog ID is required');
+            return;
+        }
+        
         const errors = partCatalogueHook.validateForm();
         partCatalogueHook.setValidationErrors(errors);
 
@@ -300,17 +308,26 @@ export function useEditCatalog(props: UseEditCatalogProps = {}): UseEditCatalogR
         }
 
         try {
-            // For now, just show success message since update API is not implemented
-            toast.success('Catalog updated successfully!');
+            setSubmitting(true);
             
-            // Navigate back to manage page
-            navigate('/epc/manage');
+            // Call the update service
+            const response = await CatalogManageService.updateItemsById(catalogId, partCatalogueHook.formData);
+            
+            if (response.data?.success) {
+                toast.success('Catalog updated successfully!');
+                // Navigate back to manage page
+                navigate('/epc/manage');
+            } else {
+                toast.error(response.data?.message || 'Failed to update catalog');
+            }
             
         } catch (error) {
             console.error('Error updating catalog:', error);
             toast.error('Failed to update catalog');
+        } finally {
+            setSubmitting(false);
         }
-    }, [partCatalogueHook, navigate]);
+    }, [catalogId, partCatalogueHook, navigate, setSubmitting]);
 
     // Load catalog data on mount
     useEffect(() => {
@@ -328,9 +345,7 @@ export function useEditCatalog(props: UseEditCatalogProps = {}): UseEditCatalogR
         // Additional edit-specific properties
         catalogData,
         loadingCatalog,
+        submitting,
         fetchCatalogData
     };
 }
-
-// export default useEditCatalog;
-// export default useManageCatalogs;

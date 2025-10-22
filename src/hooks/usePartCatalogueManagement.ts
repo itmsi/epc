@@ -8,7 +8,7 @@ import {
     CatalogValidationErrors,
     PartItem 
 } from '@/types/asyncSelect';
-import { CatalogAsyncSelectService } from '@/services/catalogAsyncSelectService';
+import { CatalogAsyncSelectService } from './useCustomAsyncSelect';
 
 interface UsePartCatalogueManagementProps {
     onPartTypeChange?: (partType: string) => void;

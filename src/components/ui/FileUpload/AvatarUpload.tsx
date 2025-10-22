@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import FileUpload from '@/components/ui/FileUpload';
+import FileUpload from '@/components/ui/FileUpload/FileUpload';
 
 interface AvatarUploadProps {
     currentAvatar?: string | null;

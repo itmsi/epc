@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, apiPost, apiPut, ApiResponse, apiPostMultipart } from '@/helpers/apiHelper';
+import { apiDelete, apiGet, apiPost, apiPut, ApiResponse, apiPostMultipart, apiPutMultipart } from '@/helpers/apiHelper';
 import { 
   Cabin,
   CabinFormData, 
@@ -21,6 +21,12 @@ import {
   SteeringFormData,
   Steering,
   CatalogDataItem,
+  Vin,
+  VinFormData,
+  VinApiResponse,
+  VinFilters,
+  MasterBookApiResponse,
+  MasterPdf
 } from '@/types/partCatalogue';
 import { CatalogsListRequest, ManageCatalogsResponse, PartCatalogueFormData, PartItem, EditCatalogResponse } from '@/types/asyncSelect';
 
@@ -317,6 +323,7 @@ export class CatalogManageService {
             quantity: part.quantity
         }));
     }
+
     static async createCatalog(formData: PartCatalogueFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
         const formDataPayload = new FormData();
 
@@ -327,7 +334,7 @@ export class CatalogManageService {
         formDataPayload.append('type_category_id', formData.type_id);
         formDataPayload.append('use_csv', formData.use_csv_upload.toString());
         
-        // Always send file_foto field - empty string if no file uploaded
+        // Handle SVG image file - send empty string if no file uploaded
         if (formData.svg_image) {
             formDataPayload.append('file_foto', formData.svg_image);
         } else {
@@ -338,6 +345,7 @@ export class CatalogManageService {
         const dataItems = this.transformPartsToDataItems(formData.parts);
         formDataPayload.append('data_items', JSON.stringify(dataItems));
 
+        // Handle CSV file - only append if exists
         if (formData.csv_file) {
             formDataPayload.append('file_csv', formData.csv_file);
         }
@@ -345,7 +353,6 @@ export class CatalogManageService {
         return await apiPostMultipart<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/all-item-catalogs/create`, formDataPayload);
     }
 
-    // Get Manage Catalog
     static async getItems(params: CatalogsListRequest): Promise<ManageCatalogsResponse> {
         // Filter out empty parameters to avoid sending unnecessary data
         const filteredParams: Record<string, unknown> = {
@@ -378,7 +385,6 @@ export class CatalogManageService {
         return response.data as ManageCatalogsResponse;
     }
 
-    // Get ITEMS by ID
     static async getItemsById(id: string): Promise<EditCatalogResponse> {
         try {
             const response = await apiGet<EditCatalogResponse>(`${API_BASE_URL}/catalogs/all-item-catalogs/${id}`);
@@ -395,5 +401,110 @@ export class CatalogManageService {
                 timestamp: new Date().toISOString()
             };
         }
+    }
+
+    static async updateItemsById(id: string, formData: PartCatalogueFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        const formDataPayload = new FormData();
+
+        // Add required fields
+        formDataPayload.append('name_pdf', formData.code_cabin);
+        formDataPayload.append('master_catalog', formData.part_type);
+        formDataPayload.append('master_category_id', formData.part_id);
+        formDataPayload.append('type_category_id', formData.type_id);
+        formDataPayload.append('use_csv', formData.use_csv_upload.toString());
+        
+        // Handle SVG image file - send empty string if no file uploaded
+        if (formData.svg_image) {
+            formDataPayload.append('file_foto', formData.svg_image);
+        } else {
+            formDataPayload.append('file_foto', '');
+        }
+        
+        // Transform and add data_items as JSON string
+        const dataItems = this.transformPartsToDataItems(formData.parts);
+        formDataPayload.append('data_items', JSON.stringify(dataItems));
+
+        // Handle CSV file - only append if exists
+        if (formData.csv_file) {
+            formDataPayload.append('file_csv', formData.csv_file);
+        }
+
+        return await apiPutMultipart<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/all-item-catalogs/${id}`, formDataPayload);
+    }
+
+    static async deleteCatalog(id: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/all-item-catalogs/${id}`);
+    }
+}
+// Vin Services
+export class VinService {
+    // Fetch Vins with pagination and filters
+    static async getVins(
+        page: number = 1,
+        limit: number = 10,
+        filters: Partial<VinFilters> = {}
+    ): Promise<ApiResponse<VinApiResponse>> {
+        const payload = {
+            page,
+            limit,
+            search: filters.search || '',
+            sort_order: filters.sort_order || 'desc'
+        };
+
+        return await apiPost<VinApiResponse>(`${API_BASE_URL}/catalogs/productions/get`, payload);
+    }
+
+    // Create new vin
+    static async createVin(formData: VinFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        // Transform formData to match API expectations
+        const payload = {
+            vin_number: formData.vin_number,
+            production_name_en: formData.production_name_en,
+            production_name_cn: formData.production_name_cn,
+            production_description: formData.production_description || '',
+            data_details: formData.master_pdf || []
+        };
+
+        return await apiPost<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/productions/create`, payload);
+    }
+
+    // Get master manage list with pagination and filters
+    static async getMasterManages(
+        page: number = 1,
+        limit: number = 10,
+        filters: Partial<VinFilters> = {}
+    ): Promise<ApiResponse<MasterBookApiResponse>> {
+        const payload = {
+            page,
+            limit,
+            search: filters.search || ''
+        };
+
+        return await apiPost<MasterBookApiResponse>(`${API_BASE_URL}/catalogs/master-pdf/get`, payload);
+    }
+
+    // Get existing vin by ID
+    static async getVinById(vinId: string): Promise<ApiResponse<{ success: boolean; message: string; data: Vin }>> {
+        return await apiGet<{ success: boolean; message: string; data: Vin }>(`${API_BASE_URL}/catalogs/productions/${vinId}`, { production_id: vinId });
+    }
+
+    // Update existing vin
+    static async updateVin(vinId: string, formData: VinFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        // Transform formData to match API expectations
+        const payload = {
+            production_id: vinId,
+            vin_number: formData.vin_number,
+            production_name_en: formData.production_name_en,
+            production_name_cn: formData.production_name_cn,
+            production_description: formData.production_description || '',
+            data_details: formData.master_pdf || []
+        };
+
+        return await apiPut<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/productions/${vinId}`, payload);
+    }
+
+    // Delete vin
+    static async deleteVin(vinId: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/productions/${vinId}`);
     }
 }

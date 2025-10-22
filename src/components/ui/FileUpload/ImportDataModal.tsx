@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import FileUpload from '@/components/ui/FileUpload';
+import FileUpload from '@/components/ui/FileUpload/FileUpload';
 import Button from '@/components/ui/button/Button';
 import { MdDownload, MdUpload } from 'react-icons/md';
 import toast from 'react-hot-toast';

@@ -71,6 +71,15 @@ export interface PartItem {
     quantity: number;
 }
 
+export interface CreatePartItem {
+    part_target: string;
+    code_product: string;
+    file_foto: string | null;
+    name_english: string;
+    name_chinese: string;
+    quantity: number;
+}
+
 export interface CatalogValidationErrors {
     code_cabin?: string;
     part_type?: string;
@@ -152,7 +161,7 @@ export interface CatalogsListRequest {
     limit: number;
     search?: string;
     sort_by?: string;
-    sort_order?: 'asc' | 'desc';
+    sort_order: 'asc' | 'desc' | '';
     master_pdf_id?: string;
     master_catalog?: string;
 }

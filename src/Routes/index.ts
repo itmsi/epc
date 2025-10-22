@@ -33,7 +33,11 @@ const CreateSteeringPartCatalogue = lazy(() => import('@/pages/PartCatalogue/Ste
 const EditSteeringPartCatalogue = lazy(() => import('@/pages/PartCatalogue/Steering/Edit'));
 const CreatePartCatalogue = lazy(() => import('@/pages/PartCatalogue/Catalogs/Create'));
 const EditPartCatalogue = lazy(() => import('@/pages/PartCatalogue/Catalogs/Edit'));
+const ViewPartCatalogue = lazy(() => import('@/pages/PartCatalogue/Catalogs/View'));
 const ManagePartCatalogue = lazy(() => import('@/pages/PartCatalogue/Catalogs/Manage'));
+const VinPartCatalogue = lazy(() => import('@/pages/PartCatalogue/Vins/Manage'));
+const VinCreateCatalogue = lazy(() => import('@/pages/PartCatalogue/Vins/Create'));
+const VinViewCatalogue = lazy(() => import('@/pages/PartCatalogue/Vins/View'));
 // PowerBiForm is imported by Create and Edit components, no need to add here
 
 export type TAppRoute = {
@@ -308,11 +312,43 @@ export const routes: TAppRoute[] = [
         layout: AppLayout,
     },
     {
+        path: '/epc/manage/view/:id',
+        name: 'View Catalog',
+        isProtected: false,
+        roles: ['Manage Catalogs'],
+        component: ViewPartCatalogue,
+        layout: AppLayout,
+    },
+    {
         path: '/epc/manage',
         name: 'Manage Catalogs',
         isProtected: false,
         roles: ['Manage Catalogs'],
         component: ManagePartCatalogue,
+        layout: AppLayout,
+    },
+    {
+        path: '/epc/vins',
+        name: 'Vin Catalogs',
+        isProtected: false,
+        roles: ['Vin Catalogs'],
+        component: VinPartCatalogue,
+        layout: AppLayout,
+    },
+    {
+        path: '/epc/vins/create',
+        name: 'Vin Create Catalogs',
+        isProtected: false,
+        roles: ['Vin Catalogs'],
+        component: VinCreateCatalogue,
+        layout: AppLayout,
+    },
+    {
+        path: '/epc/vins/view/:vin_id',
+        name: 'Vin View Catalogs',
+        isProtected: false,
+        roles: ['Vin Catalogs'],
+        component: VinViewCatalogue,
         layout: AppLayout,
     },
 ];
