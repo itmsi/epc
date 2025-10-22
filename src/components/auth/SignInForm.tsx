@@ -136,15 +136,6 @@ export default function SignInForm() {
                                 )}
                             </div>
                             
-                            <div className="flex items-center justify-end">
-                                <Link
-                                    to="/reset-password"
-                                    className="text-sm text-gray-600 hover:text-brand-600 hover:underline"
-                                >
-                                    Forgot password?
-                                </Link>
-                            </div>
-                            
                             <Button 
                                 className="w-full mt-6" 
                                 size="md"
@@ -155,19 +146,6 @@ export default function SignInForm() {
                             </Button>
                         </div>
                     </form>
-
-                    {/* Sign Up Link */}
-                    <div className="mt-6 text-center">
-                        <p className="text-sm text-gray-600">
-                            Don't have an account?{" "}
-                            <Link
-                                to="/signup"
-                                className="text-brand-500 hover:text-brand-600 font-medium hover:underline"
-                            >
-                                Sign Up
-                            </Link>
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>

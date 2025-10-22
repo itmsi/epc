@@ -3,18 +3,9 @@ const AppLayout = lazy(() => import('@/layout/AppLayout'));
 const NotFound = lazy(() => import('@/pages/OtherPage/NotFound'));
 const Forbidden = lazy(() => import('@/pages/OtherPage/Forbidden'));
 const SignIn = lazy(() => import('@/pages/AuthPages/SignIn'));
-const SignUp = lazy(() => import('@/pages/AuthPages/SignUp'));
 const Home = lazy(() => import('@/pages/Dashboard/Home'));
 const Blank = lazy(() => import('@/pages/Blank'));
 const UserProfiles = lazy(() => import('@/pages/UserProfiles'));
-const ManageMenu = lazy(() => import('@/pages/Administration/ManageMenu'));
-const ManageCompany = lazy(() => import('@/pages/Administration/ManageCompany'));
-const ManageDepartment = lazy(() => import('@/pages/Administration/ManageDepartment'));
-const ManageEmployee = lazy(() => import('@/pages/Administration/ManageEmployee'));
-const CreateEmployee = lazy(() => import('@/pages/Administration/CreateEmployee'));
-const EditEmployee = lazy(() => import('@/pages/Administration/EditEmployee'));
-const ManageRole = lazy(() => import('@/pages/Administration/ManageRole'));
-const ManagePosition = lazy(() => import('@/pages/Administration/ManagePosition'));
 const DashboardCatalogue = lazy(() => import('@/pages/PartCatalogue/Dashboard'));
 const CabinPartCatalogue = lazy(() => import('@/pages/PartCatalogue/Cabin/ManageCabin'));
 const CreateCabinPartCatalogue = lazy(() => import('@/pages/PartCatalogue/Cabin/CreateCabin'));
@@ -62,12 +53,6 @@ export const routes: TAppRoute[] = [
         component: SignIn,
     },
     {
-        path: '/signup',
-        name: 'Sign Up',
-        isUnProtected: true,
-        component: SignUp,
-    },
-    {
         path: '/home',
         name: 'Dashboard',
         roles: ['ADMIN'],
@@ -93,78 +78,11 @@ export const routes: TAppRoute[] = [
         component: NotFound,
     },
     {
-        path: '/employees',
-        name: 'Employees',
-        isProtected: true,
-        roles: ['Employees'],
-        requiredPermissions: ['read'],
-        component: ManageEmployee,
-        layout: AppLayout,
-    },
-    {
-        path: '/employees/create',
-        name: 'Employees',
-        isProtected: true,
-        roles: ['Employees'],
-        requiredPermissions: ['create'],
-        component: CreateEmployee,
-        layout: AppLayout,
-    },
-    {
-        path: '/employees/edit/:id',
-        name: 'Employees',
-        isProtected: true,
-        roles: ['Employees'],
-        requiredPermissions: ['update'],
-        component: EditEmployee,
-        layout: AppLayout,
-    },
-    {
-        path: '/departments',
-        name: 'Departments',
-        isProtected: true,
-        roles: ['Departments'],
-        component: ManageDepartment,
-        layout: AppLayout,
-    },
-    {
-        path: '/companies',
-        name: 'Companies',
-        isProtected: true,
-        roles: ['Companies'],
-        component: ManageCompany,
-        layout: AppLayout,
-    },
-    {
-        path: '/roles',
-        name: 'Roles',
-        isProtected: true,
-        roles: ['Roles'],
-        component: ManageRole,
-        layout: AppLayout,
-    },
-    {
         path: '/profile',
         name: 'Profile',
         isProtected: true,
         roles: ['ADMIN'],
         component: UserProfiles,
-        layout: AppLayout,
-    },
-    {
-        path: '/menu',
-        name: 'Menu',
-        isProtected: true,
-        roles: ['Menu'],
-        component: ManageMenu,
-        layout: AppLayout,
-    },
-    {
-        path: '/position',
-        name: 'Positions',
-        isProtected: true,
-        roles: ['Positions'],
-        component: ManagePosition,
         layout: AppLayout,
     },
     {
