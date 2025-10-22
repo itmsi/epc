@@ -54,7 +54,7 @@ const navItems: NavItem[] = [
         allowedRoles: ['Dashboard Catalogs', 'Cabin Catalogs', 'Engine Catalogs', 'Axle Catalogs', 'Transmission Catalogs', 'Steering Catalogs'],
         subItems: [
             { name: "Dashboard", path: "/epc/dashboard", allowedRoles: ['Dashboard Catalogs'], },
-            { name: "Vin", path: "/epc/vins", allowedRoles: ['Vin Catalogs'] },
+            { name: "VIN", path: "/epc/vins", allowedRoles: ['Vin Catalogs'] },
             { name: "Manage", path: "/epc/manage", allowedRoles: ['Manage Catalogs'] },
             { name: "Cabin", path: "/epc/cabin", allowedRoles: ['Cabin Catalogs'] },
             { name: "Engine", path: "/epc/engine", allowedRoles: ['Engine Catalogs'] },
