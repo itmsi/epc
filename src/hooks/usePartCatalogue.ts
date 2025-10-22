@@ -151,9 +151,9 @@ export const useCabin = (): UseCabinReturn => {
     // Fetch cabins when sort_order changes (but not search)
     useEffect(() => {
         if (filters.sort_order !== initialFilters.sort_order) {
-            fetchCabins(1);
+            fetchCabins(1, pagination?.limit || 10);
         }
-    }, [filters.sort_order]);
+    }, [filters.sort_order, fetchCabins, pagination?.limit]);
 
     // Initial fetch when component mounts
     useEffect(() => {
@@ -536,9 +536,9 @@ export const useEngine = (): UseEngineReturn => {
     // Fetch engines when sort_order changes (but not search)
     useEffect(() => {
         if (filters.sort_order !== initialFilters.sort_order) {
-            fetchEngines(1);
+            fetchEngines(1, pagination?.limit || 10);
         }
-    }, [filters.sort_order]);
+    }, [filters.sort_order, fetchEngines, pagination?.limit]);
 
     // Initial fetch when component mounts
     useEffect(() => {
@@ -921,9 +921,9 @@ export const useAxle = (): UseAxleReturn => {
     // Fetch axels when sort_order changes (but not search)
     useEffect(() => {
         if (filters.sort_order !== initialFilters.sort_order) {
-            fetchAxles(1);
+            fetchAxles(1, pagination?.limit || 10);
         }
-    }, [filters.sort_order]);
+    }, [filters.sort_order, fetchAxles, pagination?.limit]);
 
     // Initial fetch when component mounts
     useEffect(() => {
@@ -1302,11 +1302,12 @@ export const useTransmission = (): UseTransmissionReturn => {
     }, []);
 
     // Fetch cabins when sort_order changes (but not search)
+    // Fetch transmissions when sort_order changes (but not search)
     useEffect(() => {
         if (filters.sort_order !== initialFilters.sort_order) {
-            fetchTransmissions(1);
+            fetchTransmissions(1, pagination?.limit || 10);
         }
-    }, [filters.sort_order]);
+    }, [filters.sort_order, fetchTransmissions, pagination?.limit]);
 
     // Initial fetch when component mounts
     useEffect(() => {
@@ -1685,12 +1686,12 @@ export const useSteering = (): UseSteeringReturn => {
         setError(null);
     }, []);
 
-    // Fetch cabins when sort_order changes (but not search)
+    // Fetch steerings when sort_order changes (but not search)
     useEffect(() => {
         if (filters.sort_order !== initialFilters.sort_order) {
-            fetchSteerings(1);
+            fetchSteerings(1, pagination?.limit || 10);
         }
-    }, [filters.sort_order]);
+    }, [filters.sort_order, fetchSteerings, pagination?.limit]);
 
     // Initial fetch when component mounts
     useEffect(() => {
