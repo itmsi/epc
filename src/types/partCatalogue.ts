@@ -324,26 +324,54 @@ export interface CatalogDataItem {
 }
 
 // VIN Types
-export interface Vin {
-  production_id: string;
-  vin_number: string;
-  production_name_en: string;
-  production_name_cn: string;
-  production_description?: string;
+export interface VinDetail {
+  product_detail_id: string;
+  product_id: string;
+  dokumen_id: string;
+  product_detail_name_en: string;
+  product_detail_name_cn: string;
+  product_detail_description: string;
   created_at: string;
-  created_by: string;
+  created_by: string | null;
   updated_at: string;
-  updated_by: string;
+  updated_by: string | null;
   deleted_at: string | null;
   deleted_by: string | null;
   is_delete: boolean;
+  dokumen_name: string;
+  dokumen_description: string;
+}
+
+export interface Vin {
+  product_id: string;
+  vin_number: string;
+  product_name_en: string;
+  product_name_cn: string;
+  product_description?: string;
+  created_at: string;
+  created_by: string | null;
+  updated_at: string;
+  updated_by: string | null;
+  deleted_at: string | null;
+  deleted_by: string | null;
+  is_delete: boolean;
+  details?: VinDetail[];
+}
+
+export interface VinDetailItem {
+  dokumen_id: string;
+  product_detail_name_en: string;
+  product_detail_name_cn: string;
+  product_detail_description: string;
 }
 
 export interface VinFormData {
   vin_number: string;
-  production_name_en: string;
-  production_name_cn: string;
-  production_description?: string;
+  product_name_en: string;
+  product_name_cn: string;
+  product_description?: string;
+  data_details?: VinDetailItem[];
+  // Keeping master_pdf for backward compatibility if needed
   master_pdf?: { master_pdf_id: string }[];
 }
 
@@ -361,6 +389,13 @@ export interface VinApiResponse {
     items: Vin[];
     pagination: VinPagination;
   };
+  timestamp: string;
+}
+
+export interface VinDetailResponse {
+  success: boolean;
+  message: string;
+  data: Vin;
   timestamp: string;
 }
 
@@ -424,4 +459,161 @@ export interface MasterManageListRequest {
     page: number;
     limit: number;
     search: string;
+}
+
+// ======================== Similar Interfaces for MASTER CATEGORY =======================
+export interface MasterCategory {
+  master_category_id: string;
+  master_category_name_en: string;
+  master_category_name_cn: string;
+  master_category_description: string;
+  // type_master_categories: TypeMasterCategory[];
+  created_at: string;
+  created_by: string | null;
+  updated_at: string;
+  updated_by: string | null;
+  deleted_at: string | null;
+  deleted_by: string | null;
+  is_delete: boolean;
+}
+
+export interface MasterCategoryFormData {
+  master_category_name_en: string;
+  master_category_name_cn: string;
+  master_category_description: string;
+  // type_master_categories: TypeMasterCategoryFormData[];
+}
+
+export interface MasterCategoryPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  per_page: number;
+  current_page: number;
+}
+
+export interface MasterCategoryApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    items: MasterCategory[];
+    pagination: MasterCategoryPagination;
+  };
+}
+
+export interface MasterCategoryFilters {
+  search: string;
+  sort_order: 'asc' | 'desc' | '';
+}
+
+export interface MasterCategoryValidationErrors {
+  [key: string]: string;
+}
+
+// ======================== Similar Interfaces for TYPE CATEGORY =======================
+export interface TypeCategory {
+  type_category_id: string;
+  type_category_name_en: string;
+  type_category_name_cn: string;
+  type_category_description: string;
+}
+
+export interface TypeCategoryFormData {
+  type_category_name_en: string;
+  type_category_name_cn: string;
+  type_category_description: string;
+}
+
+export interface Category {
+  category_id: string;
+  master_category_id: string;
+  master_category_name_en: string;
+  category_name_en: string;
+  category_name_cn: string;
+  category_description: string;
+  data_type: TypeCategory[];
+  created_at: string;
+  created_by: string | null;
+  updated_at: string;
+  updated_by: string | null;
+  deleted_at: string | null;
+  deleted_by: string | null;
+  is_delete: boolean;
+}
+
+export interface CategoryFormData {
+  master_category_id?: string;
+  master_category_name_en?: string;
+  category_name_en: string;
+  category_name_cn: string;
+  category_description: string;
+  data_type: TypeCategoryFormData[];
+}
+
+export interface CategoryPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  per_page: number;
+  current_page: number;
+}
+
+export interface CategoryApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    items: Category[];
+    pagination: CategoryPagination;
+  };
+}
+
+export interface CategoryFilters {
+  search: string;
+  master_category_id: string;
+  sort_order: 'asc' | 'desc' | '';
+}
+
+export interface CategoryValidationErrors {
+  [key: string]: string;
+}
+
+// ======================== DETAIL CATALOG TYPES =======================
+export interface DetailCatalog {
+  type_category_id: string;
+  category_id: string;
+  type_category_name_en: string;
+  type_category_name_cn: string;
+  type_category_description: string;
+  created_at: string;
+  created_by: string;
+  updated_at: string;
+  updated_by: string;
+  deleted_at: string | null;
+  deleted_by: string | null;
+  is_delete: boolean;
+}
+
+export interface DetailCatalogPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface DetailCatalogApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    items: DetailCatalog[];
+    pagination: DetailCatalogPagination;
+  };
+  timestamp: string;
+}
+
+export interface DetailCatalogFilters {
+  search: string;
+  category_id: string;
+  sort_order: 'asc' | 'desc' | '';
 }

@@ -9,30 +9,11 @@ import Button from '@/components/ui/button/Button';
 import Input from '@/components/form/input/InputField';
 import CustomSelect from '@/components/form/select/CustomSelect';
 import CustomDataTable from '@/components/ui/table/CustomDataTable';
-import Badge from '@/components/ui/badge/Badge';
 
 // Types and hooks
-import { CatalogItem } from '@/types/asyncSelect';
+import { CatalogDocumentItem } from '@/types/asyncSelect';
 import { useManageCatalogs } from '@/hooks/useManageCatalogs';
-import { PART_TYPES } from '@/types/asyncSelect';
 import { PermissionGate } from '@/components/common/PermissionComponents';
-
-// Utility functions
-const getPartTypeLabel = (partType: string) => {
-    const found = PART_TYPES.find(pt => pt.value === partType);
-    return found ? found.label : partType;
-};
-
-const getMasterCatalogBadgeColor = (masterCatalog: string): 'primary' | 'success' | 'warning' | 'error' | 'info' | 'light' | 'dark' => {
-    switch (masterCatalog) {
-        case 'cabin': return 'primary';
-        case 'engine': return 'error';
-        case 'transmission': return 'warning';
-        case 'axle': return 'success';
-        case 'steering': return 'info';
-        default: return 'light';
-    }
-};
 
 export default function ManageCatalogs() {
     const navigate = useNavigate();
@@ -41,7 +22,6 @@ export default function ManageCatalogs() {
     };
     // Search and filter states
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedMasterCatalog, setSelectedMasterCatalog] = useState('');
 
     // Use the manage catalogs hook
     const {
@@ -70,79 +50,43 @@ export default function ManageCatalogs() {
         handleSearch(searchTerm);
     };
 
-    // Handle master catalog filter change
-    const handleMasterCatalogChange = (selectedOption: { value: string; label: string } | null) => {
-        const value = selectedOption?.value || '';
-        setSelectedMasterCatalog(value);
-        handleFilterChange('master_catalog', value);
-    };
-
     // Handle clear filters
     const handleClearFilters = () => {
         setSearchTerm('');
-        setSelectedMasterCatalog('');
         clearFilters();
     };
 
     // Handle row actions
-    const handleView = (catalog: CatalogItem) => {
+    const handleView = (catalog: CatalogDocumentItem) => {
+        console.log(catalog);
+        
         // TODO: Implement view details
-        navigate(`/epc/manage/view/${catalog.master_pdf_id}`);
+        navigate(`/epc/manage/view/${catalog.dokumen_id}`);
     };
 
     // Define table columns
-    const columns: TableColumn<CatalogItem>[] = useMemo(() => [
+    const columns: TableColumn<CatalogDocumentItem>[] = useMemo(() => [
         {
-            name: 'Type',
-            selector: (row: CatalogItem) => row.master_catalog,
-            cell: (row: CatalogItem) => (
-                <Badge
-                    color={getMasterCatalogBadgeColor(row.master_catalog)}
-                    variant="light"
-                    size="sm"
-                >
-                    {getPartTypeLabel(row.master_catalog)}
-                </Badge>
-            ),
-        },
-        {
-            name: 'Part Number',
-            selector: (row: CatalogItem) => row.category_name_en,
-            cell: (row: CatalogItem) => (
+            name: 'Document Name',
+            selector: (row: CatalogDocumentItem) => row.dokumen_name,
+            cell: (row: CatalogDocumentItem) => (
                 <div className="py-2">
-                    <div className="font-medium text-gray-900">{row.part_number}</div>
-                    <div className="text-xs text-gray-400">{row.name_pdf}</div>
+                    <div className="font-medium text-gray-900">{row.dokumen_name}</div>
                 </div>
             ),
             wrap: true,
         },
         {
-            name: 'Name',
-            selector: (row: CatalogItem) => row.category_name_en,
-            cell: (row: CatalogItem) => (
+            name: 'Category',
+            selector: (row: CatalogDocumentItem) => row.master_category_name_en,
+            cell: (row: CatalogDocumentItem) => (
                 <div className="py-2">
-                    <div className="font-medium text-gray-500">
-                        {row.category_name_en}
-                        {row.category_name_cn && (
-                            <span className="block text-xs text-gray-400">{row.category_name_cn}</span>
-                        )}
-                    </div>
+                    <div className="font-medium text-gray-900">{row.master_category_name_en}</div>
+                    <div className="text-xs text-gray-400">{row.master_category_name_cn}</div>
                 </div>
             ),
             wrap: true,
-        },
-        {
-            name: 'Quantity',
-            selector: (row: CatalogItem) => row.quantity,
-            cell: (row: CatalogItem) => (
-                <div className="py-2">
-                    <div className="font-medium text-gray-900">{row.quantity}</div>
-                </div>
-            ),
-            center: true,
-            wrap: true,
-            width: '180px'
-        },
+        }
     ], []);
 
     // Search and filter component
@@ -185,15 +129,7 @@ export default function ManageCatalogs() {
                 </div>
             </div>
 
-            {/* Sort Order */}
-            <div className="flex items-center gap-2">
-                <CustomSelect
-                    placeholder="Filter by Type"
-                    value={selectedMasterCatalog ? PART_TYPES.find(pt => pt.value === selectedMasterCatalog) : null}
-                    onChange={handleMasterCatalogChange}
-                    options={PART_TYPES}
-                />
-            </div>
+            {/* Note: Part type filter removed as the new API response uses master categories */}
             
             {/* Sort Order */}
             <div className="flex items-center gap-2">
@@ -218,7 +154,7 @@ export default function ManageCatalogs() {
                 />
             </div>
         </div>
-    ), [searchTerm, selectedMasterCatalog, loading]);
+    ), [searchTerm, loading]);
     
     const controlHeight = 1.75; // Adjust based on actual control height
     return (

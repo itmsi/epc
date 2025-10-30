@@ -57,18 +57,20 @@ export const usePartCatalogueManagement = ({
         part_type: '',
         part_id: '',
         type_id: '',
+        master_category: '',
         svg_image: null,
         file_foto: null,
-        use_csv_upload: false,
-        csv_file: null,
+        // use_csv_upload: false,
+        // csv_file: null,
         parts: []
     });
-
+    
     const [validationErrors, setValidationErrors] = useState<CatalogValidationErrors>({});
     const [loading, setLoading] = useState(false);
 
     // State untuk menyimpan data part catalogue yang di-load on demand
-    const [partCatalogueData, setPartCatalogueData] = useState<PartCatalogueData>({
+    // Note: Legacy state - mostly unused in new master_category flow
+    const [partCatalogueData] = useState<PartCatalogueData>({
         cabins: null,
         engines: null,
         axles: null,
@@ -101,62 +103,8 @@ export const usePartCatalogueManagement = ({
         fetchingRefs.current[partType] = true;
         
         try {
-            // Import services
-            const { 
-                CabinService, 
-                EngineService, 
-                AxleService, 
-                TransmissionService, 
-                SteeringService 
-            } = await import('@/services/partCatalogueService');
-
-            switch (partType) {
-                case 'cabin':
-                    const cabinResponse = await CabinService.getCabins(1, 10);
-                    if (cabinResponse.data?.success && cabinResponse.data?.data?.items) {
-                        setPartCatalogueData(prev => ({
-                            ...prev,
-                            cabins: cabinResponse.data.data.items
-                        }));
-                    }
-                    break;
-                case 'engine':
-                    const engineResponse = await EngineService.getEngines(1, 10);
-                    if (engineResponse.data?.success && engineResponse.data?.data?.items) {
-                        setPartCatalogueData(prev => ({
-                            ...prev,
-                            engines: engineResponse.data.data.items
-                        }));
-                    }
-                    break;
-                case 'axle':
-                    const axleResponse = await AxleService.getAxles(1, 10);
-                    if (axleResponse.data?.success && axleResponse.data?.data?.items) {
-                        setPartCatalogueData(prev => ({
-                            ...prev,
-                            axles: axleResponse.data.data.items
-                        }));
-                    }
-                    break;
-                case 'transmission':
-                    const transmissionResponse = await TransmissionService.getTransmissions(1, 10);
-                    if (transmissionResponse.data?.success && transmissionResponse.data?.data?.items) {
-                        setPartCatalogueData(prev => ({
-                            ...prev,
-                            transmissions: transmissionResponse.data.data.items
-                        }));
-                    }
-                    break;
-                case 'steering':
-                    const steeringResponse = await SteeringService.getSteerings(1, 10);
-                    if (steeringResponse.data?.success && steeringResponse.data?.data?.items) {
-                        setPartCatalogueData(prev => ({
-                            ...prev,
-                            steerings: steeringResponse.data.data.items
-                        }));
-                    }
-                    break;
-            }
+            // Legacy part type loading - now handled by cascade system
+            // This function is kept for compatibility but not actively used
         } catch (error) {
             console.error(`Error fetching ${partType} data:`, error);
             toast.error(`Failed to load ${partType} data`);
@@ -183,8 +131,9 @@ export const usePartCatalogueManagement = ({
             }));
         }
 
-        // Reset dependent fields when part type changes
-        if (name === 'part_type') {
+        // Reset dependent fields when parent fields change
+        if (name === 'master_category') {
+            // Reset part_id and type_id when master_category changes
             setFormData(prev => ({
                 ...prev,
                 part_id: '',
@@ -193,27 +142,41 @@ export const usePartCatalogueManagement = ({
             setSelectedPartData(null);
             setSubTypes([]);
             
-            // Fetch data untuk part type yang dipilih dengan debouncing
-            if (value) {
-                // Add timeout to prevent too many rapid API calls
-                setTimeout(() => {
-                    fetchPartCatalogueData(value);
-                }, 50);
-                
-                if (onPartTypeChange) {
-                    onPartTypeChange(value);
-                }
-            }
-        }
-
-        // Reset type when part changes
-        if (name === 'part_id') {
+            // Clear validation errors for dependent fields
+            setValidationErrors(prev => ({
+                ...prev,
+                part_id: undefined,
+                type_id: undefined
+            }));
+        } else if (name === 'part_id') {
+            // Reset type_id when part_id changes
             setFormData(prev => ({
                 ...prev,
                 type_id: ''
             }));
+            setSubTypes([]);
+            
+            // Clear validation error for type_id
+            setValidationErrors(prev => ({
+                ...prev,
+                type_id: undefined
+            }));
+        } else if (name === 'part_type') {
+            // Legacy: Keep for Detail.tsx compatibility
+            setFormData(prev => ({
+                ...prev,
+                part_id: '',
+                type_id: ''
+            }));
+            setSelectedPartData(null);
+            setSubTypes([]);
+            
+            // Note: Legacy fetchPartCatalogueData removed - Detail.tsx should use its own logic
+            if (onPartTypeChange) {
+                onPartTypeChange(value);
+            }
         }
-    }, [validationErrors, fetchPartCatalogueData, onPartTypeChange]);
+    }, [validationErrors, onPartTypeChange]);
 
     // Handle input change for text inputs
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,11 +202,7 @@ export const usePartCatalogueManagement = ({
         
         setFormData(prev => ({
             ...prev,
-            [name]: checked,
-            // Clear CSV file if unchecking
-            ...(name === 'use_csv_upload' && !checked ? { csv_file: null } : {}),
-            // Clear parts if checking CSV upload
-            ...(name === 'use_csv_upload' && checked ? { parts: [] } : {})
+            [name]: checked
         }));
     }, []);
 
@@ -256,11 +215,13 @@ export const usePartCatalogueManagement = ({
     const handleAddPart = useCallback(() => {
         const newPart: PartItem = {
             id: generateId(),
-            part_target: '',
-            code_product: '',
-            file_foto: '',
-            name_english: '',
-            name_chinese: '',
+            target_id: '',
+            part_number: '',
+            file_foto: null,
+            catalog_item_name_en: '',
+            catalog_item_name_ch: '',
+            description: '',
+            unit: '',
             quantity: 1
         };
 
@@ -317,29 +278,22 @@ export const usePartCatalogueManagement = ({
 
         // SVG image is optional - no validation required
 
-        // Validate CSV upload if selected
-        if (formData.use_csv_upload) {
-            if (!formData.csv_file) {
-                errors.csv_file = 'CSV file is required when CSV upload is selected';
-            }
+        // Validate parts input (CSV files are directly converted to parts)
+        if (formData.parts.length === 0) {
+            errors.parts = 'At least one part is required';
         } else {
-            // Validate manual parts input
-            if (formData.parts.length === 0) {
-                errors.parts = 'At least one part is required';
-            } else {
-                // Validate each part
-                const invalidParts = formData.parts.some(part => 
-                    !part.part_target.trim() || 
-                    !part.code_product.trim() || 
-                    !part.name_english.trim() || 
-                    !part.name_chinese.trim() || 
-                    !part.quantity || 
-                    Number(part.quantity) <= 0
-                );
-                
-                if (invalidParts) {
-                    errors.parts = 'All part fields are required and quantity must be greater than 0';
-                }
+            // Validate each part
+            const invalidParts = formData.parts.some(part => 
+                !part.target_id.trim() || 
+                !part.part_number.trim() || 
+                !part.catalog_item_name_en.trim() || 
+                !part.catalog_item_name_ch.trim() || 
+                !part.quantity || 
+                Number(part.quantity) <= 0
+            );
+            
+            if (invalidParts) {
+                errors.parts = 'All part fields are required and quantity must be greater than 0';
             }
         }
 
@@ -381,41 +335,14 @@ export const usePartCatalogueManagement = ({
 
     // Update selected part data and sub types when part_id changes
     useEffect(() => {
-        if (!formData.part_id || !formData.part_type) {
+        // Legacy part_type logic removed - now handled by master_category flow
+        // For new flow (master_category based), selectedPartData and subTypes 
+        // are managed by the cascade system in useCreateCatalog
+        if (!formData.part_id) {
             setSelectedPartData(null);
             setSubTypes([]);
             return;
         }
-
-        let selectedData = null;
-        let types: any[] = [];
-
-        // First, try to find in the existing data
-        switch (formData.part_type) {
-            case 'cabin':
-                selectedData = partCatalogueData.cabins?.find((cabin: any) => cabin.cabines_id === formData.part_id);
-                types = selectedData?.type_cabines || [];
-                break;
-            case 'engine':
-                selectedData = partCatalogueData.engines?.find((engine: any) => engine.engines_id === formData.part_id);
-                types = selectedData?.type_engines || [];
-                break;
-            case 'axle':
-                selectedData = partCatalogueData.axles?.find((axle: any) => axle.axel_id === formData.part_id);
-                types = selectedData?.type_axels || [];
-                break;
-            case 'transmission':
-                selectedData = partCatalogueData.transmissions?.find((transmission: any) => transmission.transmission_id === formData.part_id);
-                types = selectedData?.type_transmissions || [];
-                break;
-            case 'steering':
-                selectedData = partCatalogueData.steerings?.find((steering: any) => steering.steering_id === formData.part_id);
-                types = selectedData?.type_steerings || [];
-                break;
-        }
-
-        setSelectedPartData(selectedData);
-        setSubTypes(types);
     }, [formData.part_id, formData.part_type, partCatalogueData]);
 
     return {

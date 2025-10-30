@@ -1,20 +1,21 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { SelectOption } from '@/types/asyncSelect';
-import { MasterManageListRequest, MasterManagePagination, MasterPdf, UseManageVinsProps, UseMasterManageProps, Vin, VinFilters, VinFormData, VinListRequest, VinPagination } from '@/types/partCatalogue';
+import { UseManageVinsProps, Vin, VinFilters, VinFormData, VinDetailItem, VinListRequest, VinPagination } from '@/types/partCatalogue';
 import { VinService } from '@/services/partCatalogueService';
+import { useManageCatalogs } from '@/hooks/useManageCatalogs';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
 
 interface UseMasterVinManagerReturn {
-    // Master PDF state
-    masterPdfs: any[];
+    // Catalog state
+    catalogs: any[];
     loading: boolean;
     pagination: any;
     
     // Search operations
-    loadMasterPdfOptions: (inputValue: string) => Promise<SelectOption[]>;
+    loadCatalogOptions: (inputValue: string) => Promise<SelectOption[]>;
     handleMenuScrollToBottom: () => void;
-    createMasterPdfOptions: () => SelectOption[];
+    createCatalogOptions: () => SelectOption[];
     
     // Search timeout management
     searchTimeout: NodeJS.Timeout | null;
@@ -24,13 +25,13 @@ interface UseMasterVinManagerReturn {
 export const useMasterVinManager = (): UseMasterVinManagerReturn => {
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
-    // Use master VIN hook for master VIN selection
+    // Use catalog management hook for catalog selection
     const {
-        masterPdfs,
+        catalogs,
         loading,
-        fetchMasterPdfs,
+        fetchCatalogs,
         pagination
-    } = useMasterPdfs({
+    } = useManageCatalogs({
         initialLimit: 5
     });
 
@@ -43,23 +44,23 @@ export const useMasterVinManager = (): UseMasterVinManagerReturn => {
         };
     }, [searchTimeout]);
 
-    // Create options from master PDFs
-    const createMasterPdfOptions = useCallback((): SelectOption[] => {
+    // Create options from catalogs
+    const createCatalogOptions = useCallback((): SelectOption[] => {
         console.log({
-            masterPdfsLength: masterPdfs.length,
-            hasNextPage: pagination?.has_next_page,
-            currentPage: pagination?.current_page
+            catalogsLength: catalogs.length,
+            hasNextPage: pagination?.totalPages > pagination?.page,
+            currentPage: pagination?.page
         });
         
-        return masterPdfs.map(pdf => ({
-            value: pdf.master_pdf_id,
-            label: `${pdf.name_pdf}${pdf.master_catalog ? ` - ${pdf.master_catalog}` : ''}`
+        return catalogs.map(catalog => ({
+            value: catalog.dokumen_id,
+            label: `${catalog.dokumen_name}${catalog.master_category_name_en ? ` - ${catalog.master_category_name_en}` : ''}`
         }));
-    }, [masterPdfs, pagination]);
+    }, [catalogs, pagination]);
 
-    // Load master PDF options with search and pagination
-    const loadMasterPdfOptions = useCallback(async (inputValue: string): Promise<SelectOption[]> => {
-        console.log('loadMasterPdfOptions called with:', `"${inputValue}"`);
+    // Load catalog options with search and pagination
+    const loadCatalogOptions = useCallback(async (inputValue: string): Promise<SelectOption[]> => {
+        console.log('loadCatalogOptions called with:', `"${inputValue}"`);
         
         // Clear existing timeout
         if (searchTimeout) {
@@ -77,24 +78,24 @@ export const useMasterVinManager = (): UseMasterVinManagerReturn => {
                     if (searchTerm.length > 0) {
                         console.log('Searching with term:', searchTerm);
                         // Reset pagination and search
-                        await fetchMasterPdfs({ 
+                        await fetchCatalogs({ 
                             page: 1, 
                             search: searchTerm 
                         });
                     } else {
                         console.log('Loading default options (no search term)');
                         // If no search term, load first page without search
-                        await fetchMasterPdfs({ 
+                        await fetchCatalogs({ 
                             page: 1, 
                             search: '' 
                         });
                     }
                     
-                    const options = createMasterPdfOptions();
+                    const options = createCatalogOptions();
                     console.log('Returning', options.length, 'options for search term:', `"${searchTerm}"`);
                     resolve(options);
                 } catch (error) {
-                    console.error('Error in loadMasterPdfOptions:', error);
+                    console.error('Error in loadCatalogOptions:', error);
                     resolve([]);
                 }
                 setSearchTimeout(null);
@@ -102,35 +103,35 @@ export const useMasterVinManager = (): UseMasterVinManagerReturn => {
             
             setSearchTimeout(timeoutId);
         });
-    }, [searchTimeout, fetchMasterPdfs, createMasterPdfOptions]);
+    }, [searchTimeout, fetchCatalogs, createCatalogOptions]);
 
     // Handle scroll to bottom for pagination
     const handleMenuScrollToBottom = useCallback(() => {
         console.log('Scroll to bottom triggered:', {
             loading: loading,
-            hasNextPage: pagination?.has_next_page,
-            currentPage: pagination?.current_page
+            hasNextPage: pagination?.page < pagination?.totalPages,
+            currentPage: pagination?.page
         });
         
-        if (!loading && pagination?.has_next_page) {
-            const nextPage = pagination.current_page + 1;
+        if (!loading && pagination?.page < pagination?.totalPages) {
+            const nextPage = pagination.page + 1;
             console.log('Loading next page:', nextPage);
             
             // Fetch halaman berikutnya
-            fetchMasterPdfs({ page: nextPage });
+            fetchCatalogs({ page: nextPage });
         }
-    }, [loading, pagination, fetchMasterPdfs]);
+    }, [loading, pagination, fetchCatalogs]);
 
     return {
-        // Master PDF state
-        masterPdfs,
+        // Catalog state
+        catalogs,
         loading,
         pagination,
         
         // Search operations
-        loadMasterPdfOptions,
+        loadCatalogOptions,
         handleMenuScrollToBottom,
-        createMasterPdfOptions,
+        createCatalogOptions,
         
         // Search timeout management
         searchTimeout,
@@ -349,171 +350,6 @@ export function useManageVins(props: UseManageVinsProps = {}): UseManageVinsRetu
     };
 }
 
-// CALL HOOK MASTER MANAGE
-
-
-interface UseMasterPdfsReturn {
-    // Data
-    masterPdfs: MasterPdf[];
-    loading: boolean;
-    error: string | null;
-    
-    // Pagination
-    pagination: MasterManagePagination | null;
-    filters: MasterManageListRequest;
-    setFilters: React.Dispatch<React.SetStateAction<MasterManageListRequest>>;
-    
-    // Actions
-    fetchMasterPdfs: (params?: Partial<MasterManageListRequest>) => Promise<void>;
-    refreshMasterPdfs: () => Promise<void>;
-    handlePageChange: (page: number) => void;
-    handleLimitChange: (limit: number) => void;
-    handleSearch: (search: string) => void;
-    clearFilters: () => void;
-    
-    // Computed
-    hasData: boolean;
-    isEmpty: boolean;
-    isFirstPage: boolean;
-    isLastPage: boolean;
-}
-
-export function useMasterPdfs(props: UseMasterManageProps = {}): UseMasterPdfsReturn {
-    const { 
-        initialPage = 1, 
-        initialLimit = 20,
-        initialFilters = {}
-    } = props;
-
-    // State management
-    const [masterPdfs, setMasterPdfs] = useState<MasterPdf[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
-    const [pagination, setPagination] = useState<MasterManagePagination | null>(null);
-
-    // Filter state
-    const [filters, setFilters] = useState<MasterManageListRequest>({
-        page: initialPage,
-        limit: initialLimit,
-        search: initialFilters.search || ''
-    });
-
-    // Fetch master PDFs function
-    const fetchMasterPdfs = useCallback(async (params?: Partial<MasterManageListRequest>) => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const requestParams = { ...filters, ...params };
-            const response = await VinService.getMasterManages(
-                requestParams.page,
-                requestParams.limit,
-                { search: requestParams.search }
-            );
-
-            if (response.data?.success) {
-                // For search: replace data if search term changed or page 1
-                const isNewSearch = requestParams.search !== filters.search;
-                
-                if (requestParams.page > 1 && !isNewSearch) {
-                    // Infinite scroll: append data
-                    setMasterPdfs(prev => {
-                        // Avoid duplicates
-                        const existingIds = prev.map(pdf => pdf.master_pdf_id);
-                        const newPdfs = response.data.data.filter(pdf => !existingIds.includes(pdf.master_pdf_id));
-                        return [...prev, ...newPdfs];
-                    });
-                } else {
-                    // First page or new search: replace data
-                    setMasterPdfs(response.data.data);
-                }
-                
-                setPagination(response.data.pagination);
-                
-                // Update filters state with current params
-                setFilters(prev => ({ ...prev, ...requestParams }));
-            } else {
-                throw new Error(response.data?.message || 'Failed to fetch master PDFs');
-            }
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching master PDFs';
-            setError(errorMessage);
-            toast.error(errorMessage);
-            console.error('Error fetching master PDFs:', err);
-        } finally {
-            setLoading(false);
-        }
-    }, [filters]);
-
-    // Refresh master PDFs with current filters
-    const refreshMasterPdfs = useCallback(async () => {
-        await fetchMasterPdfs();
-    }, [fetchMasterPdfs]);
-
-    // Event handlers
-    const handlePageChange = useCallback((page: number) => {
-        fetchMasterPdfs({ page });
-    }, [fetchMasterPdfs]);
-
-    const handleLimitChange = useCallback((limit: number) => {
-        fetchMasterPdfs({ page: 1, limit }); // Reset to first page when changing limit
-    }, [fetchMasterPdfs]);
-
-    const handleSearch = useCallback((search: string) => {
-        fetchMasterPdfs({ search, page: 1 }); // Reset to first page when searching
-    }, [fetchMasterPdfs]);
-
-    const clearFilters = useCallback(() => {
-        setFilters({
-            page: 1,
-            limit: initialLimit,
-            search: ''
-        });
-        fetchMasterPdfs({
-            page: 1,
-            limit: initialLimit,
-            search: ''
-        });
-    }, [initialLimit, fetchMasterPdfs]);
-
-    // Computed values
-    const hasData = masterPdfs.length > 0;
-    const isEmpty = !loading && masterPdfs.length === 0;
-    const isFirstPage = (pagination?.current_page || 1) === 1;
-    const isLastPage = (pagination?.current_page || 1) === (pagination?.total_pages || 1);
-
-    // Initial fetch
-    useEffect(() => {
-        fetchMasterPdfs();
-    }, []); // Only run once on mount
-
-    return {
-        // Data
-        masterPdfs,
-        loading,
-        error,
-        
-        // Pagination
-        pagination,
-        filters,
-        setFilters,
-        
-        // Actions
-        fetchMasterPdfs,
-        refreshMasterPdfs,
-        handlePageChange,
-        handleLimitChange,
-        handleSearch,
-        clearFilters,
-        
-        // Computed
-        hasData,
-        isEmpty,
-        isFirstPage,
-        isLastPage
-    };
-}
-
 // USE CREATE VIN HOOK
 interface UseCreateVinReturn {
     // Form state
@@ -534,6 +370,7 @@ interface UseCreateVinReturn {
     addMasterPdf: () => void;
     removeMasterPdf: (index: number) => void;
     updateMasterPdfSelection: (index: number, selectedOption: SelectOption | null) => void;
+    handleDetailInputChange: (index: number, field: keyof Omit<VinDetailItem, 'dokumen_id'>, value: string) => void;
     handleSearchInputChange: (index: number) => (inputValue: string) => void;
     validateForm: () => boolean;
     handleSubmit: (e: React.FormEvent) => Promise<void>;
@@ -545,10 +382,10 @@ export const useCreateVin = (): UseCreateVinReturn => {
     // Form state
     const [formData, setFormData] = useState<VinFormData>({
         vin_number: '',
-        production_name_en: '',
-        production_name_cn: '',
-        production_description: '',
-        master_pdf: []
+        product_name_en: '',
+        product_name_cn: '',
+        product_description: '',
+        data_details: []
     });
 
     // Validation errors
@@ -577,22 +414,27 @@ export const useCreateVin = (): UseCreateVinReturn => {
         }
     }, [errors]);
 
-    // Add master PDF
+    // Add detail item
     const addMasterPdf = useCallback(() => {
         setFormData(prev => ({
             ...prev,
-            master_pdf: [
-                ...(prev.master_pdf || []),
-                { master_pdf_id: '' }
+            data_details: [
+                ...(prev.data_details || []),
+                { 
+                    dokumen_id: '',
+                    product_detail_name_en: '',
+                    product_detail_name_cn: '',
+                    product_detail_description: ''
+                }
             ]
         }));
     }, []);
 
-    // Remove master PDF
+    // Remove detail item
     const removeMasterPdf = useCallback((index: number) => {
         setFormData(prev => ({
             ...prev,
-            master_pdf: prev.master_pdf?.filter((_, i) => i !== index) || []
+            data_details: prev.data_details?.filter((_, i) => i !== index) || []
         }));
         
         // Clean up search input value for removed field
@@ -617,17 +459,27 @@ export const useCreateVin = (): UseCreateVinReturn => {
         });
     }, []);
 
-    // Update master PDF selection with option object
+    // Update catalog selection
     const updateMasterPdfSelection = useCallback((index: number, selectedOption: SelectOption | null) => {
-        const master_pdf_id = selectedOption ? String(selectedOption.value) : '';
+        const dokumen_id = selectedOption ? String(selectedOption.value) : '';
         console.log({
-            master_pdf_id
+            dokumen_id
         });
         
         setFormData(prev => ({
             ...prev,
-            master_pdf: prev.master_pdf?.map((item, i) => 
-                i === index ? { master_pdf_id } : item
+            data_details: prev.data_details?.map((item, i) => 
+                i === index ? { ...item, dokumen_id } : item
+            ) || []
+        }));
+    }, []);
+
+    // Handle detail input change
+    const handleDetailInputChange = useCallback((index: number, field: keyof Omit<VinDetailItem, 'dokumen_id'>, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            data_details: prev.data_details?.map((item, i) => 
+                i === index ? { ...item, [field]: value } : item
             ) || []
         }));
     }, []);
@@ -649,12 +501,12 @@ export const useCreateVin = (): UseCreateVinReturn => {
             newErrors.vin_number = 'VIN Number is required';
         }
 
-        if (!formData.production_name_en.trim()) {
-            newErrors.production_name_en = 'Production Name (EN) is required';
+        if (!formData.product_name_en.trim()) {
+            newErrors.product_name_en = 'Product Name (EN) is required';
         }
 
-        if (!formData.production_name_cn.trim()) {
-            newErrors.production_name_cn = 'Production Name (CN) is required';
+        if (!formData.product_name_cn.trim()) {
+            newErrors.product_name_cn = 'Product Name (CN) is required';
         }
 
         setErrors(newErrors);
@@ -708,6 +560,7 @@ export const useCreateVin = (): UseCreateVinReturn => {
         addMasterPdf,
         removeMasterPdf,
         updateMasterPdfSelection,
+        handleDetailInputChange,
         handleSearchInputChange,
         validateForm,
         handleSubmit

@@ -1,325 +1,36 @@
 import { apiDelete, apiGet, apiPost, apiPut, ApiResponse, apiPostMultipart, apiPutMultipart } from '@/helpers/apiHelper';
 import { 
-  Cabin,
-  CabinFormData, 
-  CabinApiResponse, 
-  CabinFilters,
-  Engine,
-  EngineFormData, 
-  EngineApiResponse, 
-  EngineFilters,
-  AxleApiResponse,
-  AxleFilters,
-  AxleFormData,
-  Axle,
-  TransmissionFilters,
-  TransmissionApiResponse,
-  TransmissionFormData,
-  Transmission,
-  SteeringFilters,
-  SteeringApiResponse,
-  SteeringFormData,
-  Steering,
   CatalogDataItem,
-  Vin,
   VinFormData,
   VinApiResponse,
+  VinDetailResponse,
   VinFilters,
   MasterBookApiResponse,
-  MasterPdf
+  MasterCategoryFilters,
+  MasterCategoryApiResponse,
+  MasterCategoryFormData,
+  MasterCategory,
+  CategoryFilters,
+  CategoryApiResponse,
+  CategoryFormData,
+  Category,
+  DetailCatalog,
+  DetailCatalogFilters,
+  DetailCatalogApiResponse
 } from '@/types/partCatalogue';
-import { CatalogsListRequest, ManageCatalogsResponse, PartCatalogueFormData, PartItem, EditCatalogResponse } from '@/types/asyncSelect';
+import { CatalogsListRequest, ManageCatalogsResponse, PartCatalogueFormData, PartItem, CatalogDetailResponse, CatalogEditResponse } from '@/types/asyncSelect';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-// Cabin Services
-export class CabinService {
-    // Fetch cabins with pagination and filters
-    static async getCabins(
-        page: number = 1, 
-        limit: number = 10, 
-        filters: Partial<CabinFilters> = {}
-    ): Promise<ApiResponse<CabinApiResponse>> {
-        const payload = {
-            page,
-            limit,
-            search: filters.search || '',
-            sort_order: filters.sort_order || 'desc'
-        };
-
-        return await apiPost<CabinApiResponse>(`${API_BASE_URL}/catalogs/cabines/get`, payload);
-    }
-
-    // Create new cabin
-    static async createCabin(formData: CabinFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        // Transform formData to match API expectations
-        const payload = {
-            cabines_name_en: formData.cabines_name_en,
-            cabines_name_cn: formData.cabines_name_cn,
-            cabines_description: formData.cabines_description,
-            type_cabines: formData.type_cabines || []
-        };
-        
-        return await apiPost<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/cabines/create`, payload);
-    }
-
-    // Get existing cabin by ID
-    static async getCabinById(cabinId: string): Promise<ApiResponse<{ success: boolean; message: string; data: Cabin }>> {
-        return await apiGet<{ success: boolean; message: string; data: Cabin }>(`${API_BASE_URL}/catalogs/cabines/${cabinId}`, { cabines_id: cabinId });
-    }
-
-    // Update existing cabin
-    static async updateCabin(cabinId: string, formData: CabinFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        // Transform formData to match API expectations
-        const payload = {
-            cabines_id: cabinId,
-            cabines_name_en: formData.cabines_name_en,
-            cabines_name_cn: formData.cabines_name_cn,
-            cabines_description: formData.cabines_description,
-            type_cabines: formData.type_cabines || []
-        };
-        
-        return await apiPut<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/cabines/${cabinId}`, payload);
-    }
-
-    // Delete cabin
-    static async deleteCabin(cabinId: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/cabines/${cabinId}`);
-    }
-}
-
-// Engine Services
-export class EngineService {
-    // Fetch engines with pagination and filters
-    static async getEngines(
-        page: number = 1, 
-        limit: number = 10, 
-        filters: Partial<EngineFilters> = {}
-    ): Promise<ApiResponse<EngineApiResponse>> {
-        const payload = {
-            page,
-            limit,
-            search: filters.search || '',
-            sort_order: filters.sort_order || 'desc'
-        };
-
-        return await apiPost<EngineApiResponse>(`${API_BASE_URL}/catalogs/engines/get`, payload);
-    }
-
-    // Create new engine
-    static async createEngine(formData: EngineFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        // Transform formData to match API expectations
-        const payload = {
-            engines_name_en: formData.engines_name_en,
-            engines_name_cn: formData.engines_name_cn,
-            engines_description: formData.engines_description,
-            type_engines: formData.type_engines || []
-        };
-
-        return await apiPost<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/engines/create`, payload);
-    }
-
-    // Get existing engine by ID
-    static async getEngineById(engineId: string): Promise<ApiResponse<{ success: boolean; message: string; data: Engine }>> {
-        return await apiGet<{ success: boolean; message: string; data: Engine }>(`${API_BASE_URL}/catalogs/engines/${engineId}`, { engines_id: engineId });
-    }
-
-    // Update existing engine
-    static async updateEngine(engineId: string, formData: EngineFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        // Transform formData to match API expectations
-        const payload = {
-            engines_id: engineId,
-            engines_name_en: formData.engines_name_en,
-            engines_name_cn: formData.engines_name_cn,
-            engines_description: formData.engines_description,
-            type_engines: formData.type_engines || []
-        };
-
-        return await apiPut<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/engines/${engineId}`, payload);
-    }
-
-    // Delete engine
-    static async deleteEngine(engineId: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/engines/${engineId}`);
-    }
-}
-
-// Axle Services
-export class AxleService {
-    // Fetch axles with pagination and filters
-    static async getAxles(
-        page: number = 1,
-        limit: number = 10,
-        filters: Partial<AxleFilters> = {}
-    ): Promise<ApiResponse<AxleApiResponse>> {
-        const payload = {
-            page,
-            limit,
-            search: filters.search || '',
-            sort_order: filters.sort_order || 'desc'
-        };
-
-        return await apiPost<AxleApiResponse>(`${API_BASE_URL}/catalogs/axel/get`, payload);
-    }
-
-    // Create new axel
-    static async createAxle(formData: AxleFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        // Transform formData to match API expectations
-        const payload = {
-            axel_name_en: formData.axel_name_en,
-            axel_name_cn: formData.axel_name_cn,
-            axel_description: formData.axel_description,
-            type_axels: formData.type_axels || []
-        };
-
-        return await apiPost<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/axel/create`, payload);
-    }
-
-    // Get existing axel by ID
-    static async getAxelById(axelId: string): Promise<ApiResponse<{ success: boolean; message: string; data: Axle }>> {
-        return await apiGet<{ success: boolean; message: string; data: Axle }>(`${API_BASE_URL}/catalogs/axel/${axelId}`, { axels_id: axelId });
-    }
-
-    // Update existing axel
-    static async updateAxle(axelId: string, formData: AxleFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        // Transform formData to match API expectations
-        const payload = {
-            axel_name_en: formData.axel_name_en,
-            axel_name_cn: formData.axel_name_cn,
-            axel_description: formData.axel_description,
-            type_axels: formData.type_axels || []
-        };
-        console.log({
-            payload
-        });
-        
-        return await apiPut<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/axel/${axelId}`, payload);
-    }
-
-    // Delete axel
-    static async deleteAxle(axelId: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/axel/${axelId}`);
-    }
-}
-// Transmission Services
-export class TransmissionService {
-    // Fetch transmissions with pagination and filters
-    static async getTransmissions(
-        page: number = 1,
-        limit: number = 10,
-        filters: Partial<TransmissionFilters> = {}
-    ): Promise<ApiResponse<TransmissionApiResponse>> {
-        const payload = {
-            page,
-            limit,
-            search: filters.search || '',
-            sort_order: filters.sort_order || 'desc'
-        };
-
-        return await apiPost<TransmissionApiResponse>(`${API_BASE_URL}/catalogs/transmission/get`, payload);
-    }
-
-    // Create new transmission
-    static async createTransmission(formData: TransmissionFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        // Transform formData to match API expectations
-        const payload = {
-            transmission_name_en: formData.transmission_name_en,
-            transmission_name_cn: formData.transmission_name_cn,
-            transmission_description: formData.transmission_description,
-            type_transmissions: formData.type_transmissions || []
-        };
-
-        return await apiPost<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/transmission/create`, payload);
-    }
-
-    // Get existing transmission by ID
-    static async getTransmissionById(transmissionId: string): Promise<ApiResponse<{ success: boolean; message: string; data: Transmission }>> {
-        return await apiGet<{ success: boolean; message: string; data: Transmission }>(`${API_BASE_URL}/catalogs/transmission/${transmissionId}`, { transmission_id: transmissionId });
-    }
-
-    // Update existing transmission
-    static async updateTransmission(transmissionId: string, formData: TransmissionFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        // Transform formData to match API expectations
-        const payload = {
-            transmission_id: transmissionId,
-            transmission_name_en: formData.transmission_name_en,
-            transmission_name_cn: formData.transmission_name_cn,
-            transmission_description: formData.transmission_description,
-            type_transmissions: formData.type_transmissions || []
-        };
-
-        return await apiPut<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/transmission/${transmissionId}`, payload);
-    }
-
-    // Delete transmission
-    static async deleteTransmission(transmissionId: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/transmission/${transmissionId}`);
-    }
-}
-// Steering Services
-export class SteeringService {
-    // Fetch steerings with pagination and filters
-    static async getSteerings(
-        page: number = 1,
-        limit: number = 10,
-        filters: Partial<SteeringFilters> = {}
-    ): Promise<ApiResponse<SteeringApiResponse>> {
-        const payload = {
-            page,
-            limit,
-            search: filters.search || '',
-            sort_order: filters.sort_order || 'desc'
-        };
-
-        return await apiPost<SteeringApiResponse>(`${API_BASE_URL}/catalogs/steering/get`, payload);
-    }
-
-    // Create new steering
-    static async createSteering(formData: SteeringFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        // Transform formData to match API expectations
-        const payload = {
-            steering_name_en: formData.steering_name_en,
-            steering_name_cn: formData.steering_name_cn,
-            steering_description: formData.steering_description,
-            type_steerings: formData.type_steerings || []
-        };
-
-        return await apiPost<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/steering/create`, payload);
-    }
-
-    // Get existing steering by ID
-    static async getSteeringById(steeringId: string): Promise<ApiResponse<{ success: boolean; message: string; data: Steering }>> {
-        return await apiGet<{ success: boolean; message: string; data: Steering }>(`${API_BASE_URL}/catalogs/steering/${steeringId}`);
-    }
-
-    // Update existing steering
-    static async updateSteering(steeringId: string, formData: SteeringFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        // Transform formData to match API expectations
-        const payload = {
-            steering_id: steeringId,
-            steering_name_en: formData.steering_name_en,
-            steering_name_cn: formData.steering_name_cn,
-            steering_description: formData.steering_description,
-            type_steerings: formData.type_steerings || []
-        };
-
-        return await apiPut<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/steering/${steeringId}`, payload);
-    }
-
-    // Delete steering
-    static async deleteSteering(steeringId: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/steering/${steeringId}`);
-    }
-}
 export class CatalogManageService {
 
     private static transformPartsToDataItems(parts: PartItem[]): CatalogDataItem[] {
         return parts.map(part => ({
-            target_id: part.part_target,
+            target_id: part.target_id,
             diagram_serial_number: '', 
-            part_number: part.code_product,
-            catalog_item_name_en: part.name_english,
-            catalog_item_name_ch: part.name_chinese,
-            description: '', 
+            part_number: part.part_number,
+            catalog_item_name_en: part.catalog_item_name_en,
+            catalog_item_name_ch: part.catalog_item_name_ch,
+            description: part.description, 
             quantity: part.quantity
         }));
     }
@@ -327,12 +38,11 @@ export class CatalogManageService {
     static async createCatalog(formData: PartCatalogueFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
         const formDataPayload = new FormData();
 
-        // Add required fields
-        formDataPayload.append('name_pdf', formData.code_cabin);
-        formDataPayload.append('master_catalog', formData.part_type);
-        formDataPayload.append('master_category_id', formData.part_id);
+        // Add required fields with correct mapping for new system
+        formDataPayload.append('dokumen_name', formData.code_cabin);
+        formDataPayload.append('master_category_id', formData.master_category);  // Use master_category from new system
+        formDataPayload.append('category_id', formData.part_id);
         formDataPayload.append('type_category_id', formData.type_id);
-        formDataPayload.append('use_csv', formData.use_csv_upload.toString());
         
         // Handle SVG image file - send empty string if no file uploaded
         if (formData.svg_image) {
@@ -341,16 +51,11 @@ export class CatalogManageService {
             formDataPayload.append('file_foto', '');
         }
         
-        // Transform and add data_items as JSON string
+        // Transform and add data_items as JSON string (CSV data is now directly converted to parts)
         const dataItems = this.transformPartsToDataItems(formData.parts);
         formDataPayload.append('data_items', JSON.stringify(dataItems));
-
-        // Handle CSV file - only append if exists
-        if (formData.csv_file) {
-            formDataPayload.append('file_csv', formData.csv_file);
-        }
         
-        return await apiPostMultipart<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/all-item-catalogs/create`, formDataPayload);
+        return await apiPostMultipart<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/item_category/create`, formDataPayload);
     }
 
     static async getItems(params: CatalogsListRequest): Promise<ManageCatalogsResponse> {
@@ -381,21 +86,35 @@ export class CatalogManageService {
             filteredParams.master_catalog = params.master_catalog;
         }
 
-        const response = await apiPost(`${API_BASE_URL}/catalogs/all-item-catalogs/get`, filteredParams);
+        const response = await apiPost(`${API_BASE_URL}/epc/item_category/get`, filteredParams);
         return response.data as ManageCatalogsResponse;
     }
 
-    static async getItemsById(id: string): Promise<EditCatalogResponse> {
+    static async getItemsById(id: string): Promise<CatalogDetailResponse> {
         try {
-            const response = await apiGet<EditCatalogResponse>(`${API_BASE_URL}/catalogs/all-item-catalogs/${id}`);
+            const response = await apiGet<CatalogDetailResponse>(`${API_BASE_URL}/epc/item_category/dokumen/${id}`);
             return response.data;
         } catch (error) {
             return {
                 success: false,
                 data: {
-                    name_pdf: '',
-                    master_pdf_id: '',
-                    data_master_category: []
+                    dokumen_name: '',
+                    master_category_id: '',
+                    master_category_name_en: '',
+                    master_category_name_cn: '',
+                    category_id: '',
+                    category_name_en: '',
+                    category_name_cn: '',
+                    type_category_id: '',
+                    type_category_name_en: '',
+                    type_category_name_cn: '',
+                    items: [],
+                    pagination: {
+                        page: 1,
+                        limit: 10,
+                        total: 0,
+                        totalPages: 0
+                    }
                 },
                 message: 'Failed to fetch catalog details',
                 timestamp: new Date().toISOString()
@@ -403,15 +122,26 @@ export class CatalogManageService {
         }
     }
 
+
+    // Method untuk Edit - menggunakan endpoint item_category/{id}
+    static async getCatalogForEdit(id: string): Promise<CatalogEditResponse> {
+        try {
+            const response = await apiGet<CatalogEditResponse>(`${API_BASE_URL}/epc/item_category/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching catalog for edit:', error);
+            throw error;
+        }
+    }
+
     static async updateItemsById(id: string, formData: PartCatalogueFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
         const formDataPayload = new FormData();
 
-        // Add required fields
-        formDataPayload.append('name_pdf', formData.code_cabin);
-        formDataPayload.append('master_catalog', formData.part_type);
-        formDataPayload.append('master_category_id', formData.part_id);
+        // Add required fields with updated mapping
+        formDataPayload.append('dokumen_name', formData.code_cabin);
+        formDataPayload.append('master_category_id', formData.master_category);  // Use master_category from new system
+        formDataPayload.append('category_id', formData.part_id);
         formDataPayload.append('type_category_id', formData.type_id);
-        formDataPayload.append('use_csv', formData.use_csv_upload.toString());
         
         // Handle SVG image file - send empty string if no file uploaded
         if (formData.svg_image) {
@@ -420,20 +150,15 @@ export class CatalogManageService {
             formDataPayload.append('file_foto', '');
         }
         
-        // Transform and add data_items as JSON string
+        // Transform and add data_items as JSON string (CSV data is now directly converted to parts)
         const dataItems = this.transformPartsToDataItems(formData.parts);
         formDataPayload.append('data_items', JSON.stringify(dataItems));
 
-        // Handle CSV file - only append if exists
-        if (formData.csv_file) {
-            formDataPayload.append('file_csv', formData.csv_file);
-        }
-
-        return await apiPutMultipart<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/all-item-catalogs/${id}`, formDataPayload);
+        return await apiPutMultipart<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/item_category/${id}`, formDataPayload);
     }
 
     static async deleteCatalog(id: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/all-item-catalogs/${id}`);
+        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/item_category/${id}`);
     }
 }
 // Vin Services
@@ -451,7 +176,7 @@ export class VinService {
             sort_order: filters.sort_order || 'desc'
         };
 
-        return await apiPost<VinApiResponse>(`${API_BASE_URL}/catalogs/productions/get`, payload);
+        return await apiPost<VinApiResponse>(`${API_BASE_URL}/epc/products/get`, payload);
     }
 
     // Create new vin
@@ -459,17 +184,45 @@ export class VinService {
         // Transform formData to match API expectations
         const payload = {
             vin_number: formData.vin_number,
-            production_name_en: formData.production_name_en,
-            production_name_cn: formData.production_name_cn,
-            production_description: formData.production_description || '',
-            data_details: formData.master_pdf || []
+            product_name_en: formData.product_name_en,
+            product_name_cn: formData.product_name_cn,
+            product_description: formData.product_description || '',
+            data_details: formData.data_details || []
         };
 
-        return await apiPost<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/productions/create`, payload);
+        return await apiPost<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/products/create`, payload);
     }
 
-    // Get master manage list with pagination and filters
-    static async getMasterManages(
+    // Get existing vin by ID
+    static async getVinById(vinId: string): Promise<ApiResponse<VinDetailResponse>> {
+        return await apiGet<VinDetailResponse>(`${API_BASE_URL}/epc/products/${vinId}`);
+    }
+
+    // Update existing vin
+    static async updateVin(vinId: string, formData: VinFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        // Transform formData to match API expectations
+        const payload = {
+            product_id: vinId,
+            vin_number: formData.vin_number,
+            product_name_en: formData.product_name_en,
+            product_name_cn: formData.product_name_cn,
+            product_description: formData.product_description || '',
+            data_details: formData.data_details || []
+        };
+
+        return await apiPut<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/products/${vinId}`, payload);
+    }
+
+    // Delete vin
+    static async deleteVin(vinId: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/products/${vinId}`);
+    }
+}
+
+// ================== MASTER PDF SERVICES ==================
+export class MasterPdfService {
+    // Fetch master PDFs with pagination and filters
+    static async getMasterPdfs(
         page: number = 1,
         limit: number = 10,
         filters: Partial<VinFilters> = {}
@@ -480,31 +233,147 @@ export class VinService {
             search: filters.search || ''
         };
 
-        return await apiPost<MasterBookApiResponse>(`${API_BASE_URL}/catalogs/master-pdf/get`, payload);
+        return await apiPost<MasterBookApiResponse>(`${API_BASE_URL}/epc/master-pdf/get`, payload);
     }
+}
 
-    // Get existing vin by ID
-    static async getVinById(vinId: string): Promise<ApiResponse<{ success: boolean; message: string; data: Vin }>> {
-        return await apiGet<{ success: boolean; message: string; data: Vin }>(`${API_BASE_URL}/catalogs/productions/${vinId}`, { production_id: vinId });
-    }
-
-    // Update existing vin
-    static async updateVin(vinId: string, formData: VinFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        // Transform formData to match API expectations
+// ================== MASTER CATEGORY SERVICES ==================
+export class MasterCategoryService {
+    // Fetch master categories with pagination and filters
+    static async getMasterCategories(
+        page: number = 1,
+        limit: number = 10,
+        filters: Partial<MasterCategoryFilters> = {}
+    ): Promise<ApiResponse<MasterCategoryApiResponse>> {
         const payload = {
-            production_id: vinId,
-            vin_number: formData.vin_number,
-            production_name_en: formData.production_name_en,
-            production_name_cn: formData.production_name_cn,
-            production_description: formData.production_description || '',
-            data_details: formData.master_pdf || []
+            page,
+            limit,
+            search: filters.search || '',
+            sort_order: filters.sort_order || 'desc'
         };
 
-        return await apiPut<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/productions/${vinId}`, payload);
+        return await apiPost<MasterCategoryApiResponse>(`${API_BASE_URL}/epc/master_category/get`, payload);
     }
 
-    // Delete vin
-    static async deleteVin(vinId: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/catalogs/productions/${vinId}`);
+    // Create new master category
+    static async createMasterCategory(formData: MasterCategoryFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        // Transform formData to match API expectations
+        const payload = {
+            master_category_name_en: formData.master_category_name_en,
+            master_category_name_cn: formData.master_category_name_cn,
+            master_category_description: formData.master_category_description,
+        };
+
+        return await apiPost<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/master_category/create`, payload);
     }
+
+    // Get existing master category by ID
+    static async getMasterCategoryById(masterCategoryId: string): Promise<ApiResponse<{ success: boolean; message: string; data: MasterCategory }>> {
+        return await apiGet<{ success: boolean; message: string; data: MasterCategory }>(`${API_BASE_URL}/epc/master_category/${masterCategoryId}`);
+    }
+
+    // Update existing master category
+    static async updateMasterCategory(masterCategoryId: string, formData: MasterCategoryFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        // Transform formData to match API expectations
+        const payload = {
+            master_category_id: masterCategoryId,
+            master_category_name_en: formData.master_category_name_en,
+            master_category_name_cn: formData.master_category_name_cn,
+            master_category_description: formData.master_category_description,
+        };
+
+        return await apiPut<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/master_category/${masterCategoryId}`, payload);
+    }
+
+    // Delete master category
+    static async deleteMasterCategory(masterCategoryId: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/master_category/${masterCategoryId}`);
+    }
+}
+
+// CATEGORY Services
+export class CategoryService {
+    // Fetch category with pagination and filters
+    static async getCategory(
+        page: number = 1,
+        limit: number = 10,
+        filters: Partial<CategoryFilters> = {}
+    ): Promise<ApiResponse<CategoryApiResponse>> {
+        const payload = {
+            page,
+            limit,
+            search: filters.search || '',
+            sort_order: filters.sort_order || 'desc',
+            master_category_id: filters.master_category_id || ''
+        };
+
+        return await apiPost<CategoryApiResponse>(`${API_BASE_URL}/epc/categories/get`, payload);
+    }
+
+    // Create new category
+    static async createCategory(formData: CategoryFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        // Transform formData to match API expectations
+        const payload = {
+            master_category_id: formData.master_category_id,
+            master_category_name_en: formData.master_category_name_en,
+            category_name_en: formData.category_name_en,
+            category_name_cn: formData.category_name_cn,
+            category_description: formData.category_description,
+            data_type: formData.data_type || []
+        };
+
+        return await apiPost<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/categories/create`, payload);
+    }
+
+    // Get existing category by ID
+    static async getCategoryById(categoryId: string): Promise<ApiResponse<{ success: boolean; message: string; data: Category }>> {
+        return await apiGet<{ success: boolean; message: string; data: Category }>(`${API_BASE_URL}/epc/categories/${categoryId}`, { category_id: categoryId });
+    }
+
+    // Update existing category
+    static async updateCategory(categoryId: string, formData: CategoryFormData): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        // Transform formData to match API expectations
+        const payload = {
+            category_id: categoryId,
+            master_category_id: formData.master_category_id,
+            master_category_name_en: formData.master_category_name_en,
+            category_name_en: formData.category_name_en,
+            category_name_cn: formData.category_name_cn,
+            category_description: formData.category_description,
+            data_type: formData.data_type || []
+        };
+
+        return await apiPut<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/categories/${categoryId}`, payload);
+    }
+
+    // Delete category
+    static async deleteCategory(categoryId: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
+        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/categories/${categoryId}`);
+    }
+}
+
+// Detail Catalog Services
+export class DetailCatalogService {
+
+    static async getDetailCatalog(
+        page: number = 1,
+        limit: number = 10,
+        filters: Partial<DetailCatalogFilters> = {}
+    ): Promise<ApiResponse<DetailCatalogApiResponse>> {
+        const payload = {
+            page,
+            limit,
+            search: filters.search || '',
+            sort_order: filters.sort_order || 'desc',
+            category_id: filters.category_id || ''
+        };
+
+        return await apiPost<DetailCatalogApiResponse>(`${API_BASE_URL}/epc/type_category/get`, payload);
+    }
+    
+    // Get existing detail catalog by ID
+    static async getDetailCatalogById(detailCatalogId: string): Promise<ApiResponse<{ success: boolean; message: string; data: DetailCatalog }>> {
+        return await apiGet<{ success: boolean; message: string; data: DetailCatalog }>(`${API_BASE_URL}/epc/type_category/${detailCatalogId}`);
+    }
+
 }

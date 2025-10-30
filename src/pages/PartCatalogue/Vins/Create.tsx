@@ -5,6 +5,7 @@ import Input from '@/components/form/input/InputField';
 import CustomAsyncSelect from '@/components/form/select/CustomAsyncSelect';
 import PageMeta from '@/components/common/PageMeta';
 import { useCreateVin, useMasterVinManager } from '@/hooks/useManageVins';
+import TextArea from '@/components/form/input/TextArea';
 
 export default function CreateVin() {
     const navigate = useNavigate();
@@ -19,15 +20,16 @@ export default function CreateVin() {
         addMasterPdf,
         removeMasterPdf,
         updateMasterPdfSelection,
+        handleDetailInputChange,
         handleSearchInputChange,
         handleSubmit
     } = useCreateVin();
 
     const {
         loading,
-        loadMasterPdfOptions,
+        loadCatalogOptions,
         handleMenuScrollToBottom,
-        createMasterPdfOptions
+        createCatalogOptions
     } = useMasterVinManager();
 
     return (
@@ -95,15 +97,15 @@ export default function CreateVin() {
                                                     Production Name (English) <span className="text-red-500">*</span>
                                                 </label>
                                                 <Input
-                                                    name="production_name_en"
+                                                    name="product_name_en"
                                                     type="text"
-                                                    value={formData.production_name_en}
-                                                    onChange={(e) => handleInputChange('production_name_en', e.target.value)}
+                                                    value={formData.product_name_en}
+                                                    onChange={(e) => handleInputChange('product_name_en', e.target.value)}
                                                     placeholder="Enter production name in English"
-                                                    error={!!errors.production_name_en}
+                                                    error={!!errors.product_name_en}
                                                 />
-                                                {errors.production_name_en && (
-                                                    <p className="mt-1 text-sm text-red-600">{errors.production_name_en}</p>
+                                                {errors.product_name_en && (
+                                                    <p className="mt-1 text-sm text-red-600">{errors.product_name_en}</p>
                                                 )}
                                             </div>
 
@@ -113,15 +115,15 @@ export default function CreateVin() {
                                                     Production Name (Chinese) <span className="text-red-500">*</span>
                                                 </label>
                                                 <Input
-                                                    name="production_name_cn"
+                                                    name="product_name_cn"
                                                     type="text"
-                                                    value={formData.production_name_cn}
-                                                    onChange={(e) => handleInputChange('production_name_cn', e.target.value)}
+                                                    value={formData.product_name_cn}
+                                                    onChange={(e) => handleInputChange('product_name_cn', e.target.value)}
                                                     placeholder="Enter production name in Chinese"
-                                                    error={!!errors.production_name_cn}
+                                                    error={!!errors.product_name_cn}
                                                 />
-                                                {errors.production_name_cn && (
-                                                    <p className="mt-1 text-sm text-red-600">{errors.production_name_cn}</p>
+                                                {errors.product_name_cn && (
+                                                    <p className="mt-1 text-sm text-red-600">{errors.product_name_cn}</p>
                                                 )}
                                             </div>
                                         </div>
@@ -132,22 +134,21 @@ export default function CreateVin() {
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Production Description
                                         </label>
-                                        <textarea
-                                            name="production_description"
-                                            value={formData.production_description || ''}
-                                            onChange={(e) => handleInputChange('production_description', e.target.value)}
+                                        <TextArea
+                                            name="product_description"
+                                            value={formData.product_description || ''}
+                                            onChange={(e) => handleInputChange('product_description', e.target.value)}
                                             placeholder="Enter production description"
                                             rows={3}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         />
                                     </div>
                                 </div>
 
-                                {/* Master PDF Details */}
+                                {/* Master Catalog Details */}
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className="text-lg font-medium text-gray-900">
-                                            Master of Cabin
+                                            Master Catalog Documents
                                         </h3>
                                         <Button
                                             type="button"
@@ -157,18 +158,18 @@ export default function CreateVin() {
                                             size="sm"
                                         >
                                             <MdAdd className="w-4 h-4" />
-                                            Add PDF
+                                            Add Catalog
                                         </Button>
                                     </div>
 
                                     <div className="space-y-4 font-secondary">
-                                        {formData.master_pdf && formData.master_pdf.length > 0 ? (
+                                        {formData.data_details && formData.data_details.length > 0 ? (
                                             <>
-                                                {formData.master_pdf.map((pdf, index) => (
+                                                {formData.data_details.map((detail, index) => (
                                                     <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-4">
                                                         <div className="flex items-center justify-between">
                                                             <h4 className="text-md font-medium text-gray-700">
-                                                                Master Cabin #{index + 1}
+                                                                Catalog Document #{index + 1}
                                                             </h4>
                                                             <Button
                                                                 type="button"
@@ -180,34 +181,83 @@ export default function CreateVin() {
                                                                 <MdDelete className="w-4 h-4" />
                                                             </Button>
                                                         </div>
-                                                        <div className="flex-1">
-                                                            <CustomAsyncSelect
-                                                                name={`master_pdf_${index}`}
-                                                                placeholder="Select master PDF from catalogs"
-                                                                value={pdf.master_pdf_id ? 
-                                                                    createMasterPdfOptions().find(opt => opt.value === pdf.master_pdf_id) || null 
-                                                                    : null
-                                                                }
-                                                                onChange={(selectedOption) => updateMasterPdfSelection(index, selectedOption)}
-                                                                defaultOptions={createMasterPdfOptions()}
-                                                                loadOptions={loadMasterPdfOptions}
-                                                                onMenuScrollToBottom={handleMenuScrollToBottom}
-                                                                isLoading={loading}
-                                                                noOptionsMessage={() => loading ? 'Loading master PDFs...' : 'No master PDFs found'}
-                                                                loadingMessage={() => 'Loading master PDFs...'}
-                                                                isSearchable={true}
-                                                                isClearable={true}
-                                                                inputValue={searchInputValues[index] || ''}
-                                                                onInputChange={handleSearchInputChange(index)}
-                                                            />
+                                                        
+                                                        {/* Catalog Selection */}
+                                                        <div className="space-y-4">
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Select Catalog Document <span className="text-red-500">*</span>
+                                                                </label>
+                                                                <CustomAsyncSelect
+                                                                    name={`dokumen_${index}`}
+                                                                    placeholder="Select catalog document"
+                                                                    value={detail.dokumen_id ? 
+                                                                        createCatalogOptions().find(opt => opt.value === detail.dokumen_id) || null 
+                                                                        : null
+                                                                    }
+                                                                    onChange={(selectedOption) => updateMasterPdfSelection(index, selectedOption)}
+                                                                    defaultOptions={createCatalogOptions()}
+                                                                    loadOptions={loadCatalogOptions}
+                                                                    onMenuScrollToBottom={handleMenuScrollToBottom}
+                                                                    isLoading={loading}
+                                                                    noOptionsMessage={() => loading ? 'Loading catalogs...' : 'No catalogs found'}
+                                                                    loadingMessage={() => 'Loading catalogs...'}
+                                                                    isSearchable={true}
+                                                                    isClearable={true}
+                                                                    inputValue={searchInputValues[index] || ''}
+                                                                    onInputChange={handleSearchInputChange(index)}
+                                                                />
+                                                            </div>
+                                                            
+                                                            {/* Detail Information */}
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                <div>
+                                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                        Product Detail Name (English) <span className="text-red-500">*</span>
+                                                                    </label>
+                                                                    <Input
+                                                                        name={`product_detail_name_en_${index}`}
+                                                                        type="text"
+                                                                        value={detail.product_detail_name_en}
+                                                                        onChange={(e) => handleDetailInputChange(index, 'product_detail_name_en', e.target.value)}
+                                                                        placeholder="Enter product detail name in English"
+                                                                    />
+                                                                </div>
+                                                                
+                                                                <div>
+                                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                        Product Detail Name (Chinese) <span className="text-red-500">*</span>
+                                                                    </label>
+                                                                    <Input
+                                                                        name={`product_detail_name_cn_${index}`}
+                                                                        type="text"
+                                                                        value={detail.product_detail_name_cn}
+                                                                        onChange={(e) => handleDetailInputChange(index, 'product_detail_name_cn', e.target.value)}
+                                                                        placeholder="Enter product detail name in Chinese"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Product Detail Description <span className="text-red-500">*</span>
+                                                                </label>
+                                                                <TextArea
+                                                                    name={`product_detail_description_${index}`}
+                                                                    value={detail.product_detail_description}
+                                                                    onChange={(e) => handleDetailInputChange(index, 'product_detail_description', e.target.value)}
+                                                                    placeholder="Enter product detail description"
+                                                                    rows={3}
+                                                                />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 ))}
                                             </>
                                         ) : (
                                             <div className="text-center py-8 text-gray-500">
-                                                <p>No master cabin details added yet.</p>
-                                                <p className="text-sm">Click "Add Cabin" to add master cabin details.</p>
+                                                <p>No catalog documents added yet.</p>
+                                                <p className="text-sm">Click "Add Catalog" to add catalog documents.</p>
                                             </div>
                                         )}
                                     </div>

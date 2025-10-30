@@ -56,16 +56,18 @@ const navItems: NavItem[] = [
             { name: "Dashboard", path: "/epc/dashboard", allowedRoles: ['Dashboard Catalogs'], },
             { name: "VIN", path: "/epc/vins", allowedRoles: ['Vin Catalogs'] },
             { name: "Manage", path: "/epc/manage", allowedRoles: ['Manage Catalogs'] },
-            { name: "Cabin", path: "/epc/cabin", allowedRoles: ['Cabin Catalogs'] },
-            { name: "Engine", path: "/epc/engine", allowedRoles: ['Engine Catalogs'] },
-            { name: "Axle", path: "/epc/axle", allowedRoles: ['Axle Catalogs'] },
-            { name: "Transmission", path: "/epc/transmission", allowedRoles: ['Transmission Catalogs'] },
-            { name: "Steering", path: "/epc/steering", allowedRoles: ['Steering Catalogs'] },
+            { name: "Category", path: "/epc/category", allowedRoles: ['Manage Catalogs'] },
         ],
     },
 ];
 
 const othersItems: NavItem[] = [
+    {
+        icon: <BoxCubeIcon />,
+        name: "Master Category",
+        allowedRoles: ['Master Category Catalogs'],
+        path: "/epc/master-category"
+    },
     {
         icon: <BoxCubeIcon />,
         name: "UI Elements",
@@ -370,7 +372,7 @@ const AppSidebar: React.FC = () => {
                     <div className="flex flex-col gap-4">
                         {renderMenuItems(mainFiltered, "main")}
                         {othersFiltered.length === 0 ? null : (
-                        <div>
+                        <div className="border-t border-t-gray-300">
                             <h2
                                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
                                 !isExpanded && !isHovered

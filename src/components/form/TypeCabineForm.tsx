@@ -30,6 +30,7 @@ interface ReusableTypeFormProps<T> {
     config: TypeFormConfig;
     errors?: Record<string, string>;
     className?: string;
+    modeEdit?: boolean;
 }
 
 function ReusableTypeForm<T extends Record<string, any>>({ 
@@ -37,7 +38,8 @@ function ReusableTypeForm<T extends Record<string, any>>({
     onTypeDataChange,
     config,
     errors = {},
-    className = ""
+    className = "",
+    modeEdit = false
 }: ReusableTypeFormProps<T>) {
     const [newlyAddedIndexes, setNewlyAddedIndexes] = useState<Set<number>>(new Set());
 
@@ -132,12 +134,13 @@ function ReusableTypeForm<T extends Record<string, any>>({
                                     }
                                     error={!!errors[`type_${config.entityName}s.${index}.${config.fields.nameEn}`]}
                                     hint={errors[`type_${config.entityName}s.${index}.${config.fields.nameEn}`]}
+                                    readonly={modeEdit}
                                 />
                             </div>
 
                             <div>
                                 <Label htmlFor={`${config.fields.nameCn}_${index}`}>
-                                    {config.labels.nameCn} *
+                                    {config.labels.nameCn}
                                 </Label>
                                 <Input
                                     id={`${config.fields.nameCn}_${index}`}
@@ -149,6 +152,7 @@ function ReusableTypeForm<T extends Record<string, any>>({
                                     }
                                     error={!!errors[`type_${config.entityName}s.${index}.${config.fields.nameCn}`]}
                                     hint={errors[`type_${config.entityName}s.${index}.${config.fields.nameCn}`]}
+                                    readonly={modeEdit}
                                 />
                             </div>
                         </div>
@@ -166,6 +170,7 @@ function ReusableTypeForm<T extends Record<string, any>>({
                                 error={!!errors[`type_${config.entityName}s.${index}.${config.fields.description}`]}
                                 hint={errors[`type_${config.entityName}s.${index}.${config.fields.description}`]}
                                 rows={3}
+                                readonly={modeEdit}
                             />
                         </div>
                     </div>

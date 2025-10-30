@@ -2,41 +2,71 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { VinService } from '@/services/partCatalogueService';
-import { VinFormData } from '@/types/partCatalogue';
+import { VinFormData, VinDetailItem } from '@/types/partCatalogue';
 import { SelectOption } from '@/types/asyncSelect';
 
 // Error interface for better type safety
 interface VinFormErrors {
     vin_number?: string;
-    production_name_en?: string;
-    production_name_cn?: string;
-    production_description?: string;
-    master_pdf?: string;
+    product_name_en?: string;
+    product_name_cn?: string;
+    product_description?: string;
+    data_details?: string;
 }
 
-// Extended master PDF interface for editing with isNew flag
-interface MasterPdfEdit {
-    master_pdf_id: string;
+// Extended detail item interface for editing with isNew flag
+interface VinDetailItemEdit extends VinDetailItem {
     isNew?: boolean;
 }
 
-// Extended form data interface for editing
+// Extended form data interface for editing  
 interface VinFormDataEdit {
     vin_number: string;
-    production_name_en: string;
-    production_name_cn: string;
-    production_description?: string;
-    master_pdf?: MasterPdfEdit[];
+    product_name_en: string;
+    product_name_cn: string;
+    product_description?: string;
+    data_details?: VinDetailItemEdit[];
+    // Keeping master_pdf for backward compatibility if needed
+    master_pdf?: Array<{
+        master_pdf_id: string;
+        master_pdf_name: string;
+        isNew?: boolean;
+    }>;
 }
 
 // Response type based on the provided API structure
 interface VinDetailData {
-    production_id: string;
+    product_id: string;
     vin_number: string;
-    production_name_en: string;
-    production_name_cn: string;
-    production_description: string;
-    master_pdf: Array<{
+    product_name_en: string;
+    product_name_cn: string;
+    product_description: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    deleted_at: string | null;
+    deleted_by: string | null;
+    is_delete: boolean;
+    details: Array<{
+        product_detail_id: string;
+        product_id: string;
+        dokumen_id: string;
+        product_detail_name_en: string;
+        product_detail_name_cn: string;
+        product_detail_description: string;
+        created_at: string;
+        created_by: string | null;
+        updated_at: string;
+        updated_by: string | null;
+        deleted_at: string | null;
+        deleted_by: string | null;
+        is_delete: boolean;
+        dokumen_name: string;
+        dokumen_description: string;
+    }>;
+    // Keeping master_pdf for backward compatibility if needed
+    master_pdf?: Array<{
         master_pdf_id: string;
         master_pdf_name: string;
     }>;
@@ -63,6 +93,7 @@ interface UseViewVinReturn {
     addMasterPdf: () => void;
     removeMasterPdf: (index: number) => void;
     updateMasterPdfSelection: (index: number, selectedOption: SelectOption | null) => void;
+    handleDetailInputChange: (index: number, field: keyof Omit<VinDetailItem, 'dokumen_id'>, value: string) => void;
     handleSearchInputChange: (index: number) => (inputValue: string) => void;
     handleSave: () => Promise<void>;
     handleDelete: () => Promise<void>;
@@ -84,9 +115,9 @@ export const useViewVin = (): UseViewVinReturn => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [formData, setFormData] = useState<VinFormDataEdit>({
         vin_number: '',
-        production_name_en: '',
-        production_name_cn: '',
-        production_description: '',
+        product_name_en: '',
+        product_name_cn: '',
+        product_description: '',
         master_pdf: []
     });
     const [errors, setErrors] = useState<VinFormErrors>({});
@@ -110,21 +141,28 @@ export const useViewVin = (): UseViewVinReturn => {
             const response = await VinService.getVinById(vinId);
             
             if (response.data?.success && response.data?.data) {
-                // Cast response data to our expected type since API has master_pdf field
-                // The API response includes master_pdf but the Vin type doesn't have it
                 const data = response.data.data as unknown as VinDetailData;
                 setVinData(data);
                 
                 // Initialize form data for potential edit mode
                 setFormData({
                     vin_number: data.vin_number,
-                    production_name_en: data.production_name_en,
-                    production_name_cn: data.production_name_cn,
-                    production_description: data.production_description || '',
-                    master_pdf: data.master_pdf.map(pdf => ({
-                        master_pdf_id: pdf.master_pdf_id,
+                    product_name_en: data.product_name_en,
+                    product_name_cn: data.product_name_cn,
+                    product_description: data.product_description || '',
+                    data_details: data.details?.map(detail => ({
+                        dokumen_id: detail.dokumen_id,
+                        product_detail_name_en: detail.product_detail_name_en,
+                        product_detail_name_cn: detail.product_detail_name_cn,
+                        product_detail_description: detail.product_detail_description,
                         isNew: false // Existing data is not new
-                    }))
+                    })) || [],
+                    // Keep backward compatibility
+                    master_pdf: data.master_pdf?.map(pdf => ({
+                        master_pdf_id: pdf.master_pdf_id,
+                        master_pdf_name: pdf.master_pdf_name,
+                        isNew: false
+                    })) || []
                 });
             } else {
                 setError(response.data?.message || 'Failed to fetch VIN data');
@@ -137,15 +175,15 @@ export const useViewVin = (): UseViewVinReturn => {
         }
     }, [vinId]);
 
-    // Handle input changes in edit mode
+    // Handle input changes for form fields
     const handleInputChange = useCallback((name: keyof VinFormDataEdit, value: string) => {
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
         
-        // Clear error when user starts typing
-        if (errors[name]) {
+        // Clear error when user starts typing (only for basic form fields)
+        if (name in errors) {
             setErrors(prev => ({
                 ...prev,
                 [name]: ''
@@ -153,22 +191,28 @@ export const useViewVin = (): UseViewVinReturn => {
         }
     }, [errors]);
 
-    // Add master PDF in edit mode (add to top)
+    // Add catalog detail in edit mode (add to top)
     const addMasterPdf = useCallback(() => {
         setFormData(prev => ({
             ...prev,
-            master_pdf: [
-                { master_pdf_id: '', isNew: true }, // Add new item at the beginning (top)
-                ...(prev.master_pdf || []).map(pdf => ({ ...pdf, isNew: false })) // Mark existing items as not new
+            data_details: [
+                { 
+                    dokumen_id: '',
+                    product_detail_name_en: '',
+                    product_detail_name_cn: '',
+                    product_detail_description: '',
+                    isNew: true 
+                }, // Add new item at the beginning (top)
+                ...(prev.data_details || []).map(detail => ({ ...detail, isNew: false })) // Mark existing items as not new
             ]
         }));
     }, []);
 
-    // Remove master PDF in edit mode
+    // Remove catalog detail from edit mode
     const removeMasterPdf = useCallback((index: number) => {
         setFormData(prev => ({
             ...prev,
-            master_pdf: prev.master_pdf?.filter((_, i) => i !== index) || []
+            data_details: prev.data_details?.filter((_, i) => i !== index) || []
         }));
         
         // Clean up search input value for removed field
@@ -193,14 +237,24 @@ export const useViewVin = (): UseViewVinReturn => {
         });
     }, []);
 
-    // Update master PDF selection in edit mode
+    // Update catalog selection in edit mode
     const updateMasterPdfSelection = useCallback((index: number, selectedOption: SelectOption | null) => {
-        const master_pdf_id = selectedOption ? String(selectedOption.value) : '';
+        const dokumen_id = selectedOption ? String(selectedOption.value) : '';
         
         setFormData(prev => ({
             ...prev,
-            master_pdf: prev.master_pdf?.map((item, i) => 
-                i === index ? { master_pdf_id, isNew: item.isNew } : item
+            data_details: prev.data_details?.map((item, i) => 
+                i === index ? { ...item, dokumen_id } : item
+            ) || []
+        }));
+    }, []);
+
+    // Handle detail input change
+    const handleDetailInputChange = useCallback((index: number, field: keyof Omit<VinDetailItem, 'dokumen_id'>, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            data_details: prev.data_details?.map((item, i) => 
+                i === index ? { ...item, [field]: value } : item
             ) || []
         }));
     }, []);
@@ -222,13 +276,13 @@ export const useViewVin = (): UseViewVinReturn => {
             newErrors.vin_number = 'VIN Number is required';
         }
 
-        if (!formData.production_name_en.trim()) {
-            newErrors.production_name_en = 'Production Name (EN) is required';
+        if (!formData.product_name_en.trim()) {
+            newErrors.product_name_en = 'Product Name (EN) is required';
         }
 
-        if (!formData.production_name_cn.trim()) {
-            newErrors.production_name_cn = 'Production Name (CN) is required';
-        }
+        // if (!formData.product_name_cn.trim()) {
+        //     newErrors.product_name_cn = 'Product Name (CN) is required';
+        // }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -252,11 +306,14 @@ export const useViewVin = (): UseViewVinReturn => {
             // Convert to API format by removing isNew property
             const apiFormData: VinFormData = {
                 vin_number: formData.vin_number,
-                production_name_en: formData.production_name_en,
-                production_name_cn: formData.production_name_cn,
-                production_description: formData.production_description,
-                master_pdf: formData.master_pdf?.map(pdf => ({
-                    master_pdf_id: pdf.master_pdf_id
+                product_name_en: formData.product_name_en,
+                product_name_cn: formData.product_name_cn,
+                product_description: formData.product_description,
+                data_details: formData.data_details?.map(detail => ({
+                    dokumen_id: detail.dokumen_id,
+                    product_detail_name_en: detail.product_detail_name_en,
+                    product_detail_name_cn: detail.product_detail_name_cn,
+                    product_detail_description: detail.product_detail_description
                 }))
             };
             
@@ -314,13 +371,21 @@ export const useViewVin = (): UseViewVinReturn => {
         if (vinData) {
             setFormData({
                 vin_number: vinData.vin_number,
-                production_name_en: vinData.production_name_en,
-                production_name_cn: vinData.production_name_cn,
-                production_description: vinData.production_description || '',
-                master_pdf: vinData.master_pdf.map(pdf => ({
+                product_name_en: vinData.product_name_en,
+                product_name_cn: vinData.product_name_cn,
+                product_description: vinData.product_description || '',
+                data_details: vinData.details?.map(detail => ({
+                    dokumen_id: detail.dokumen_id,
+                    product_detail_name_en: detail.product_detail_name_en,
+                    product_detail_name_cn: detail.product_detail_name_cn,
+                    product_detail_description: detail.product_detail_description,
+                    isNew: false
+                })) || [],
+                master_pdf: vinData.master_pdf?.map(pdf => ({
                     master_pdf_id: pdf.master_pdf_id,
+                    master_pdf_name: pdf.master_pdf_name,
                     isNew: false // Reset to not new
-                }))
+                })) || []
             });
         }
     }, [vinData]);
@@ -351,6 +416,7 @@ export const useViewVin = (): UseViewVinReturn => {
         addMasterPdf,
         removeMasterPdf,
         updateMasterPdfSelection,
+        handleDetailInputChange,
         handleSearchInputChange,
         handleSave,
         handleDelete,

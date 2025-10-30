@@ -54,29 +54,33 @@ export interface PartCatalogueFormData {
     part_type: string;
     part_id: string;
     type_id: string;
+    master_category: string;
     svg_image: File | null;
     file_foto: File | null;
-    use_csv_upload: boolean;
-    csv_file: File | null;
+    // use_csv_upload: boolean;
+    // csv_file: File | null;
     parts: PartItem[];
 }
-
 export interface PartItem {
     id: string;
-    part_target: string;
-    code_product: string;
+    target_id: string;
+    part_number: string;
     file_foto: string | null;
-    name_english: string;
-    name_chinese: string;
+    catalog_item_name_en: string;
+    catalog_item_name_ch: string;
+    description: string;
+    unit: string;
     quantity: number;
 }
 
 export interface CreatePartItem {
-    part_target: string;
-    code_product: string;
+    target_id: string;
+    part_number: string;
     file_foto: string | null;
-    name_english: string;
-    name_chinese: string;
+    catalog_item_name_en: string;
+    catalog_item_name_ch: string;
+    description: string;
+    unit: string;
     quantity: number;
 }
 
@@ -85,10 +89,12 @@ export interface CatalogValidationErrors {
     part_type?: string;
     part_id?: string;
     type_id?: string;
+    master_category?: string;
     svg_image?: string;
-    csv_file?: string;
     parts?: string;
     general?: string;
+    // Dynamic part validation fields
+    [key: string]: string | undefined;
 }
 
 export interface PartCatalogueData {
@@ -139,6 +145,15 @@ export interface CatalogItem {
     [key: string]: any;
 }
 
+// New simplified catalog document item for list view
+export interface CatalogDocumentItem {
+    dokumen_id: string;
+    dokumen_name: string;
+    master_category_id: string;
+    master_category_name_en: string;
+    master_category_name_cn: string;
+}
+
 export interface CatalogPagination {
     page: number;
     limit: number;
@@ -150,7 +165,7 @@ export interface ManageCatalogsResponse {
     success: boolean;
     message: string;
     data: {
-        items: CatalogItem[];
+        items: CatalogDocumentItem[];
         pagination: CatalogPagination;
     };
     timestamp: string;
@@ -199,5 +214,91 @@ export interface EditCatalogResponse {
     success: boolean;
     message: string;
     data: EditCatalogData;
+    timestamp: string;
+}
+
+// New catalog detail response structure
+export interface CatalogDetailItem {
+    item_category_id: string;
+    dokumen_id: string;
+    master_category_id: string;
+    master_category_name_en: string;
+    master_category_name_cn: string;
+    category_name_en: string;
+    category_name_cn: string;
+    type_category_name_en: string;
+    type_category_name_cn: string;
+}
+
+export interface CatalogDetailData {
+    dokumen_name: string;
+    master_category_id: string;
+    master_category_name_en: string;
+    master_category_name_cn: string;
+    category_id: string;
+    category_name_en: string;
+    category_name_cn: string;
+    type_category_id: string;
+    type_category_name_en: string;
+    type_category_name_cn: string;
+    items: CatalogDetailItem[];
+    pagination: CatalogPagination;
+}
+
+export interface CatalogDetailResponse {
+    success: boolean;
+    message: string;
+    data: CatalogDetailData;
+    timestamp: string;
+}
+
+// Response structure untuk Edit catalog dari endpoint item_category/{id}
+export interface CatalogEditDetailItem {
+    item_category_detail_id: string;
+    item_category_id: string;
+    target_id: string;
+    part_number: string;
+    catalog_item_name_en: string;
+    catalog_item_name_ch: string;
+    description: string;
+    quantity: number;
+    unit: string | null;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    unit_name_en: string | null;
+    unit_name_cn: string | null;
+}
+
+export interface CatalogEditData {
+    item_category_id: string;
+    type_category_id: string;
+    dokumen_id: string;
+    item_category_name_en: string | null;
+    item_category_name_cn: string | null;
+    item_category_description: string | null;
+    item_category_foto: string;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    category_id: string;
+    dokumen_name: string;
+    dokumen_description: string | null;
+    type_category_name_en: string;
+    type_category_name_cn: string;
+    category_name_en: string;
+    category_name_cn: string;
+    master_category_id: string;
+    master_category_name_en: string;
+    master_category_name_cn: string;
+    details: CatalogEditDetailItem[];
+}
+
+export interface CatalogEditResponse {
+    success: boolean;
+    message: string;
+    data: CatalogEditData;
     timestamp: string;
 }

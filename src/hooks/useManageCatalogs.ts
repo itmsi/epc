@@ -2,11 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { 
-    CatalogItem, 
+    CatalogDocumentItem, 
     CatalogsListRequest, 
     CatalogPagination,
-    PartItem,
-    EditCatalogData
+    CatalogDetailData,
+    PartItem
 } from '@/types/asyncSelect';
 import { CatalogManageService } from '@/services/partCatalogueService';
 import { usePartCatalogueManagement } from '@/hooks/usePartCatalogueManagement';
@@ -19,7 +19,7 @@ interface UseManageCatalogsProps {
 
 interface UseManageCatalogsReturn {
     // Data
-    catalogs: CatalogItem[];
+    catalogs: CatalogDocumentItem[];
     loading: boolean;
     error: string | null;
     
@@ -55,7 +55,7 @@ export function useManageCatalogs(props: UseManageCatalogsProps = {}): UseManage
     } = props;
 
     // State
-    const [catalogs, setCatalogs] = useState<CatalogItem[]>([]);
+    const [catalogs, setCatalogs] = useState<CatalogDocumentItem[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [pagination, setPagination] = useState<CatalogPagination>({
@@ -198,7 +198,7 @@ interface UseEditCatalogProps {
 
 interface UseEditCatalogReturn extends ReturnType<typeof usePartCatalogueManagement> {
     // Original catalog data
-    catalogData: EditCatalogData | null;
+    catalogData: CatalogDetailData | null;
     
     // Loading states
     loadingCatalog: boolean;
@@ -218,7 +218,7 @@ export function useEditCatalog(props: UseEditCatalogProps = {}): UseEditCatalogR
     const partCatalogueHook = usePartCatalogueManagement();
 
     // Additional states for edit functionality
-    const [catalogData, setCatalogData] = useState<EditCatalogData | null>(null);
+    const [catalogData, setCatalogData] = useState<CatalogDetailData | null>(null);
     const [loadingCatalog, setLoadingCatalog] = useState<boolean>(true);
     const [submitting, setSubmitting] = useState<boolean>(false);
     
@@ -236,47 +236,60 @@ export function useEditCatalog(props: UseEditCatalogProps = {}): UseEditCatalogR
             setLoadingCatalog(true);
             hasFetchedCatalog.current = true;
             
-            const response = await CatalogManageService.getItemsById(catalogId);
+            // Untuk Edit page, gunakan endpoint item_category/{id}
+            const response = await CatalogManageService.getCatalogForEdit(catalogId);
+            console.log({
+                response
+            });
             
             if (response.success) {
-                setCatalogData(response.data);
+                // Set catalog data dengan struktur yang minimal untuk Edit page
+                setCatalogData({
+                    dokumen_name: response.data.dokumen_name || '',
+                    master_category_id: response.data.item_category_id || '',
+                    master_category_name_en: response.data.master_category_name_en || '',
+                    master_category_name_cn: response.data.master_category_name_cn || '',
+                    category_id: response.data.category_id || '',
+                    category_name_en: response.data.category_name_en || '',
+                    category_name_cn: response.data.category_name_cn || '',
+                    type_category_id: response.data.type_category_id || '',
+                    type_category_name_en: response.data.type_category_name_en || '',
+                    type_category_name_cn: response.data.type_category_name_cn || '',
+                    items: [], // Empty karena untuk Edit page tidak perlu items
+                    pagination: {
+                        page: 1,
+                        limit: 10,
+                        total: 0,
+                        totalPages: 1
+                    }
+                });
                 
-                // Populate form data from catalog response
-                const masterCategory = response.data.data_master_category[0]; // Assuming single category for now
-                if (masterCategory) {
-                    // Transform data back to form format
-                    const transformedParts: PartItem[] = masterCategory.data_items.map((item, index) => ({
-                        id: item.items_id || `part-${index + 1}`,
-                        part_target: item.target_id,
-                        code_product: item.part_number,
-                        file_foto: item.file_foto || null,
-                        name_english: item.catalog_item_name_en,
-                        name_chinese: item.catalog_item_name_ch,
-                        quantity: item.quantity
+                // Populate form data dari response
+                if (response.data.details && response.data.details.length > 0) {
+                    // Transform details ke format PartItem untuk form
+                    const parts: PartItem[] = response.data.details.map((detail, index) => ({
+                        id: `part-${index}`, // Generate temporary ID
+                        target_id: detail.target_id,
+                        part_number: detail.part_number,
+                        catalog_item_name_en: detail.catalog_item_name_en,
+                        catalog_item_name_ch: detail.catalog_item_name_ch,
+                        description: detail.description,
+                        quantity: detail.quantity,
+                        unit: detail.unit || '',
+                        file_foto: null
                     }));
-
+                    
                     // Update form data using the existing hook's setFormData
                     partCatalogueHook.setFormData(prev => ({
                         ...prev,
-                        code_cabin: response.data.name_pdf,
-                        part_type: masterCategory.master_catalog,
-                        part_id: masterCategory.master_category_id,
-                        type_id: masterCategory.type_category_id,
-                        use_csv_upload: false, // Default to manual editing
-                        parts: transformedParts
+                        code_cabin: response.data.dokumen_name,
+                        master_category: response.data.category_id, // Gunakan category_id
+                        part_id: response.data.category_id, // category_id
+                        type_id: response.data.type_category_id, // type_category_id
+                        part_type: '', // Perlu mapping dari category/type
+                        svg_image: null, // File SVG dari item_category_foto jika diperlukan
+                        parts: parts // Parts dari details
                     }));
-
-                    // Fetch part catalogue data for the selected part type
-                    // Add a small delay to prevent too many simultaneous requests
-                    if (masterCategory.master_catalog) {
-                        setTimeout(async () => {
-                            try {
-                                await partCatalogueHook.fetchPartCatalogueData(masterCategory.master_catalog);
-                            } catch (error) {
-                                console.error('Error fetching part catalogue data:', error);
-                            }
-                        }, 100);
-                    }
                 }
             } else {
                 toast.error(response.message || 'Failed to load catalog data');
@@ -288,7 +301,7 @@ export function useEditCatalog(props: UseEditCatalogProps = {}): UseEditCatalogR
         } finally {
             setLoadingCatalog(false);
         }
-    }, [catalogId]);
+    }, [catalogId, partCatalogueHook.setFormData]);
 
     // Override the submit handler for update functionality
     const handleSubmit = useCallback(async (e: React.FormEvent) => {

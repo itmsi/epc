@@ -3,97 +3,68 @@ import Input from "@/components/form/input/InputField";
 import CustomSelect from "@/components/form/select/CustomSelect";
 import Button from "@/components/ui/button/Button";
 import ConfirmationModal from "@/components/ui/modal/ConfirmationModal";
-import CustomDataTable, { createActionsColumn } from "@/components/ui/table";
+import CustomDataTable from "@/components/ui/table";
 import { TableColumn } from "react-data-table-component";
-import { MdAdd, MdDeleteOutline, MdEdit, MdSearch, MdClear } from "react-icons/md";
+import { MdAdd, MdSearch, MdClear } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import { useTransmission } from "@/hooks/usePartCatalogue";
+import { useCategory } from "@/hooks/usePartCatalogue";
 import { useConfirmation } from "@/hooks/useConfirmation";
-import { Transmission } from "@/types/partCatalogue";
+import { Category } from "@/types/partCatalogue";
 
 export default function Manage() {
     const navigate = useNavigate();
     const {
-        transmissions,
+        categories,
         loading,
         pagination,
         filters,
-        handleDeleteTransmission,
         handleFilterChange,
         handleSearchChange,
         handleManualSearch,
         clearSearch,
-        fetchTransmissions
-    } = useTransmission();
+        fetchCategories
+    } = useCategory();
 
     const confirmation = useConfirmation();
 
-    const handleAddTransmission = () => {
-        navigate('/epc/transmission/create');
+    const handleAddCategory = () => {
+        navigate('/epc/category/create');
     };
 
-    const handleEditTransmission = (transmission: Transmission) => {
-        navigate(`/epc/transmission/edit/${transmission.transmission_id}`);
-    };
-
-    const handleDeleteWithConfirmation = async (transmission: Transmission) => {
-        const confirmed = await confirmation.showConfirmation({
-            title: 'Delete Transmission',
-            message: `Are you sure you want to delete "${transmission.transmission_name_en}"? This action cannot be undone.`,
-            confirmText: 'Delete',
-            type: 'danger'
-        });
-
-        if (confirmed) {
-            await handleDeleteTransmission(transmission.transmission_id);
-        }
+    const handleEditCategory = (category: Category) => {
+        navigate(`/epc/category/view/${category.category_id}`);
     };
 
     const handlePageChange = (page: number) => {
-        fetchTransmissions(page, pagination?.limit || 10);
+        fetchCategories(page, pagination?.limit || 10);
     };
 
-    const transmissionColumns: TableColumn<Transmission>[] = [
+    const categoryColumns: TableColumn<Category>[] = [
         {
-            name: 'Transmission Name (EN)',
-            selector: row => row.transmission_name_en || '-',
-        },
-        {
-            name: 'Transmission Name (CN)',
-            selector: row => row.transmission_name_cn || '-',
-        },
-        {
-            name: 'Description',
-            selector: row => row.transmission_description || '-',
-            width: '550px',
+            name: 'Category',
+            selector: row => row.master_category_name_en || '-',
             wrap: true,
         },
         {
-            name: 'Type Transmissions',
-            selector: row => row.type_transmissions?.length || 0,
-            center: true,
-            cell: (row: Transmission) => (
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                    {row.type_transmissions?.length || 0} types
-                </span>
-            )
+            name: 'Category Name',
+            selector: (row) => row.category_name_en,
+            cell: (row) => (
+                <div className="py-2">
+                    <div className="font-medium text-gray-500">
+                        {row.category_name_en}
+                        {row.category_name_cn && (
+                            <span className="block text-xs text-gray-400">{row.category_name_cn}</span>
+                        )}
+                    </div>
+                </div>
+            ),
         },
-        createActionsColumn([
-            {
-                icon: MdEdit,
-                onClick: handleEditTransmission,
-                className: 'text-blue-600 hover:text-blue-700 hover:bg-blue-50',
-                tooltip: 'Edit',
-                permission: 'update'
-            },
-            {
-                icon: MdDeleteOutline,
-                onClick: handleDeleteWithConfirmation,
-                className: 'text-red-600 hover:text-red-700 hover:bg-red-50',
-                tooltip: 'Delete',
-                permission: 'delete'
-            }
-        ])
+        {
+            name: 'Description',
+            selector: row => row.category_description || '-',
+            width: '550px',
+            wrap: true,
+        }
     ];
 
     return (
@@ -103,20 +74,20 @@ export default function Manage() {
                     <div className="flex justify-between items-center">
                         <div>
                             <h3 className="text-lg leading-6 font-primary-bold text-gray-900">
-                                Transmission Management
+                                Category Management
                             </h3>
                             <p className="mt-1 text-sm text-gray-500">
-                                Manage system transmissions and their configurations
+                                Manage system categories and their configurations
                             </p>
                         </div>
                         <PermissionGate permission="create">
                             <Button
-                                onClick={handleAddTransmission}
+                                onClick={handleAddCategory}
                                 className="rounded-md w-full md:w-60 flex items-center justify-center gap-2"
                                 size="sm"
                             >
                                 <MdAdd className="w-4 h-4 mr-2" />
-                                Add Transmission
+                                Add Category
                             </Button>
                         </PermissionGate>
                     </div>
@@ -131,7 +102,7 @@ export default function Manage() {
                                 <div className="relative flex-1">
                                     <Input
                                         type="text"
-                                        placeholder="Search transmissions..."
+                                        placeholder="Search categories..."
                                         value={filters.search}
                                         onChange={(e) => handleSearchChange(e.target.value)}
                                         onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -188,8 +159,8 @@ export default function Manage() {
                 </div>
                 <div className="p-6 font-secondary">
                     <CustomDataTable
-                        columns={transmissionColumns}
-                        data={transmissions}
+                        columns={categoryColumns}
+                        data={categories}
                         loading={loading}
                         pagination
                         paginationServer
@@ -199,8 +170,7 @@ export default function Manage() {
                         paginationRowsPerPageOptions={[5, 10, 15, 20, 25, 50]}
                         onChangePage={handlePageChange}
                         onChangeRowsPerPage={(newPerPage) => {
-                            // Fetch transmissions with new per_page limit and reset to page 1
-                            fetchTransmissions(1, newPerPage);
+                            fetchCategories(1, newPerPage);
                         }}
                         responsive
                         highlightOnHover
@@ -209,6 +179,7 @@ export default function Manage() {
                         headerBackground="rgba(2, 83, 165, 0.1)"
                         hoverBackground="rgba(223, 232, 242, 0.3)"
                         borderRadius="8px"
+                        onRowClicked={handleEditCategory}
                     />
                 </div>
             </div>

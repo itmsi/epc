@@ -55,9 +55,9 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
             {/* Upload Tips */}
             <div className="text-xs text-gray-500 space-y-1">
-                <p>📸 Recommended: Square image (1:1 ratio)</p>
-                <p>📏 Minimum size: 200x200 pixels</p>
-                <p>⚡ For best quality, use PNG or high-quality JPG</p>
+                <p>Recommended: Square image (1:1 ratio)</p>
+                <p>Minimum size: 200x200 pixels</p>
+                <p>For best quality, use PNG or high-quality JPG</p>
             </div>
         </div>
     );

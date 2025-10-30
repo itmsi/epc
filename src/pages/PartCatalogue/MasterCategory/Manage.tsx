@@ -3,97 +3,57 @@ import Input from "@/components/form/input/InputField";
 import CustomSelect from "@/components/form/select/CustomSelect";
 import Button from "@/components/ui/button/Button";
 import ConfirmationModal from "@/components/ui/modal/ConfirmationModal";
-import CustomDataTable, { createActionsColumn } from "@/components/ui/table";
+import CustomDataTable from "@/components/ui/table";
 import { TableColumn } from "react-data-table-component";
-import { MdAdd, MdDeleteOutline, MdEdit, MdSearch, MdClear } from "react-icons/md";
+import { MdAdd, MdSearch, MdClear } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import { useSteering } from "@/hooks/usePartCatalogue";
+import { useMasterCategory } from "@/hooks/usePartCatalogue";
 import { useConfirmation } from "@/hooks/useConfirmation";
-import { Steering } from "@/types/partCatalogue";
+import { MasterCategory } from "@/types/partCatalogue";
 
 export default function Manage() {
     const navigate = useNavigate();
     const {
-        steerings,
+        mastercategory,
         loading,
         pagination,
         filters,
-        handleDeleteSteering,
         handleFilterChange,
         handleSearchChange,
         handleManualSearch,
         clearSearch,
-        fetchSteerings
-    } = useSteering();
+        fetchMasterCategories
+    } = useMasterCategory();
 
     const confirmation = useConfirmation();
 
-    const handleAddSteering = () => {
-        navigate('/epc/steering/create');
+    const handleAddMasterCategory = () => {
+        navigate('/epc/master-category/create');
     };
 
-    const handleEditSteering = (steering: Steering) => {
-        navigate(`/epc/steering/edit/${steering.steering_id}`);
-    };
-
-    const handleDeleteWithConfirmation = async (steering: Steering) => {
-        const confirmed = await confirmation.showConfirmation({
-            title: 'Delete Steering',
-            message: `Are you sure you want to delete "${steering.steering_name_en}"? This action cannot be undone.`,
-            confirmText: 'Delete',
-            type: 'danger'
-        });
-
-        if (confirmed) {
-            await handleDeleteSteering(steering.steering_id);
-        }
+    const handleEditMasterCategory = (masterCategory: MasterCategory) => {
+        navigate(`/epc/master-category/view/${masterCategory.master_category_id}`);
     };
 
     const handlePageChange = (page: number) => {
-        fetchSteerings(page, pagination?.limit || 10);
+        fetchMasterCategories(page, pagination?.limit || 10);
     };
 
-    const steeringColumns: TableColumn<Steering>[] = [
+    const masterCategoryColumns: TableColumn<MasterCategory>[] = [
         {
-            name: 'Steering Name (EN)',
-            selector: row => row.steering_name_en || '-',
+            name: 'Master Category Name (EN)',
+            selector: row => row.master_category_name_en || '-',
         },
         {
-            name: 'Steering Name (CN)',
-            selector: row => row.steering_name_cn || '-',
+            name: 'Master Category Name (CN)',
+            selector: row => row.master_category_name_cn || '-',
         },
         {
             name: 'Description',
-            selector: row => row.steering_description || '-',
+            selector: row => row.master_category_description || '-',
             width: '550px',
             wrap: true,
-        },
-        {
-            name: 'Type Steerings',
-            selector: row => row.type_steerings?.length || 0,
-            center: true,
-            cell: (row: Steering) => (
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                    {row.type_steerings?.length || 0} types
-                </span>
-            )
-        },
-        createActionsColumn([
-            {
-                icon: MdEdit,
-                onClick: handleEditSteering,
-                className: 'text-blue-600 hover:text-blue-700 hover:bg-blue-50',
-                tooltip: 'Edit',
-                permission: 'update'
-            },
-            {
-                icon: MdDeleteOutline,
-                onClick: handleDeleteWithConfirmation,
-                className: 'text-red-600 hover:text-red-700 hover:bg-red-50',
-                tooltip: 'Delete',
-                permission: 'delete'
-            }
-        ])
+        }
     ];
 
     return (
@@ -103,20 +63,20 @@ export default function Manage() {
                     <div className="flex justify-between items-center">
                         <div>
                             <h3 className="text-lg leading-6 font-primary-bold text-gray-900">
-                                Steering Management
+                                Master Category Management
                             </h3>
                             <p className="mt-1 text-sm text-gray-500">
-                                Manage system steerings and their configurations
+                                Manage system master categories and their configurations
                             </p>
                         </div>
                         <PermissionGate permission="create">
                             <Button
-                                onClick={handleAddSteering}
-                                className="rounded-md w-full md:w-40 flex items-center justify-center gap-2"
+                                onClick={handleAddMasterCategory}
+                                className="rounded-md w-full md:w-60 flex items-center justify-center gap-2"
                                 size="sm"
                             >
                                 <MdAdd className="w-4 h-4 mr-2" />
-                                Add Steering
+                                Add Master Category
                             </Button>
                         </PermissionGate>
                     </div>
@@ -129,9 +89,11 @@ export default function Manage() {
                         <div className="flex-1">
                             <div className="relative flex">
                                 <div className="relative flex-1">
+                                    
+                                    <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                                     <Input
                                         type="text"
-                                        placeholder="Search steerings..."
+                                        placeholder="Search master categories..."
                                         value={filters.search}
                                         onChange={(e) => handleSearchChange(e.target.value)}
                                         onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -188,8 +150,8 @@ export default function Manage() {
                 </div>
                 <div className="p-6 font-secondary">
                     <CustomDataTable
-                        columns={steeringColumns}
-                        data={steerings}
+                        columns={masterCategoryColumns}
+                        data={mastercategory || []}
                         loading={loading}
                         pagination
                         paginationServer
@@ -199,8 +161,8 @@ export default function Manage() {
                         paginationRowsPerPageOptions={[5, 10, 15, 20, 25, 50]}
                         onChangePage={handlePageChange}
                         onChangeRowsPerPage={(newPerPage) => {
-                            // Fetch steerings with new per_page limit and reset to page 1
-                            fetchSteerings(1, newPerPage);
+                            // Fetch master categories with new per_page limit and reset to page 1
+                            fetchMasterCategories(1, newPerPage);
                         }}
                         responsive
                         highlightOnHover
@@ -209,6 +171,7 @@ export default function Manage() {
                         headerBackground="rgba(2, 83, 165, 0.1)"
                         hoverBackground="rgba(223, 232, 242, 0.3)"
                         borderRadius="8px"
+                        onRowClicked={handleEditMasterCategory}
                     />
                 </div>
             </div>

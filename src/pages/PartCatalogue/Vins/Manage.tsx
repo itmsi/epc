@@ -30,7 +30,7 @@ export default function ManageVins() {
 
     // Handle row actions
     const handleView = (row: Vin) => {
-        navigate(`/epc/vins/view/${row.production_id}`);
+        navigate(`/epc/vins/view/${row.product_id}`);
     };
 
     const handleCreate = () => {
@@ -57,28 +57,22 @@ export default function ManageVins() {
         },
         {
             name: 'Production Name',
-            selector: (row: Vin) => row.production_name_en,
-            sortable: true,
-            minWidth: '200px',
+            selector: (row: Vin) => row.product_name_en,
             cell: (row: Vin) => (
-                <div>
-                    <div className="font-medium text-gray-900">
-                        {row.production_name_en}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                        {row.production_name_cn}
-                    </div>
+                <div className="py-2">
+                    <div className="font-medium text-gray-900">{row.product_name_en}</div>
+                    <div className="text-xs text-gray-400">{row.product_name_cn}</div>
                 </div>
-            )
+            ),
         },
         {
             name: 'Description',
-            selector: (row: Vin) => row.production_description || '',
+            selector: (row: Vin) => row.product_description || '',
             sortable: false,
             minWidth: '250px',
             cell: (row: Vin) => (
                 <div className="text-sm text-gray-600">
-                    {row.production_description || '-'}
+                    {row.product_description || '-'}
                 </div>
             )
         }
@@ -91,6 +85,7 @@ export default function ManageVins() {
             <div className="flex-1">
                 <div className="relative flex">
                     <div className="relative flex-1">
+                        <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                         <Input
                             type="text"
                             placeholder="Search VINs..."

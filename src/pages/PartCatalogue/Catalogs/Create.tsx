@@ -2,14 +2,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import Input from '@/components/form/input/InputField';
 import Label from '@/components/form/Label';
 import Button from '@/components/ui/button/Button';
-import CustomSelect from '@/components/form/select/CustomSelect';
 import CustomAsyncSelect from '@/components/form/select/CustomAsyncSelect';
 import FileUpload from '@/components/ui/FileUpload/FileUpload';
 import { MdAdd, MdKeyboardArrowLeft, MdDelete } from 'react-icons/md';
 import PageMeta from '@/components/common/PageMeta';
 
 // Import organized types and new hook
-import { PART_TYPES } from '@/types/asyncSelect';
 import { useCreateCatalog } from '@/hooks/useCreateCatalog';
 
 export default function CreateCatalog() {
@@ -34,9 +32,6 @@ export default function CreateCatalog() {
         validationErrors,
         setValidationErrors,
         catalogueDataLoading,
-        selectedPartData,
-        subTypes,
-        getSubTypeOptions,
         handleSelectChange,
         handleInputChange,
         handleAddPart,
@@ -113,28 +108,37 @@ export default function CreateCatalog() {
                                         )}
                                     </div>
                                     <div>
-                                        <Label htmlFor="part_type">Part Type *</Label>
-                                        <CustomSelect
-                                            placeholder="Select Part Type"
-                                            onChange={handleSelectChange('part_type')}
-                                            options={PART_TYPES}
-                                            value={formData.part_type ? PART_TYPES.find(pt => pt.value === formData.part_type) : null}
-                                            error={validationErrors.part_type}
+                                        <Label htmlFor="master_category">Category *</Label>
+                                        <CustomAsyncSelect
+                                            name='master_category'
+                                            placeholder="Select Category"
+                                            onChange={handleSelectChange('master_category')}
+                                            value={formData.master_category ? asyncSelectHook.masterCategoryOptions.find((mc) => String(mc.value) === formData.master_category) : null}
+                                            error={validationErrors.master_category}
+                                            defaultOptions={asyncSelectHook.masterCategoryOptions}
+                                            loadOptions={asyncSelectHook.loadMasterCategoryOptions}
+                                            onMenuScrollToBottom={asyncSelectHook.handleMasterCategoryScrollToBottom}
+                                            isLoading={asyncSelectHook.masterCategoryLoading}
+                                            noOptionsMessage={() => asyncSelectHook.masterCategoryLoading ? "Loading master categories..." : "No master categories found"}
+                                            loadingMessage={() => "Loading categories..."}
+                                            isSearchable={true}
+                                            inputValue={asyncSelectHook.masterCategorySearchValue}
+                                            onInputChange={asyncSelectHook.handleMasterCategorySearchChange}
                                         />
-                                        {validationErrors.part_type && (
+                                        {validationErrors.master_category && (
                                             <p className="mt-1 text-sm text-red-600">
-                                                {validationErrors.part_type}
+                                                {validationErrors.master_category}
                                             </p>
                                         )}
                                     </div>
 
                                     {/* Part Selection */}
-                                    {formData.part_type && (
+                                    {formData.master_category && (
                                         <div>
-                                            <Label htmlFor="part_id">Select {PART_TYPES.find(pt => pt.value === formData.part_type)?.label} *</Label>
+                                            <Label htmlFor="part_id">Select Part *</Label>
                                             <CustomAsyncSelect
                                                 name='part_id'
-                                                placeholder={`Select ${PART_TYPES.find(pt => pt.value === formData.part_type)?.label}`}
+                                                placeholder="Select Part"
                                                 onChange={handleSelectChange('part_id')}
                                                 value={formData.part_id ? partOptions.find((po) => String(po.value) === formData.part_id) : null}
                                                 error={validationErrors.part_id}
@@ -142,14 +146,14 @@ export default function CreateCatalog() {
                                                 loadOptions={loadPartOptions}
                                                 onMenuScrollToBottom={asyncSelectHook.handleScrollToBottom}
                                                 isLoading={catalogueDataLoading}
-                                                noOptionsMessage={() => catalogueDataLoading ? `Loading ${formData.part_type} data...` : `No ${formData.part_type} found`}
-                                                loadingMessage={() => `Loading ${formData.part_type} data...`}
+                                                noOptionsMessage={() => catalogueDataLoading ? "Loading parts..." : "No parts found"}
+                                                loadingMessage={() => "Loading parts..."}
                                                 isSearchable={true}
                                                 inputValue={searchInputValue}
                                                 onInputChange={handleSearchInputChange}
                                             />
                                             {catalogueDataLoading && (
-                                                <p className="mt-1 text-sm text-gray-500">Loading {formData.part_type} data...</p>
+                                                <p className="mt-1 text-sm text-gray-500">Loading parts...</p>
                                             )}
                                             {validationErrors.part_id && (
                                                 <p className="mt-1 text-sm text-red-600">
@@ -163,12 +167,21 @@ export default function CreateCatalog() {
                                     {formData.part_id && (
                                         <div>
                                             <Label htmlFor="type_id" className='font-secondary'>Select Type *</Label>
-                                            <CustomSelect
+                                            <CustomAsyncSelect
+                                                name='type_id'
                                                 placeholder="Select Type"
                                                 onChange={handleSelectChange('type_id')}
-                                                options={getSubTypeOptions()}
-                                                value={formData.type_id ? getSubTypeOptions().find(sto => sto.value === formData.type_id) : null}
-                                                isLoading={catalogueDataLoading}
+                                                value={formData.type_id ? asyncSelectHook.detailCatalogOptions.find(dco => String(dco.value) === formData.type_id) : null}
+                                                error={validationErrors.type_id}
+                                                defaultOptions={asyncSelectHook.detailCatalogOptions}
+                                                loadOptions={asyncSelectHook.loadDetailCatalogOptions}
+                                                onMenuScrollToBottom={asyncSelectHook.handleDetailCatalogScrollToBottom}
+                                                isLoading={asyncSelectHook.detailCatalogLoading}
+                                                noOptionsMessage={() => asyncSelectHook.detailCatalogLoading ? "Loading types..." : "No types found"}
+                                                loadingMessage={() => "Loading types..."}
+                                                isSearchable={true}
+                                                inputValue={asyncSelectHook.detailCatalogSearchValue}
+                                                onInputChange={asyncSelectHook.handleDetailCatalogSearchChange}
                                             />
                                             {validationErrors.type_id && (
                                                 <p className="mt-1 text-sm text-red-600">
@@ -179,38 +192,23 @@ export default function CreateCatalog() {
                                     )}
 
                                     {/* Display selected part information */}
-                                    {selectedPartData && formData.type_id && subTypes.length > 0 && (
+                                    {formData.master_category && formData.part_id && formData.type_id && (
                                         <div className="md:col-span-2 p-4 bg-green-50 border border-green-200 rounded-lg">
                                             <h3 className="font-medium text-gray-900 mb-2">Selected Configuration</h3>
                                             <div className="text-sm text-gray-600 space-y-1">
                                                 <p>
-                                                    <strong>Part Type:</strong> {formData.part_type}
+                                                    <strong>Category:</strong> {
+                                                        asyncSelectHook.masterCategoryOptions.find(mc => mc.value === formData.master_category)?.label || 'N/A'
+                                                    }
                                                 </p>
-                                                <p><strong>Part:</strong> {
-                                                    formData.part_type === 'cabin' ? `${selectedPartData.cabines_name_en} - ${selectedPartData.cabines_name_cn}` :
-                                                    formData.part_type === 'engine' ? `${selectedPartData.engines_name_en} - ${selectedPartData.engines_name_cn}` :
-                                                    formData.part_type === 'axle' ? `${selectedPartData.axel_name_en} - ${selectedPartData.axel_name_cn}` :
-                                                    formData.part_type === 'transmission' ? `${selectedPartData.transmission_name_en} - ${selectedPartData.transmission_name_cn}` :
-                                                    formData.part_type === 'steering' ? `${selectedPartData.steering_name_en} - ${selectedPartData.steering_name_cn}` : ''
-                                                }</p>
+                                                <p>
+                                                    <strong>Part:</strong> {
+                                                        partOptions.find(po => po.value === formData.part_id)?.label || 'N/A'
+                                                    }
+                                                </p>
                                                 <p>
                                                     <strong>Type:</strong> {
-                                                        subTypes.find(subType => {
-                                                            switch (formData.part_type) {
-                                                                case 'cabin': return subType.type_cabine_id === formData.type_id;
-                                                                case 'engine': return subType.type_engine_id === formData.type_id;
-                                                                case 'axle': return subType.type_axel_id === formData.type_id;
-                                                                case 'transmission': return subType.type_transmission_id === formData.type_id;
-                                                                case 'steering': return subType.type_steeringwheel_id === formData.type_id;
-                                                                default: return false;
-                                                            }
-                                                        })?.[
-                                                            formData.part_type === 'cabin' ? 'type_cabine_name_en' :
-                                                            formData.part_type === 'engine' ? 'type_engine_name_en' :
-                                                            formData.part_type === 'axle' ? 'type_axel_name_en' :
-                                                            formData.part_type === 'transmission' ? 'type_transmission_name_en' :
-                                                            formData.part_type === 'steering' ? 'type_steeringwheel_name_en' : ''
-                                                        ]
+                                                        asyncSelectHook.detailCatalogOptions.find(dco => dco.value === formData.type_id)?.label || 'N/A'
                                                     }
                                                 </p>
                                             </div>
@@ -220,7 +218,7 @@ export default function CreateCatalog() {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* CSV Upload Section - Show after type selection */}
-                                    {selectedPartData && formData.type_id && (
+                                    {formData.master_category && formData.part_id && formData.type_id && (
                                         <>
                                             {/* SVG Image Upload */}
                                             <div className="md:col-span-2">
@@ -259,9 +257,9 @@ export default function CreateCatalog() {
                                                     accept=".csv,text/csv"
                                                     acceptedFormats={['csv', 'text/csv']}
                                                     maxSize={10}
-                                                    currentFile={formData.csv_file}
+                                                    currentFile={null}
                                                     onFileChange={handleCSVUpload}
-                                                    description="CSV file containing parts data"
+                                                    description="CSV file containing parts data (will be converted to parts automatically)"
                                                 />
                                             </div>
 
@@ -310,11 +308,11 @@ export default function CreateCatalog() {
                                                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                                                                             {/* Part Target */}
                                                                             <div className='md:col-span-2'>
-                                                                                <Label htmlFor={`part_target_${part.id}`}>Part Target *</Label>
+                                                                                <Label htmlFor={`target_id_${part.id}`}>Part Target *</Label>
                                                                                 <Input
                                                                                     type="text"
-                                                                                    value={part.part_target}
-                                                                                    onChange={(e) => handlePartChange(part.id, 'part_target', e.target.value)}
+                                                                                    value={part.target_id}
+                                                                                    onChange={(e) => handlePartChange(part.id, 'target_id', e.target.value)}
                                                                                     placeholder="e.g., part-1"
                                                                                     className="mt-1"
                                                                                 />
@@ -322,11 +320,11 @@ export default function CreateCatalog() {
 
                                                                             {/* Part Number */}
                                                                             <div className='md:col-span-2'>
-                                                                                <Label htmlFor={`code_product_${part.id}`}>Part Number *</Label>
+                                                                                <Label htmlFor={`part_number_${part.id}`}>Part Number *</Label>
                                                                                 <Input
                                                                                     type="text"
-                                                                                    value={part.code_product}
-                                                                                    onChange={(e) => handlePartChange(part.id, 'code_product', e.target.value)}
+                                                                                    value={part.part_number}
+                                                                                    onChange={(e) => handlePartChange(part.id, 'part_number', e.target.value)}
                                                                                     placeholder="Part number"
                                                                                     className="mt-1"
                                                                                 />
@@ -348,11 +346,11 @@ export default function CreateCatalog() {
 
                                                                             {/* Name English */}
                                                                             <div className='md:col-span-3'>
-                                                                                <Label htmlFor={`name_english_${part.id}`}>Name (English) *</Label>
+                                                                                <Label htmlFor={`catalog_item_name_en_${part.id}`}>Name (English) *</Label>
                                                                                 <Input
                                                                                     type="text"
-                                                                                    value={part.name_english}
-                                                                                    onChange={(e) => handlePartChange(part.id, 'name_english', e.target.value)}
+                                                                                    value={part.catalog_item_name_en}
+                                                                                    onChange={(e) => handlePartChange(part.id, 'catalog_item_name_en', e.target.value)}
                                                                                     placeholder="Enter English Name"
                                                                                     className="mt-1"
                                                                                 />
@@ -360,13 +358,39 @@ export default function CreateCatalog() {
 
                                                                             {/* Name Chinese */}
                                                                             <div className='md:col-span-3'>
-                                                                                <Label htmlFor={`name_chinese_${part.id}`}>Name (Chinese) *</Label>
+                                                                                <Label htmlFor={`catalog_item_name_ch_${part.id}`}>Name (Chinese) *</Label>
                                                                                 <Input
-                                                                                    id={`name_chinese_${part.id}`}
+                                                                                    id={`catalog_item_name_ch_${part.id}`}
                                                                                     type="text"
-                                                                                    value={part.name_chinese}
-                                                                                    onChange={(e) => handlePartChange(part.id, 'name_chinese', e.target.value)}
+                                                                                    value={part.catalog_item_name_ch}
+                                                                                    onChange={(e) => handlePartChange(part.id, 'catalog_item_name_ch', e.target.value)}
                                                                                     placeholder="Enter Chinese Name"
+                                                                                    className="mt-1"
+                                                                                />
+                                                                            </div>
+
+                                                                            {/* Description */}
+                                                                            <div className='md:col-span-3'>
+                                                                                <Label htmlFor={`description_${part.id}`}>Description</Label>
+                                                                                <Input
+                                                                                    id={`description_${part.id}`}
+                                                                                    type="text"
+                                                                                    value={part.description || ''}
+                                                                                    onChange={(e) => handlePartChange(part.id, 'description', e.target.value)}
+                                                                                    placeholder="Enter description"
+                                                                                    className="mt-1"
+                                                                                />
+                                                                            </div>
+
+                                                                            {/* Unit */}
+                                                                            <div className='md:col-span-3'>
+                                                                                <Label htmlFor={`unit_${part.id}`}>Unit</Label>
+                                                                                <Input
+                                                                                    id={`unit_${part.id}`}
+                                                                                    type="text"
+                                                                                    value={part.unit || ''}
+                                                                                    onChange={(e) => handlePartChange(part.id, 'unit', e.target.value)}
+                                                                                    placeholder="Enter unit"
                                                                                     className="mt-1"
                                                                                 />
                                                                             </div>

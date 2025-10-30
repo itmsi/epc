@@ -12,7 +12,7 @@ import Input from "@/components/form/input/InputField";
 import { Department } from "@/types/administration";
 import { createActionsColumn, createDateColumn, createSerialNumberColumn } from "@/components/ui/table/columnUtils";
 import { useEffect, useState } from "react";
-import { PermissionButton, PermissionGate } from "@/components/common/PermissionComponents";
+import { PermissionGate } from "@/components/common/PermissionComponents";
 
 export default function ManageDepartment() {
     const {

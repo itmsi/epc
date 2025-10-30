@@ -30,18 +30,19 @@ export default function ViewVin() {
         addMasterPdf,
         removeMasterPdf,
         updateMasterPdfSelection,
+        handleDetailInputChange,
         handleSearchInputChange,
         handleSave,
         handleDelete: originalHandleDelete,
         handleCancel
     } = useViewVin();
 
-    // Master PDF management
+    // Master catalog management
     const {
-        loading: masterPdfLoading,
-        loadMasterPdfOptions,
+        loading: catalogLoading,
+        loadCatalogOptions,
         handleMenuScrollToBottom,
-        createMasterPdfOptions
+        createCatalogOptions
     } = useMasterVinManager();
 
     // Custom delete handler with confirmation modal
@@ -220,56 +221,53 @@ export default function ViewVin() {
                                         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                                             {/* Production Name EN */}
                                             <div>
-                                                <Label htmlFor="production_name_en">
+                                                <Label htmlFor="product_name_en">
                                                     Production Name (English) {isEditMode && <span className="text-red-500">*</span>}
                                                 </Label>
                                                 <Input
-                                                    id="production_name_en"
-                                                    name="production_name_en"
+                                                    id="product_name_en"
+                                                    name="product_name_en"
                                                     type="text"
-                                                    value={formData.production_name_en}
-                                                    onChange={(e) => handleInputChange('production_name_en', e.target.value)}
+                                                    value={formData.product_name_en}
+                                                    onChange={(e) => handleInputChange('product_name_en', e.target.value)}
                                                     placeholder="Enter production name in English"
-                                                    error={!!errors.production_name_en}
+                                                    error={!!errors.product_name_en}
                                                     readonly={!isEditMode}
                                                 />
-                                                {errors.production_name_en && (
-                                                    <p className="mt-1 text-sm text-red-600">{errors.production_name_en}</p>
+                                                {errors.product_name_en && (
+                                                    <p className="mt-1 text-sm text-red-600">{errors.product_name_en}</p>
                                                 )}
                                             </div>
 
                                             {/* Production Name CN */}
                                             <div>
-                                                <Label htmlFor="production_name_cn">
-                                                    Production Name (Chinese) {isEditMode && <span className="text-red-500">*</span>}
+                                                <Label htmlFor="product_name_cn">
+                                                    Production Name (Chinese)
                                                 </Label>
                                                 <Input
-                                                    id="production_name_cn"
-                                                    name="production_name_cn"
+                                                    id="product_name_cn"
+                                                    name="product_name_cn"
                                                     type="text"
-                                                    value={formData.production_name_cn}
-                                                    onChange={(e) => handleInputChange('production_name_cn', e.target.value)}
+                                                    value={formData.product_name_cn}
+                                                    onChange={(e) => handleInputChange('product_name_cn', e.target.value)}
                                                     placeholder="Enter production name in Chinese"
-                                                    error={!!errors.production_name_cn}
+                                                    error={!!errors.product_name_cn}
                                                     readonly={!isEditMode}
                                                 />
-                                                {errors.production_name_cn && (
-                                                    <p className="mt-1 text-sm text-red-600">{errors.production_name_cn}</p>
-                                                )}
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Description */}
                                     <div>
-                                        <Label htmlFor='production_description'>
+                                        <Label htmlFor='product_description'>
                                             Production Description
                                         </Label>
                                         <TextArea
-                                            id='production_description'
-                                            name="production_description"
-                                            value={formData.production_description || ''}
-                                            onChange={(e) => handleInputChange('production_description', e.target.value)}
+                                            id='product_description'
+                                            name="product_description"
+                                            value={formData.product_description || ''}
+                                            onChange={(e) => handleInputChange('product_description', e.target.value)}
                                             placeholder="Enter production description"
                                             rows={5}
                                             readonly={!isEditMode}
@@ -277,11 +275,11 @@ export default function ViewVin() {
                                     </div>
                                 </div>
 
-                                {/* Master PDF Details */}
+                                {/* Catalog Details */}
                                 <div className="mt-8 space-y-4">
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className="text-lg font-medium text-gray-900">
-                                            Book Part Details
+                                            Catalog Document Details
                                         </h3>
                                         {isEditMode && (
                                             <Button
@@ -292,7 +290,7 @@ export default function ViewVin() {
                                                 size="sm"
                                             >
                                                 <MdAdd className="w-4 h-4" />
-                                                Add Cabin
+                                                Add Catalog
                                             </Button>
                                         )}
                                     </div>
@@ -300,22 +298,22 @@ export default function ViewVin() {
                                     <div className="space-y-4 font-secondary md:h-[500px] overflow-y-auto">
                                         {isEditMode ? (
                                             // Edit Mode - Show form fields
-                                            formData.master_pdf && formData.master_pdf.length > 0 ? (
-                                                formData.master_pdf.map((pdf, index) => (
+                                            formData.data_details && formData.data_details.length > 0 ? (
+                                                formData.data_details.map((detail, index) => (
                                                     <div 
                                                         key={index} 
                                                         className={`border rounded-lg p-4 space-y-4 ${
-                                                            pdf.isNew 
+                                                            detail.isNew 
                                                                 ? 'border-green-300 bg-green-50' 
                                                                 : 'border-gray-200 bg-gray-50'
                                                         }`}
                                                     >
                                                         <div className="flex items-center justify-between">
                                                             <h4 className={`text-md font-medium ${
-                                                                pdf.isNew ? 'text-green-700' : 'text-gray-700'
+                                                                detail.isNew ? 'text-green-700' : 'text-gray-700'
                                                             }`}>
-                                                                Master Cabin #{index + 1}
-                                                                {pdf.isNew && (
+                                                                Catalog Document #{index + 1}
+                                                                {detail.isNew && (
                                                                     <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
                                                                         New
                                                                     </span>
@@ -331,61 +329,146 @@ export default function ViewVin() {
                                                                 <MdDelete className="w-4 h-4" />
                                                             </Button>
                                                         </div>
-                                                        <div className="flex-1">
+                                                        
+                                                        {/* Catalog Selection */}
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                Select Catalog Document <span className="text-red-500">*</span>
+                                                            </label>
                                                             <CustomAsyncSelect
-                                                                name={`master_pdf_${index}`}
-                                                                placeholder="Select master PDF from catalogs"
-                                                                value={pdf.master_pdf_id ? 
-                                                                    createMasterPdfOptions().find(opt => opt.value === pdf.master_pdf_id) || null 
+                                                                name={`dokumen_${index}`}
+                                                                placeholder="Select catalog document"
+                                                                value={detail.dokumen_id ? 
+                                                                    createCatalogOptions().find(opt => opt.value === detail.dokumen_id) || null 
                                                                     : null
                                                                 }
                                                                 onChange={(selectedOption) => updateMasterPdfSelection(index, selectedOption)}
-                                                                defaultOptions={createMasterPdfOptions()}
-                                                                loadOptions={loadMasterPdfOptions}
+                                                                defaultOptions={createCatalogOptions()}
+                                                                loadOptions={loadCatalogOptions}
                                                                 onMenuScrollToBottom={handleMenuScrollToBottom}
-                                                                isLoading={masterPdfLoading}
-                                                                noOptionsMessage={() => masterPdfLoading ? 'Loading master PDFs...' : 'No master PDFs found'}
-                                                                loadingMessage={() => 'Loading master PDFs...'}
+                                                                isLoading={catalogLoading}
+                                                                noOptionsMessage={() => catalogLoading ? 'Loading catalogs...' : 'No catalogs found'}
+                                                                loadingMessage={() => 'Loading catalogs...'}
                                                                 isSearchable={true}
                                                                 isClearable={true}
                                                                 inputValue={searchInputValues[index] || ''}
                                                                 onInputChange={handleSearchInputChange(index)}
                                                             />
-                                                            {errors.master_pdf && typeof errors.master_pdf === 'string' && (
-                                                                <div className="mt-2">
-                                                                    <span className="text-red-500 text-sm">
-                                                                        {errors.master_pdf}
-                                                                    </span>
-                                                                </div>
-                                                            )}
                                                         </div>
+                                                        
+                                                        {/* Detail Information */}
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Product Detail Name (English) <span className="text-red-500">*</span>
+                                                                </label>
+                                                                <Input
+                                                                    name={`product_detail_name_en_${index}`}
+                                                                    type="text"
+                                                                    value={detail.product_detail_name_en}
+                                                                    onChange={(e) => handleDetailInputChange(index, 'product_detail_name_en', e.target.value)}
+                                                                    placeholder="Enter product detail name in English"
+                                                                />
+                                                            </div>
+                                                            
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Product Detail Name (Chinese) <span className="text-red-500">*</span>
+                                                                </label>
+                                                                <Input
+                                                                    name={`product_detail_name_cn_${index}`}
+                                                                    type="text"
+                                                                    value={detail.product_detail_name_cn}
+                                                                    onChange={(e) => handleDetailInputChange(index, 'product_detail_name_cn', e.target.value)}
+                                                                    placeholder="Enter product detail name in Chinese"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                Product Detail Description <span className="text-red-500">*</span>
+                                                            </label>
+                                                            <TextArea
+                                                                name={`product_detail_description_${index}`}
+                                                                value={detail.product_detail_description}
+                                                                onChange={(e) => handleDetailInputChange(index, 'product_detail_description', e.target.value)}
+                                                                placeholder="Enter product detail description"
+                                                                rows={3}
+                                                            />
+                                                        </div>
+                                                        
+                                                        {errors.data_details && typeof errors.data_details === 'string' && (
+                                                            <div className="mt-2">
+                                                                <span className="text-red-500 text-sm">
+                                                                    {errors.data_details}
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))
                                             ) : (
                                                 <div className="text-center py-8 text-gray-500">
-                                                    <p>No master PDF details added yet.</p>
-                                                    <p className="text-sm">Click "Add PDF" to add master PDF details.</p>
+                                                    <p>No catalog documents added yet.</p>
+                                                    <p className="text-sm">Click "Add Catalog" to add catalog documents.</p>
                                                 </div>
                                             )
                                         ) : (
                                             // View Mode - Show read-only data
-                                            vinData.master_pdf && vinData.master_pdf.length > 0 ? (
-                                                vinData.master_pdf.map((pdf, index) => (
+                                            vinData.details && vinData.details.length > 0 ? (
+                                                vinData.details.map((detail, index) => (
                                                     <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <h4 className="mb-1.5 block text-sm text-gray-700">
-                                                                Book Part #{index + 1}
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <h4 className="text-md font-medium text-gray-700">
+                                                                Catalog Document #{index + 1}
                                                             </h4>
                                                         </div>
-                                                        <Link target='_blank' to={`/epc/manage/view/${pdf.master_pdf_id}`} className="inline-flex items-center justify-center p-5 py-3 text-base font-medium text-gray-500 rounded-lg bg-teal-50 hover:text-gray-900 hover:bg-gray-100">
-                                                            <span className="w-full">{pdf.master_pdf_name}</span>
-                                                            <MdOutlineArrowRightAlt className='text-[24px]' />
-                                                        </Link> 
+                                                        <div className="space-y-3">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                <div>
+                                                                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                                                                        Product Detail Name (English)
+                                                                    </label>
+                                                                    <p className="text-sm text-gray-900 bg-white p-2 rounded border">
+                                                                        {detail.product_detail_name_en || 'N/A'}
+                                                                    </p>
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                                                                        Product Detail Name (Chinese)
+                                                                    </label>
+                                                                    <p className="text-sm text-gray-900 bg-white p-2 rounded border">
+                                                                        {detail.product_detail_name_cn || 'N/A'}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                                                    Product Detail Description
+                                                                </label>
+                                                                <p className="text-sm text-gray-900 bg-white p-3 rounded border">
+                                                                    {detail.product_detail_description || 'N/A'}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                                                    Catalog Document
+                                                                </label>
+                                                                <Link 
+                                                                    target='_blank' 
+                                                                    to={`/epc/catalogs/view/${detail.dokumen_id}`} 
+                                                                    className="inline-flex items-center justify-center p-3 text-base font-medium text-gray-500 rounded-lg bg-teal-50 hover:text-gray-900 hover:bg-gray-100 w-full"
+                                                                >
+                                                                    <span className="w-full">{detail.dokumen_name || 'View Catalog Document'}</span>
+                                                                    <MdOutlineArrowRightAlt className='text-[24px]' />
+                                                                </Link>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 ))
                                             ) : (
                                                 <div className="text-center py-8 text-gray-500">
-                                                    <p>No book part details available.</p>
+                                                    <p>No catalog document details available.</p>
                                                 </div>
                                             )
                                         )}

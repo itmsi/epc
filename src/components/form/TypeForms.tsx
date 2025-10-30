@@ -1,6 +1,6 @@
 import React from 'react';
 import ReusableTypeForm from './TypeCabineForm';
-import { TypeAxleFormData, TypeCabinFormData, TypeEngineFormData, TypeSteeringFormData, TypeTransmissionFormData } from '@/types/partCatalogue';
+import { TypeAxleFormData, TypeCabinFormData, TypeCategoryFormData, TypeEngineFormData, TypeSteeringFormData, TypeTransmissionFormData } from '@/types/partCatalogue';
 
 // Configuration untuk Cabin
 const cabinConfig = {
@@ -12,8 +12,8 @@ const cabinConfig = {
         description: 'type_cabine_description'
     },
     labels: {
-        nameEn: 'Type Cabin Name (EN)',
-        nameCn: 'Type Cabin Name (CN)',
+        nameEn: 'Type Cabin Name - English',
+        nameCn: 'Type Cabin Name - Chinese',
         description: 'Type Cabin Description'
     },
     placeholders: {
@@ -33,8 +33,8 @@ const engineConfig = {
         description: 'type_engine_description'
     },
     labels: {
-        nameEn: 'Type Engine Name (EN)',
-        nameCn: 'Type Engine Name (CN)',
+        nameEn: 'Type Engine Name - English',
+        nameCn: 'Type Engine Name - Chinese',
         description: 'Type Engine Description'
     },
     placeholders: {
@@ -54,8 +54,8 @@ const axelConfig = {
         description: 'type_axel_description'
     },
     labels: {
-        nameEn: 'Type Axle Name (EN)',
-        nameCn: 'Type Axle Name (CN)',
+        nameEn: 'Type Axle Name - English',
+        nameCn: 'Type Axle Name - Chinese',
         description: 'Type Axle Description'
     },
     placeholders: {
@@ -75,8 +75,8 @@ const transmissionConfig = {
         description: 'type_transmission_description'
     },
     labels: {
-        nameEn: 'Type Transmission Name (EN)',
-        nameCn: 'Type Transmission Name (CN)',
+        nameEn: 'Type Transmission Name - English',
+        nameCn: 'Type Transmission Name - Chinese',
         description: 'Type Transmission Description'
     },
     placeholders: {
@@ -96,14 +96,35 @@ const steeringConfig = {
         description: 'type_steering_description'
     },
     labels: {
-        nameEn: 'Type Steering Name (EN)',
-        nameCn: 'Type Steering Name (CN)',
+        nameEn: 'Type Steering Name - English',
+        nameCn: 'Type Steering Name - Chinese',
         description: 'Type Steering Description'
     },
     placeholders: {
         nameEn: 'Enter type steering name in English',
         nameCn: 'Enter type steering name in Chinese',
         description: 'Enter type steering description'
+    }
+};
+
+// Configuration untuk Steering
+const categoryConfig = {
+    entityName: 'category',
+    entityDisplayName: 'Category',
+    fields: {
+        nameEn: 'type_category_name_en',
+        nameCn: 'type_category_name_cn',
+        description: 'type_category_description'
+    },
+    labels: {
+        nameEn: 'Type Category Name - English',
+        nameCn: 'Type Category Name - Chinese',
+        description: 'Type Category Description'
+    },
+    placeholders: {
+        nameEn: 'Enter type category name in English',
+        nameCn: 'Enter type category name in Chinese',
+        description: 'Enter type category description'
     }
 };
 
@@ -232,5 +253,31 @@ export const TypeSteeringForm: React.FC<TypeSteeringFormProps> = ({
     );
 };
 
+// INTERFACE DAN WRAPPER UNTUK TYPE CATEGORY FORM
+interface TypeCategoryFormProps {
+    typeCategory: TypeCategoryFormData[];
+    onTypeCategoryChange: (typeCategory: TypeCategoryFormData[]) => void;
+    errors?: Record<string, string>;
+    className?: string;
+    modeEdit?: boolean;
+}
+export const TypeCategoryForm: React.FC<TypeCategoryFormProps> = ({ 
+    typeCategory, 
+    onTypeCategoryChange,
+    errors = {},
+    className = "",
+    modeEdit
+}) => {
+    return (
+        <ReusableTypeForm<TypeCategoryFormData>
+            typeData={typeCategory}
+            onTypeDataChange={onTypeCategoryChange}
+            config={categoryConfig}
+            errors={errors}
+            className={className}
+            modeEdit={modeEdit}
+        />
+    );
+};
 // Export default untuk backward compatibility
 export default TypeCabineForm;
