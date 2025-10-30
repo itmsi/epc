@@ -113,7 +113,7 @@ export default function CreateCatalog() {
                                             name='master_category'
                                             placeholder="Select Category"
                                             onChange={handleSelectChange('master_category')}
-                                            value={formData.master_category ? asyncSelectHook.masterCategoryOptions.find((mc) => String(mc.value) === formData.master_category) : null}
+                                            value={formData.master_category ? asyncSelectHook.masterCategoryOptions?.find((mc) => String(mc.value) === formData.master_category) : null}
                                             error={validationErrors.master_category}
                                             defaultOptions={asyncSelectHook.masterCategoryOptions}
                                             loadOptions={asyncSelectHook.loadMasterCategoryOptions}
@@ -140,7 +140,7 @@ export default function CreateCatalog() {
                                                 name='part_id'
                                                 placeholder="Select Part"
                                                 onChange={handleSelectChange('part_id')}
-                                                value={formData.part_id ? partOptions.find((po) => String(po.value) === formData.part_id) : null}
+                                                value={formData.part_id ? partOptions?.find((po) => String(po.value) === formData.part_id) : null}
                                                 error={validationErrors.part_id}
                                                 defaultOptions={partOptions}
                                                 loadOptions={loadPartOptions}
@@ -171,7 +171,7 @@ export default function CreateCatalog() {
                                                 name='type_id'
                                                 placeholder="Select Type"
                                                 onChange={handleSelectChange('type_id')}
-                                                value={formData.type_id ? asyncSelectHook.detailCatalogOptions.find(dco => String(dco.value) === formData.type_id) : null}
+                                                value={formData.type_id ? asyncSelectHook.detailCatalogOptions?.find(dco => String(dco.value) === formData.type_id) : null}
                                                 error={validationErrors.type_id}
                                                 defaultOptions={asyncSelectHook.detailCatalogOptions}
                                                 loadOptions={asyncSelectHook.loadDetailCatalogOptions}
@@ -198,17 +198,17 @@ export default function CreateCatalog() {
                                             <div className="text-sm text-gray-600 space-y-1">
                                                 <p>
                                                     <strong>Category:</strong> {
-                                                        asyncSelectHook.masterCategoryOptions.find(mc => mc.value === formData.master_category)?.label || 'N/A'
+                                                        asyncSelectHook.masterCategoryOptions?.find(mc => mc.value === formData.master_category)?.label || 'N/A'
                                                     }
                                                 </p>
                                                 <p>
                                                     <strong>Part:</strong> {
-                                                        partOptions.find(po => po.value === formData.part_id)?.label || 'N/A'
+                                                        partOptions?.find(po => po.value === formData.part_id)?.label || 'N/A'
                                                     }
                                                 </p>
                                                 <p>
                                                     <strong>Type:</strong> {
-                                                        asyncSelectHook.detailCatalogOptions.find(dco => dco.value === formData.type_id)?.label || 'N/A'
+                                                        asyncSelectHook.detailCatalogOptions?.find(dco => dco.value === formData.type_id)?.label || 'N/A'
                                                     }
                                                 </p>
                                             </div>

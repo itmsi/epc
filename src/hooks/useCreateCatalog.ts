@@ -11,7 +11,6 @@ import { usePartCatalogueManagement } from '@/hooks/usePartCatalogueManagement';
 import { MasterCategoryService, DetailCatalogService, CatalogManageService } from '@/services/partCatalogueService';
 import { useCategory } from '@/hooks/usePartCatalogue';
 
-// Local interface for async select return type
 interface AsyncSelectHookReturn {
     partOptions: SelectOption[];
     loadPartOptions: (searchQuery: string) => Promise<SelectOption[]>;
@@ -22,7 +21,6 @@ interface AsyncSelectHookReturn {
     resetPagination: () => void;
     isLoading: boolean;
     
-    // Master Category functionality
     masterCategoryOptions: SelectOption[];
     loadMasterCategoryOptions: (searchQuery: string) => Promise<SelectOption[]>;
     handleMasterCategoryScrollToBottom: () => Promise<void>;
@@ -30,7 +28,6 @@ interface AsyncSelectHookReturn {
     masterCategorySearchValue: string;
     handleMasterCategorySearchChange: (value: string) => void;
     
-    // Detail Catalog functionality
     detailCatalogOptions: SelectOption[];
     loadDetailCatalogOptions: (searchQuery: string) => Promise<SelectOption[]>;
     handleDetailCatalogScrollToBottom: () => Promise<void>;
@@ -40,20 +37,16 @@ interface AsyncSelectHookReturn {
 }
 
 interface UseCreateCatalogReturn {
-    // Search state
     searchInputValue: string;
     setSearchInputValue: (value: string) => void;
     handleSearchInputChange: (inputValue: string) => void;
     
-    // Part options management
     partOptions: SelectOption[];
     loadPartOptions: (searchQuery: string) => Promise<SelectOption[]>;
     
-    // CSV handling
     parseCSVFile: (file: File) => Promise<PartItem[]>;
     handleCSVUpload: (file: File | null) => Promise<void>;
     
-    // Form management from existing hook
     formData: PartCatalogueFormData;
     setFormData: React.Dispatch<React.SetStateAction<PartCatalogueFormData>>;
     validationErrors: CatalogValidationErrors;
@@ -70,39 +63,29 @@ interface UseCreateCatalogReturn {
     handleSubmit: (e: React.FormEvent) => Promise<void>;
     loading: boolean;
     
-    // Async select hook
     asyncSelectHook: AsyncSelectHookReturn;
 }
 
 export const useCreateCatalog = (): UseCreateCatalogReturn => {
-    // Search state
     const [searchInputValue, setSearchInputValue] = useState('');
     
-    // Local loading state for form operations
     const [formSubmitLoading, setFormSubmitLoading] = useState(false);
     
-    // Use the existing part catalogue management hook
     const partCatalogueHook = usePartCatalogueManagement();
     const {
         formData,
         setFormData,
-        validationErrors,
         setValidationErrors
     } = partCatalogueHook;
 
-    // Use the category hook to get categories based on master_category_id
     const categoryHook = useCategory();
 
-    // Fetch categories when master_category changes
     useEffect(() => {
         if (formData.master_category) {
-            // Update category filters to include master_category_id
-            // useCategory hook will automatically fetch when filter changes
             categoryHook.handleFilterChange('master_category_id', formData.master_category);
         }
-    }, [formData.master_category]); // Remove categoryHook from dependencies to prevent infinite loop
+    }, [formData.master_category]);
 
-    // Reset detail catalog options when part_id is cleared
     useEffect(() => {
         if (!formData.part_id) {
             setDetailCatalogOptions([]);
@@ -110,7 +93,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         }
     }, [formData.part_id]);
 
-    // Memoize part options from categories when master_category is selected
     const partOptions = useMemo(() => {
         if (formData.master_category && categoryHook.categories && categoryHook.categories.length > 0) {
             return categoryHook.categories.map(category => ({
@@ -119,18 +101,15 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
             }));
         }
         
-        // Return empty array if no master_category is selected
         return [];
     }, [formData.master_category, categoryHook.categories]);
 
-    // Create load options function for AsyncSelect with search capability
     const loadPartOptions = useCallback(async (searchQuery: string): Promise<SelectOption[]> => {
         if (!formData.master_category) {
             return [];
         }
         
         try {
-            // Update search filter and fetch categories
             categoryHook.handleFilterChange('search', searchQuery);
             await categoryHook.fetchCategories(1, 20);
             
@@ -144,24 +123,20 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         }
     }, [formData.master_category, categoryHook]);
 
-    // Handle search input change
     const handleSearchInputChange = useCallback((inputValue: string) => {
         setSearchInputValue(inputValue);
     }, []);
 
-    // Clear search input when part type changes
     useEffect(() => {
         setSearchInputValue('');
     }, [formData.part_type]);
 
-    // Parse CSV file and convert to parts data
     const parseCSVFile = useCallback((file: File): Promise<PartItem[]> => {
         return new Promise((resolve, reject) => {
             Papa.parse<Record<string, string>>(file, {
                 header: true,
                 skipEmptyLines: true,
                 transform: (value: string) => {
-                    // Trim whitespace from all values
                     return typeof value === 'string' ? value.trim() : value;
                 },
                 complete: (results: Papa.ParseResult<Record<string, string>>) => {
@@ -173,9 +148,7 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
                     }
 
                     try {
-                        // Map CSV data to internal part structure
                         const parsedParts: PartItem[] = results.data.map((row: any, index: number) => {
-                            // Validate required fields
                             const requiredFields = ['target_id', 'part_number', 'catalog_item_name_en', 'catalog_item_name_ch', 'quantity'];
                             const missingFields = requiredFields.filter(field => !row[field]);
                             
@@ -183,7 +156,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
                                 throw new Error(`Row ${index + 1}: Missing required fields: ${missingFields.join(', ')}`);
                             }
 
-                            // Convert to internal format
                             return {
                                 id: `csv-${Date.now()}-${index}`,
                                 target_id: row.target_id || '',
@@ -212,15 +184,12 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         });
     }, []);
 
-    // Handle CSV file upload and parsing
     const handleCSVUpload = useCallback(async (file: File | null) => {
         if (!file) return;
 
         try {
-            // Parse CSV and populate parts directly (no longer storing CSV file)
             const parsedParts = await parseCSVFile(file);
             
-            // Update form data with parsed parts
             setFormData((prev: PartCatalogueFormData) => ({
                 ...prev,
                 parts: parsedParts
@@ -233,17 +202,14 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         }
     }, [parseCSVFile, setFormData]);
 
-    // Master Category functionality
     const [masterCategoryOptions, setMasterCategoryOptions] = useState<SelectOption[]>([]);
     const [masterCategoryLoading, setMasterCategoryLoading] = useState(false);
     const [masterCategorySearchValue, setMasterCategorySearchValue] = useState('');
     
-    // Master Category pagination state
     const [masterCategoryPage, setMasterCategoryPage] = useState(1);
     const [masterCategoryHasMore, setMasterCategoryHasMore] = useState(true);
     const masterCategoryPageLimit = 5;
 
-    // Fetch master categories data
     const fetchMasterCategories = useCallback(async (page: number = 1, append: boolean = false) => {
         setMasterCategoryLoading(true);
         try {
@@ -258,14 +224,12 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
                 setMasterCategoryHasMore(page * masterCategoryPageLimit < totalItems);
                 
                 if (append) {
-                    // Append new data for pagination
                     const newOptions: SelectOption[] = newMasterCategories.map(mc => ({
                         value: mc.master_category_id,
                         label: `${mc.master_category_name_en} ${mc.master_category_name_cn ? `- ${mc.master_category_name_cn}` : ''}`
                     }));
                     setMasterCategoryOptions(prev => [...prev, ...newOptions]);
                 } else {
-                    // Initial load or search
                     const options: SelectOption[] = newMasterCategories.map(mc => ({
                         value: mc.master_category_id,
                         label: `${mc.master_category_name_en} ${mc.master_category_name_cn ? `- ${mc.master_category_name_cn}` : ''}`
@@ -281,7 +245,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         }
     }, [masterCategorySearchValue]);
 
-    // Load master category options for search
     const loadMasterCategoryOptions = useCallback(async (searchQuery: string): Promise<SelectOption[]> => {
         try {
             const response = await MasterCategoryService.getMasterCategories(1, masterCategoryPageLimit, {
@@ -302,41 +265,34 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         }
     }, []);
 
-    // Handle master category search change
     const handleMasterCategorySearchChange = useCallback((value: string) => {
         setMasterCategorySearchValue(value);
     }, []);
 
-    // Handle master category scroll to bottom for infinite scroll
     const handleMasterCategoryScrollToBottom = useCallback(async () => {
         if (masterCategoryHasMore && !masterCategoryLoading) {
             const nextPage = masterCategoryPage + 1;
             setMasterCategoryPage(nextPage);
             await fetchMasterCategories(nextPage, true);
         }
-    }, [masterCategoryHasMore, masterCategoryLoading, masterCategoryPage]); // Remove fetchMasterCategories to prevent circular dependency
+    }, [masterCategoryHasMore, masterCategoryLoading, masterCategoryPage]);
 
-    // Initial fetch of master categories - run only once on mount
     useEffect(() => {
         fetchMasterCategories(1, false);
-    }, []); // Empty dependency to run only once
+    }, []);
 
-    // Detail Catalog functionality
     const [detailCatalogOptions, setDetailCatalogOptions] = useState<SelectOption[]>([]);
     const [detailCatalogLoading, setDetailCatalogLoading] = useState(false);
     const [detailCatalogSearchValue, setDetailCatalogSearchValue] = useState('');
     
-    // Detail Catalog pagination state
     const [detailCatalogPage, setDetailCatalogPage] = useState(1);
     const [detailCatalogHasMore, setDetailCatalogHasMore] = useState(false);
 
-    // Fetch detail catalogs data - Define before useEffect that uses it
     const fetchDetailCatalogs = useCallback(async (page: number = 1, append: boolean = false) => {
         if (!formData.part_id) return;
         
         setDetailCatalogLoading(true);
         try {
-            // Use getDetailCatalog with category_id filter to get list of type categories
             const response = await DetailCatalogService.getDetailCatalog(page, 10, {
                 category_id: formData.part_id,
                 search: detailCatalogSearchValue,
@@ -344,7 +300,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
             });
             
             if (response.data.success && response.data.data.items) {
-                // Map items to select options
                 const options: SelectOption[] = response.data.data.items.map(item => ({
                     value: item.type_category_id,
                     label: `${item.type_category_name_en} ${item.type_category_name_cn ? `- ${item.type_category_name_cn}` : ''}`
@@ -356,7 +311,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
                     setDetailCatalogOptions(options);
                 }
                 
-                // Update pagination state
                 const pagination = response.data.data.pagination;
                 setDetailCatalogHasMore(page < pagination.totalPages);
             } else {
@@ -377,7 +331,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         }
     }, [formData.part_id, detailCatalogSearchValue]);
 
-    // Fetch detail catalogs when part_id changes
     useEffect(() => {
         if (formData.part_id) {
             setDetailCatalogPage(1);
@@ -389,16 +342,14 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
             setDetailCatalogPage(1);
             setDetailCatalogHasMore(false);
         }
-    }, [formData.part_id, fetchDetailCatalogs]); // Add fetchDetailCatalogs to dependencies
+    }, [formData.part_id, fetchDetailCatalogs]);
 
-    // Load detail catalog options for search
     const loadDetailCatalogOptions = useCallback(async (searchQuery: string): Promise<SelectOption[]> => {
         if (!formData.part_id) {
             return [];
         }
 
         try {
-            // Use getDetailCatalog with search and category_id filter
             const response = await DetailCatalogService.getDetailCatalog(1, 10, {
                 category_id: formData.part_id,
                 search: searchQuery,
@@ -406,7 +357,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
             });
             
             if (response.data.success && response.data.data.items) {
-                // Map items to select options
                 const options: SelectOption[] = response.data.data.items.map(item => ({
                     value: item.type_category_id,
                     label: `${item.type_category_name_en} ${item.type_category_name_cn ? `- ${item.type_category_name_cn}` : ''}`
@@ -424,7 +374,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         setDetailCatalogSearchValue(value);
     }, []);
 
-    // Handle detail catalog scroll to bottom for infinite scroll
     const handleDetailCatalogScrollToBottom = useCallback(async () => {
         if (detailCatalogHasMore && !detailCatalogLoading) {
             const nextPage = detailCatalogPage + 1;
@@ -433,11 +382,9 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         }
     }, [detailCatalogHasMore, detailCatalogLoading, detailCatalogPage, fetchDetailCatalogs]);
 
-    // Validation function for new system
     const validateCreateCatalogForm = useCallback((): CatalogValidationErrors => {
         const errors: CatalogValidationErrors = {};
 
-        // Required field validations
         if (!formData.code_cabin.trim()) {
             errors.code_cabin = 'Code Cabin is required';
         }
@@ -454,11 +401,9 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
             errors.type_id = 'Type selection is required';
         }
 
-        // Parts validation
         if (formData.parts.length === 0) {
             errors.parts = 'At least one part is required';
         } else {
-            // Validate each part
             formData.parts.forEach((part, index) => {
                 if (!part.target_id.trim()) {
                     (errors as any)[`part_${index}_target`] = `Part ${index + 1} target is required`;
@@ -481,7 +426,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         return errors;
     }, [formData]);
 
-    // Handle form submission for new system
     const handleCreateCatalogSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         
@@ -499,7 +443,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
 
             if (response.data?.success) {
                 toast.success(response.data.message || 'Catalog created successfully');
-                // Component will handle navigation
             } else {
                 throw new Error(response.data?.message || 'Failed to create catalog');
             }
@@ -512,7 +455,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         }
     }, [formData, validateCreateCatalogForm, setValidationErrors, partCatalogueHook]);
 
-    // Enhanced asyncSelectHook with master category and detail catalog functionality
     const enhancedAsyncSelectHook = {
         partOptions: [],
         loadPartOptions: async () => [],
@@ -537,28 +479,22 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
     };
 
     return {
-        // Search state
         searchInputValue,
         setSearchInputValue,
         handleSearchInputChange,
         
-        // Part options management
         partOptions,
         loadPartOptions,
         
-        // CSV handling
         parseCSVFile,
         handleCSVUpload,
         
-        // All existing hook functionality with overrides
         ...partCatalogueHook,
         
-        // Override specific functions for new system
-        handleSubmit: handleCreateCatalogSubmit,  // Use new submit handler
-        loading: formSubmitLoading || partCatalogueHook.loading, // Combine loading states
+        handleSubmit: handleCreateCatalogSubmit,
+        loading: formSubmitLoading || partCatalogueHook.loading,
         catalogueDataLoading: formData.master_category ? categoryHook.loading : partCatalogueHook.catalogueDataLoading,
         
-        // Enhanced async select hook with master category
         asyncSelectHook: enhancedAsyncSelectHook
     };
 };
