@@ -94,7 +94,7 @@ export default function CreateVin() {
                                             {/* Production Name EN */}
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Production Name (English) <span className="text-red-500">*</span>
+                                                    Product Name (English)
                                                 </label>
                                                 <Input
                                                     name="product_name_en"
@@ -112,7 +112,7 @@ export default function CreateVin() {
                                             {/* Production Name CN */}
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Production Name (Chinese) <span className="text-red-500">*</span>
+                                                    Product Name (Chinese)
                                                 </label>
                                                 <Input
                                                     name="product_name_cn"

@@ -179,9 +179,9 @@ export default function EditCatalog() {
                                             name='master_category'
                                             placeholder="Select Category"
                                             onChange={handleSelectChange('master_category')}
-                                            value={formData.master_category ? asyncSelectHook.masterCategoryOptions.find((mc) => String(mc.value) === formData.master_category) : null}
+                                            value={formData.master_category && asyncSelectHook.masterCategoryOptions ? asyncSelectHook.masterCategoryOptions.find((mc) => String(mc.value) === formData.master_category) : null}
                                             error={validationErrors.master_category}
-                                            defaultOptions={asyncSelectHook.masterCategoryOptions}
+                                            defaultOptions={asyncSelectHook.masterCategoryOptions || []}
                                             loadOptions={asyncSelectHook.loadMasterCategoryOptions}
                                             onMenuScrollToBottom={asyncSelectHook.handleMasterCategoryScrollToBottom}
                                             isLoading={asyncSelectHook.masterCategoryLoading}
@@ -237,9 +237,9 @@ export default function EditCatalog() {
                                                 name='type_id'
                                                 placeholder="Select Type"
                                                 onChange={handleSelectChange('type_id')}
-                                                value={formData.type_id ? asyncSelectHook.detailCatalogOptions.find(dco => String(dco.value) === formData.type_id) : null}
+                                                value={formData.type_id && asyncSelectHook.detailCatalogOptions ? asyncSelectHook.detailCatalogOptions.find(dco => String(dco.value) === formData.type_id) : null}
                                                 error={validationErrors.type_id}
-                                                defaultOptions={asyncSelectHook.detailCatalogOptions}
+                                                defaultOptions={asyncSelectHook.detailCatalogOptions || []}
                                                 loadOptions={asyncSelectHook.loadDetailCatalogOptions}
                                                 onMenuScrollToBottom={asyncSelectHook.handleDetailCatalogScrollToBottom}
                                                 isLoading={asyncSelectHook.detailCatalogLoading}
@@ -264,17 +264,17 @@ export default function EditCatalog() {
                                             <div className="text-sm text-gray-600 space-y-1">
                                                 <p>
                                                     <strong>Category:</strong> {
-                                                        asyncSelectHook.masterCategoryOptions.find((mc: { value: string | number; label: string }) => mc.value === formData.master_category)?.label || 'N/A'
+                                                        asyncSelectHook.masterCategoryOptions?.find((mc: { value: string | number; label: string }) => mc.value === formData.master_category)?.label || 'N/A'
                                                     }
                                                 </p>
                                                 <p>
                                                     <strong>Part:</strong> {
-                                                        partOptions.find((po: { value: string | number; label: string }) => po.value === formData.part_id)?.label || 'N/A'
+                                                        partOptions?.find((po: { value: string | number; label: string }) => po.value === formData.part_id)?.label || 'N/A'
                                                     }
                                                 </p>
                                                 <p>
                                                     <strong>Type:</strong> {
-                                                        asyncSelectHook.detailCatalogOptions.find((dco: { value: string | number; label: string }) => dco.value === formData.type_id)?.label || 'N/A'
+                                                        asyncSelectHook.detailCatalogOptions?.find((dco: { value: string | number; label: string }) => dco.value === formData.type_id)?.label || 'N/A'
                                                     }
                                                 </p>
                                             </div>

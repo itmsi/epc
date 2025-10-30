@@ -275,15 +275,7 @@ export const useViewVin = (): UseViewVinReturn => {
         if (!formData.vin_number.trim()) {
             newErrors.vin_number = 'VIN Number is required';
         }
-
-        if (!formData.product_name_en.trim()) {
-            newErrors.product_name_en = 'Product Name (EN) is required';
-        }
-
-        // if (!formData.product_name_cn.trim()) {
-        //     newErrors.product_name_cn = 'Product Name (CN) is required';
-        // }
-
+        
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     }, [formData]);

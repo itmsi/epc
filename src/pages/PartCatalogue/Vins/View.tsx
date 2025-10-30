@@ -222,7 +222,7 @@ export default function ViewVin() {
                                             {/* Production Name EN */}
                                             <div>
                                                 <Label htmlFor="product_name_en">
-                                                    Production Name (English) {isEditMode && <span className="text-red-500">*</span>}
+                                                    Production Name (English)
                                                 </Label>
                                                 <Input
                                                     id="product_name_en"
@@ -234,9 +234,6 @@ export default function ViewVin() {
                                                     error={!!errors.product_name_en}
                                                     readonly={!isEditMode}
                                                 />
-                                                {errors.product_name_en && (
-                                                    <p className="mt-1 text-sm text-red-600">{errors.product_name_en}</p>
-                                                )}
                                             </div>
 
                                             {/* Production Name CN */}
@@ -360,7 +357,7 @@ export default function ViewVin() {
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                             <div>
                                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Product Detail Name (English) <span className="text-red-500">*</span>
+                                                                    Product Detail Name (English)
                                                                 </label>
                                                                 <Input
                                                                     name={`product_detail_name_en_${index}`}
@@ -373,7 +370,7 @@ export default function ViewVin() {
                                                             
                                                             <div>
                                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Product Detail Name (Chinese) <span className="text-red-500">*</span>
+                                                                    Product Detail Name (Chinese)
                                                                 </label>
                                                                 <Input
                                                                     name={`product_detail_name_cn_${index}`}
@@ -387,7 +384,7 @@ export default function ViewVin() {
                                                         
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                Product Detail Description <span className="text-red-500">*</span>
+                                                                Product Detail Description
                                                             </label>
                                                             <TextArea
                                                                 name={`product_detail_description_${index}`}
@@ -425,6 +422,19 @@ export default function ViewVin() {
                                                         </div>
                                                         <div className="space-y-3">
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                <div className='md:col-span-2'>
+                                                                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                                                                        Catalog Document
+                                                                    </label>
+                                                                    <Link 
+                                                                        target='_blank' 
+                                                                        to={`/epc/manage/view/${detail.dokumen_id}`} 
+                                                                        className="inline-flex items-center justify-center p-3 text-base font-medium text-gray-500 rounded-lg bg-teal-50 hover:text-gray-900 hover:bg-gray-100 w-full"
+                                                                    >
+                                                                        <span className="w-full">{detail.dokumen_name || 'View Catalog Document'}</span>
+                                                                        <MdOutlineArrowRightAlt className='text-[24px]' />
+                                                                    </Link>
+                                                                </div>
                                                                 <div>
                                                                     <label className="block text-sm font-medium text-gray-600 mb-1">
                                                                         Product Detail Name (English)
@@ -449,19 +459,6 @@ export default function ViewVin() {
                                                                 <p className="text-sm text-gray-900 bg-white p-3 rounded border">
                                                                     {detail.product_detail_description || 'N/A'}
                                                                 </p>
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-sm font-medium text-gray-600 mb-1">
-                                                                    Catalog Document
-                                                                </label>
-                                                                <Link 
-                                                                    target='_blank' 
-                                                                    to={`/epc/catalogs/view/${detail.dokumen_id}`} 
-                                                                    className="inline-flex items-center justify-center p-3 text-base font-medium text-gray-500 rounded-lg bg-teal-50 hover:text-gray-900 hover:bg-gray-100 w-full"
-                                                                >
-                                                                    <span className="w-full">{detail.dokumen_name || 'View Catalog Document'}</span>
-                                                                    <MdOutlineArrowRightAlt className='text-[24px]' />
-                                                                </Link>
                                                             </div>
                                                         </div>
                                                     </div>
