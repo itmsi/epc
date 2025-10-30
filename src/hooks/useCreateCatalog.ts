@@ -60,7 +60,7 @@ interface UseCreateCatalogReturn {
     handleAddPart: () => void;
     handleRemovePart: (partId: string) => void;
     handlePartChange: (partId: string, field: keyof PartItem, value: string | number) => void;
-    handleSubmit: (e: React.FormEvent) => Promise<void>;
+    handleSubmit: (e: React.FormEvent) => Promise<boolean>;
     loading: boolean;
     
     asyncSelectHook: AsyncSelectHookReturn;
@@ -195,7 +195,7 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
                 parts: parsedParts
             }));
 
-            toast.success(`Successfully imported ${parsedParts.length} parts from CSV`);
+            // toast.success(`Successfully imported ${parsedParts.length} parts from CSV`);
         } catch (error: any) {
             console.error('CSV upload error:', error);
             toast.error('Failed to process CSV file: ' + error.message);
@@ -426,7 +426,7 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         return errors;
     }, [formData]);
 
-    const handleCreateCatalogSubmit = useCallback(async (e: React.FormEvent) => {
+    const handleCreateCatalogSubmit = useCallback(async (e: React.FormEvent): Promise<boolean> => {
         e.preventDefault();
         
         const errors = validateCreateCatalogForm();
@@ -434,7 +434,7 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
 
         if (Object.keys(errors).length > 0) {
             toast.error('Please fix the validation errors');
-            return;
+            return false;
         }
 
         setFormSubmitLoading(true);
@@ -443,6 +443,8 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
 
             if (response.data?.success) {
                 toast.success(response.data.message || 'Catalog created successfully');
+                setValidationErrors({});
+                return true;
             } else {
                 throw new Error(response.data?.message || 'Failed to create catalog');
             }
@@ -450,6 +452,7 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
             const errorMessage = err instanceof Error ? err.message : 'Failed to create catalog';
             setValidationErrors({ general: errorMessage });
             toast.error(errorMessage);
+            return false;
         } finally {
             setFormSubmitLoading(false);
         }

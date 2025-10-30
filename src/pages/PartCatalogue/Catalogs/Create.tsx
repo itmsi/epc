@@ -47,9 +47,9 @@ export default function CreateCatalog() {
     // Handle form submission
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await handleSubmit(e);
+        const success = await handleSubmit(e);
         
-        if (Object.keys(validationErrors).length === 0) {
+        if (success) {
             navigate('/epc/manage');
         }
     };
