@@ -226,7 +226,7 @@ export default function CreateVin() {
                                                                 
                                                                 <div>
                                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                        Product Detail Name (Chinese) <span className="text-red-500">*</span>
+                                                                        Product Detail Name (Chinese)
                                                                     </label>
                                                                     <Input
                                                                         name={`product_detail_name_cn_${index}`}
@@ -240,7 +240,7 @@ export default function CreateVin() {
                                                             
                                                             <div>
                                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Product Detail Description <span className="text-red-500">*</span>
+                                                                    Product Detail Description
                                                                 </label>
                                                                 <TextArea
                                                                     name={`product_detail_description_${index}`}

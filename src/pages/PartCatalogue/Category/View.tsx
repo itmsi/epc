@@ -297,7 +297,7 @@ export default function View() {
 
                                     {/* Category Name Chinese */}
                                     <div className="md:col-span-2">
-                                        <Label htmlFor="category_name_cn">Category Name - Chinese *</Label>
+                                        <Label htmlFor="category_name_cn">Category Name - Chinese</Label>
                                         <Input
                                             id="category_name_cn"
                                             name="category_name_cn"

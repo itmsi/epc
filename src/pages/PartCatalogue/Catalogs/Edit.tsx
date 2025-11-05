@@ -434,7 +434,7 @@ export default function EditCatalog() {
 
                                                                             {/* Name Chinese */}
                                                                             <div className='md:col-span-3'>
-                                                                                <Label htmlFor={`catalog_item_name_ch_${part.id}`}>Name (Chinese) *</Label>
+                                                                                <Label htmlFor={`catalog_item_name_ch_${part.id}`}>Name (Chinese)</Label>
                                                                                 <Input
                                                                                     id={`catalog_item_name_ch_${part.id}`}
                                                                                     type="text"

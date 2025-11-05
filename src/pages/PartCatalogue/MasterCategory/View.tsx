@@ -259,7 +259,7 @@ export default function ViewMasterCategory() {
 
                                     {/* Master Category Name Chinese */}
                                     <div className="md:col-span-2">
-                                        <Label htmlFor="master_category_name_cn">Master Category Name - Chinese *</Label>
+                                        <Label htmlFor="master_category_name_cn">Master Category Name - Chinese</Label>
                                         <Input
                                             id="master_category_name_cn"
                                             name="master_category_name_cn"
