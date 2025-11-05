@@ -265,7 +265,6 @@ export const useViewVin = (): UseViewVinReturn => {
             ...prev,
             [index]: inputValue
         }));
-        console.log(`Search input for field ${index} changed to:`, `"${inputValue}"`);
     }, []);
 
     // Validate form in edit mode

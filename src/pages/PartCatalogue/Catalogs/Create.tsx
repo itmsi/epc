@@ -9,6 +9,7 @@ import PageMeta from '@/components/common/PageMeta';
 
 // Import organized types and new hook
 import { useCreateCatalog } from '@/hooks/useCreateCatalog';
+import { handleKeyPress } from '@/helpers/generalHelper';
 
 export default function CreateCatalog() {
     const navigate = useNavigate();
@@ -92,12 +93,12 @@ export default function CreateCatalog() {
 
                                 <div className='grid grid-cols-1 md:grid-cols-2 gap-6 my-5 font-secondary'>
                                     <div>
-                                        <Label htmlFor="code_cabin">Code Cabin *</Label>
+                                        <Label htmlFor="code_cabin">Document Name *</Label>
                                         <Input
                                             type="text"
                                             name="code_cabin"
                                             id="code_cabin"
-                                            placeholder="Enter Code Cabin"
+                                            placeholder="Enter Document Name"
                                             value={formData.code_cabin}
                                             onChange={handleInputChange}
                                         />
@@ -335,12 +336,13 @@ export default function CreateCatalog() {
                                                                                 <Label htmlFor={`quantity_${part.id}`}>Quantity *</Label>
                                                                                 <Input
                                                                                     id={`quantity_${part.id}`}
-                                                                                    type="number"
+                                                                                    type="text"
                                                                                     min="1"
                                                                                     value={part.quantity}
                                                                                     onChange={(e) => handlePartChange(part.id, 'quantity', parseInt(e.target.value) || 0)}
                                                                                     placeholder="Qty"
                                                                                     className="mt-1"
+                                                                                    onKeyPress={handleKeyPress}
                                                                                 />
                                                                             </div>
 

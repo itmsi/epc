@@ -58,8 +58,6 @@ export default function ManageCatalogs() {
 
     // Handle row actions
     const handleView = (catalog: CatalogDocumentItem) => {
-        console.log(catalog);
-        
         // TODO: Implement view details
         navigate(`/epc/manage/view/${catalog.dokumen_id}`);
     };

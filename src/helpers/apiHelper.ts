@@ -190,14 +190,10 @@ const handleApiError = (error: AxiosError<ApiErrorResponse>): ApiError => {
         };
         
     } else if (error.request) {
-        // Request was made but no response received
-        console.log({'api error request': error.request});
         return {
             message: 'Network error - no response from server',
         };
     } else {
-        // Something else happened
-        console.log({'api error message': error.message});
         return {
             message: error.message || 'An unexpected error occurred',
         };

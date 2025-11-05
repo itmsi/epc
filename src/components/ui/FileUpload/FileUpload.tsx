@@ -241,7 +241,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                         </div>
 
                         {/* Upload Text */}
-                        <div className="flex text-sm text-gray-600">
+                        <div className="flex text-sm text-gray-600 justify-center items-center">
                             <label
                                 htmlFor={id}
                                 className={`
@@ -346,18 +346,18 @@ const FileUpload: React.FC<FileUploadProps> = ({
                             return (
                                 <div className="space-y-2">
                                     {/* Image Preview */}
-                                    <div className={`${getPreviewSizeClasses()} rounded-lg overflow-hidden border border-gray-300 bg-white shadow-sm relative group`}>
+                                    <div className={`${getPreviewSizeClasses()} rounded-lg overflow-hidden border border-gray-300 bg-white shadow-sm relative group justify-center align-middle flex`}>
                                         {isSvg ? (
                                             <img
                                                 src={imageUrl}
                                                 alt="Preview"
-                                                className="w-full h-full object-contain"
+                                                className="h-100 object-contain"
                                             />
                                         ) : (
                                             <img
                                                 src={imageUrl}
                                                 alt="Preview"
-                                                className="w-full h-full object-contain"
+                                                className="h-100 object-contain"
                                             />
                                         )}
                                     </div>

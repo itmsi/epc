@@ -10,6 +10,7 @@ import PageMeta from '@/components/common/PageMeta';
 
 // Import hook yang proper untuk Edit mode
 import { useEditCatalog } from '@/hooks/useEditCatalog';
+import { handleKeyPress } from '@/helpers/generalHelper';
 
 export default function EditCatalog() {
     const navigate = useNavigate();
@@ -57,10 +58,10 @@ export default function EditCatalog() {
     // Handle form submission with navigation
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await handleSubmit(e);
+        const success = await handleSubmit(e);
         
-        if (Object.keys(validationErrors).length === 0) {
-            navigate('/epc/manage');
+        if (success) {
+            navigate(`/epc/manage/view/${formData.dokumen_id}`);
         }
     };
 
@@ -128,7 +129,7 @@ export default function EditCatalog() {
                     {/* HEADER */}
                     <div className="flex items-center justify-between h-16 bg-white shadow-sm border-b rounded-2xl p-6 mb-8">
                         <div className="flex items-center gap-1">
-                            <Link to={`/epc/manage/view/${id}`}>
+                            <Link to={`/epc/manage/view/${formData.dokumen_id || id}`}>
                                 <Button
                                     variant="outline"
                                     className="flex items-center gap-2 p-1 rounded-full bg-gray-100 hover:bg-gray-200 ring-0 border-none shadow-none me-1"
@@ -139,11 +140,6 @@ export default function EditCatalog() {
                             <div className="border-l border-gray-300 h-6 mx-3"></div>
                             <MdEdit size={20} className="text-primary" />
                             <h1 className="ms-2 font-primary-bold font-normal text-xl">Edit Catalog</h1>
-                            {catalogData && (
-                                <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full ml-3">
-                                    {catalogData.dokumen_name}
-                                </span>
-                            )}
                         </div>
                     </div>
 
@@ -158,14 +154,16 @@ export default function EditCatalog() {
 
                                 <div className='grid grid-cols-1 md:grid-cols-2 gap-6 my-5 font-secondary'>
                                     <div>
-                                        <Label htmlFor="code_cabin">Code Cabin *</Label>
+                                        <Label htmlFor="code_cabin">Document Name *</Label>
                                         <Input
                                             type="text"
                                             name="code_cabin"
                                             id="code_cabin"
-                                            placeholder="Enter Code Cabin"
+                                            placeholder="Enter Document Name"
                                             value={formData.code_cabin}
                                             onChange={handleInputChange}
+                                            readonly={true}
+                                            className="bg-gray-50"
                                         />
                                         {validationErrors.code_cabin && (
                                             <p className="mt-1 text-sm text-red-600">
@@ -179,7 +177,10 @@ export default function EditCatalog() {
                                             name='master_category'
                                             placeholder="Select Category"
                                             onChange={handleSelectChange('master_category')}
-                                            value={formData.master_category && asyncSelectHook.masterCategoryOptions ? asyncSelectHook.masterCategoryOptions.find((mc) => String(mc.value) === formData.master_category) : null}
+                                            value={formData.master_category ? 
+                                                asyncSelectHook.masterCategoryOptions?.find((mc) => String(mc.value) === formData.master_category) 
+                                                : null
+                                            }
                                             error={validationErrors.master_category}
                                             defaultOptions={asyncSelectHook.masterCategoryOptions || []}
                                             loadOptions={asyncSelectHook.loadMasterCategoryOptions}
@@ -190,6 +191,7 @@ export default function EditCatalog() {
                                             isSearchable={true}
                                             inputValue={asyncSelectHook.masterCategorySearchValue}
                                             onInputChange={asyncSelectHook.handleMasterCategorySearchChange}
+                                            disabled={true}
                                         />
                                         {validationErrors.master_category && (
                                             <p className="mt-1 text-sm text-red-600">
@@ -206,7 +208,7 @@ export default function EditCatalog() {
                                                 name='part_id'
                                                 placeholder="Select Part"
                                                 onChange={handleSelectChange('part_id')}
-                                                value={formData.part_id ? partOptions.find((po) => String(po.value) === formData.part_id) : null}
+                                                value={formData.part_id ? partOptions?.find((po) => String(po.value) === formData.part_id) : null}
                                                 error={validationErrors.part_id}
                                                 defaultOptions={partOptions}
                                                 loadOptions={loadPartOptions}
@@ -237,7 +239,7 @@ export default function EditCatalog() {
                                                 name='type_id'
                                                 placeholder="Select Type"
                                                 onChange={handleSelectChange('type_id')}
-                                                value={formData.type_id && asyncSelectHook.detailCatalogOptions ? asyncSelectHook.detailCatalogOptions.find(dco => String(dco.value) === formData.type_id) : null}
+                                                value={formData.type_id ? asyncSelectHook.detailCatalogOptions?.find(dco => String(dco.value) === formData.type_id) : null}
                                                 error={validationErrors.type_id}
                                                 defaultOptions={asyncSelectHook.detailCatalogOptions || []}
                                                 loadOptions={asyncSelectHook.loadDetailCatalogOptions}
@@ -258,13 +260,14 @@ export default function EditCatalog() {
                                     )}
 
                                     {/* Display selected part information */}
-                                    {formData.master_category && formData.part_id && formData.type_id && (
+                                    {formData.master_category && formData.part_id && (
                                         <div className="md:col-span-2 p-4 bg-green-50 border border-green-200 rounded-lg">
                                             <h3 className="font-medium text-gray-900 mb-2">Selected Configuration</h3>
                                             <div className="text-sm text-gray-600 space-y-1">
                                                 <p>
                                                     <strong>Category:</strong> {
-                                                        asyncSelectHook.masterCategoryOptions?.find((mc: { value: string | number; label: string }) => mc.value === formData.master_category)?.label || 'N/A'
+                                                        asyncSelectHook.masterCategoryOptions?.find((mc: { value: string | number; label: string }) => mc.value === formData.master_category)?.label ||
+                                                        'N/A'
                                                     }
                                                 </p>
                                                 <p>
@@ -284,7 +287,6 @@ export default function EditCatalog() {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* SVG Upload Section - Show after type selection */}
-                                    {formData.master_category && formData.part_id && formData.type_id && (
                                         <>
                                             {/* SVG Image Upload */}
                                             <div className="md:col-span-2">
@@ -298,10 +300,13 @@ export default function EditCatalog() {
                                                     currentFile={formData.svg_image}
                                                     existingImageUrl={existingImageUrl}
                                                     onFileChange={(file) => {
+                                                        // Update form data dengan file baru atau null
                                                         setFormData((prev: any) => ({
                                                             ...prev,
-                                                            svg_image: file
+                                                            svg_image: file // file bisa null jika user hapus
                                                         }));
+                                                        
+                                                        // Clear validation error jika ada
                                                         if (validationErrors.svg_image) {
                                                             setValidationErrors((prev: any) => {
                                                                 const newErrors = { ...prev };
@@ -352,9 +357,12 @@ export default function EditCatalog() {
                                                     <div className="space-y-4 max-h-96 overflow-y-auto font-secondary">
                                                         {formData.parts.length > 0 ? (
                                                             <>
-                                                                {formData.parts.map((part: any, index: number) => (
+                                                                {formData.parts.map((part: any, index: number) => {                                                                    
+                                                                    return (
                                                                     <div
                                                                         key={part.id}
+                                                                        data-part-id={part.id}
+                                                                        data-index={index}
                                                                         className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-4"
                                                                     >
                                                                         <div className="flex items-center justify-between">
@@ -402,12 +410,13 @@ export default function EditCatalog() {
                                                                                 <Label htmlFor={`quantity_${part.id}`}>Quantity *</Label>
                                                                                 <Input
                                                                                     id={`quantity_${part.id}`}
-                                                                                    type="number"
+                                                                                    type="text"
                                                                                     min="1"
                                                                                     value={part.quantity}
                                                                                     onChange={(e) => handlePartChange(part.id, 'quantity', parseInt(e.target.value) || 0)}
                                                                                     placeholder="Qty"
                                                                                     className="mt-1"
+                                                                                    onKeyPress={handleKeyPress}
                                                                                 />
                                                                             </div>
 
@@ -463,7 +472,8 @@ export default function EditCatalog() {
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                ))}
+                                                                    );
+                                                                })}
                                                             </>
                                                         ) : (
                                                             <div className="text-center py-8 text-gray-500">
@@ -474,7 +484,6 @@ export default function EditCatalog() {
                                                 </div>
                                             </div>
                                         </>
-                                    )}
                                 </div>
                             </div>
 
@@ -483,7 +492,7 @@ export default function EditCatalog() {
                                 <Button 
                                     type="button" 
                                     variant="outline"
-                                    onClick={() => navigate(`/epc/manage/view/${id}`)}
+                                    onClick={() => navigate(`/epc/manage/view/${formData.dokumen_id || id}`)}
                                     className="px-6 rounded-full"
                                     disabled={submitting}
                                 >

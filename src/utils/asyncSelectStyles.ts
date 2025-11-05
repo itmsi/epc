@@ -34,15 +34,14 @@ export const createAsyncSelectStyles = ({ error, success, disabled }: StyleOptio
                             ? '#22c55e'
                             : '#3b82f6'
                       )
-                    : (error 
-                        ? '#ef4444' 
-                        : success 
-                            ? '#22c55e'
-                            : '#d1d5db'
-                      ),
-                backgroundColor: (state.isDisabled || disabled) 
-                    ? '#f3f4f6' 
-                    : 'transparent',
+                    : (state.isDisabled
+                        ? 'transparent'
+                        : (error
+                            ? '#ef4444'
+                            : success
+                                ? '#22c55e'
+                                : '#d1d5db')),
+                backgroundColor: 'transparent',
                 cursor: (state.isDisabled || disabled) ? 'not-allowed' : 'default',
                 opacity: (state.isDisabled || disabled) ? 0.4 : 1,
                 '&:hover': {
@@ -189,7 +188,7 @@ export const generateSelectClassNames = (
         'react-select-container font-secondary',
         error ? 'react-select-error' : '',
         success ? 'react-select-success' : '',
-        disabled ? 'react-select-disabled' : '',
+        disabled ? 'react-select-disabled font-secondary h-11 w-full appearance-none text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3:text-white/30 border-gray-300 border-0 border-b-1 rounded-none focus:border-gray-300 focus:ring-gray-300 bg-gray-50' : '',
         className || ''
     ];
 

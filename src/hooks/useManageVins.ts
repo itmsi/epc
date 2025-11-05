@@ -44,81 +44,72 @@ export const useMasterVinManager = (): UseMasterVinManagerReturn => {
         };
     }, [searchTimeout]);
 
+    // Initial load of catalogs
+    useEffect(() => {
+        fetchCatalogs({ page: 1, limit: 5 }, false);
+    }, []);  // Empty dependency to run only once
+
     // Create options from catalogs
-    const createCatalogOptions = useCallback((): SelectOption[] => {
-        console.log({
-            catalogsLength: catalogs.length,
-            hasNextPage: pagination?.totalPages > pagination?.page,
-            currentPage: pagination?.page
-        });
-        
+    const createCatalogOptions = useCallback((): SelectOption[] => {        
         return catalogs.map(catalog => ({
             value: catalog.dokumen_id,
             label: `${catalog.dokumen_name}${catalog.master_category_name_en ? ` - ${catalog.master_category_name_en}` : ''}`
         }));
     }, [catalogs, pagination]);
 
-    // Load catalog options with search and pagination
     const loadCatalogOptions = useCallback(async (inputValue: string): Promise<SelectOption[]> => {
-        console.log('loadCatalogOptions called with:', `"${inputValue}"`);
-        
-        // Clear existing timeout
         if (searchTimeout) {
             clearTimeout(searchTimeout);
             setSearchTimeout(null);
         }
-
-        // Return a promise that resolves after debounce
         return new Promise((resolve) => {
             const timeoutId = setTimeout(async () => {
                 try {
                     const searchTerm = inputValue?.trim() || '';
-                    console.log('Executing search after debounce for:', `"${searchTerm}"`);
-                    
                     if (searchTerm.length > 0) {
-                        console.log('Searching with term:', searchTerm);
-                        // Reset pagination and search
                         await fetchCatalogs({ 
                             page: 1, 
                             search: searchTerm 
-                        });
+                        }, false); // false = replace mode for search
                     } else {
-                        console.log('Loading default options (no search term)');
-                        // If no search term, load first page without search
                         await fetchCatalogs({ 
                             page: 1, 
                             search: '' 
-                        });
+                        }, false); // false = replace mode
                     }
                     
                     const options = createCatalogOptions();
-                    console.log('Returning', options.length, 'options for search term:', `"${searchTerm}"`);
                     resolve(options);
                 } catch (error) {
                     console.error('Error in loadCatalogOptions:', error);
                     resolve([]);
                 }
                 setSearchTimeout(null);
-            }, 300); // Reduced debounce to 300ms for better responsiveness
+            }, 300);
             
             setSearchTimeout(timeoutId);
         });
     }, [searchTimeout, fetchCatalogs, createCatalogOptions]);
 
-    // Handle scroll to bottom for pagination
     const handleMenuScrollToBottom = useCallback(() => {
-        console.log('Scroll to bottom triggered:', {
-            loading: loading,
-            hasNextPage: pagination?.page < pagination?.totalPages,
-            currentPage: pagination?.page
+        console.log('handleMenuScrollToBottom called', { 
+            loading, 
+            pagination: {
+                page: pagination?.page,
+                totalPages: pagination?.totalPages,
+                hasMore: pagination?.page < pagination?.totalPages
+            }
         });
         
-        if (!loading && pagination?.page < pagination?.totalPages) {
+        if (!loading && pagination && pagination.page < pagination.totalPages) {
             const nextPage = pagination.page + 1;
             console.log('Loading next page:', nextPage);
-            
-            // Fetch halaman berikutnya
-            fetchCatalogs({ page: nextPage });
+            fetchCatalogs({ page: nextPage }, true); // true for append mode
+        } else {
+            console.log('Cannot load more:', {
+                loading,
+                canLoadMore: pagination && pagination.page < pagination.totalPages
+            });
         }
     }, [loading, pagination, fetchCatalogs]);
 
@@ -142,23 +133,18 @@ export const useMasterVinManager = (): UseMasterVinManagerReturn => {
 
 // CREATE VIN USING THE HOOK
 interface UseManageVinsReturn {
-    // Data
     vins: Vin[];
     loading: boolean;
     error: string | null;
     
-    // Pagination
     pagination: VinPagination | null;
     
-    // Filters
     filters: VinListRequest;
     setFilters: React.Dispatch<React.SetStateAction<VinListRequest>>;
     
-    // Search specific states
     searchInput: string;
     setSearchInput: React.Dispatch<React.SetStateAction<string>>;
     
-    // Actions
     fetchVins: (params?: Partial<VinListRequest>) => Promise<void>;
     refreshVins: () => Promise<void>;
     handlePageChange: (page: number) => void;
@@ -169,7 +155,6 @@ interface UseManageVinsReturn {
     handleFilterChange: (key: keyof VinListRequest, value: string | number) => void;
     clearFilters: () => void;
     
-    // Computed
     hasData: boolean;
     isEmpty: boolean;
     isFirstPage: boolean;
@@ -462,10 +447,6 @@ export const useCreateVin = (): UseCreateVinReturn => {
     // Update catalog selection
     const updateMasterPdfSelection = useCallback((index: number, selectedOption: SelectOption | null) => {
         const dokumen_id = selectedOption ? String(selectedOption.value) : '';
-        console.log({
-            dokumen_id
-        });
-        
         setFormData(prev => ({
             ...prev,
             data_details: prev.data_details?.map((item, i) => 
@@ -474,7 +455,6 @@ export const useCreateVin = (): UseCreateVinReturn => {
         }));
     }, []);
 
-    // Handle detail input change
     const handleDetailInputChange = useCallback((index: number, field: keyof Omit<VinDetailItem, 'dokumen_id'>, value: string) => {
         setFormData(prev => ({
             ...prev,
@@ -490,7 +470,6 @@ export const useCreateVin = (): UseCreateVinReturn => {
             ...prev,
             [index]: inputValue
         }));
-        console.log(`Search input for field ${index} changed to:`, `"${inputValue}"`);
     }, []);
 
     // Validate form

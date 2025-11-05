@@ -10,6 +10,7 @@ const DashboardCatalogue = lazy(() => import('@/pages/PartCatalogue/Dashboard'))
 const CreatePartCatalogue = lazy(() => import('@/pages/PartCatalogue/Catalogs/Create'));
 const EditPartCatalogue = lazy(() => import('@/pages/PartCatalogue/Catalogs/Edit'));
 const ViewPartCatalogue = lazy(() => import('@/pages/PartCatalogue/Catalogs/View'));
+const AddItemsPartCatalogue = lazy(() => import('@/pages/PartCatalogue/Catalogs/AddItems'));
 const ManagePartCatalogue = lazy(() => import('@/pages/PartCatalogue/Catalogs/Manage'));
 const VinPartCatalogue = lazy(() => import('@/pages/PartCatalogue/Vins/Manage'));
 const VinCreateCatalogue = lazy(() => import('@/pages/PartCatalogue/Vins/Create'));
@@ -106,6 +107,14 @@ export const routes: TAppRoute[] = [
         isProtected: true,
         roles: ['Manage Catalogs'],
         component: ViewPartCatalogue,
+        layout: AppLayout,
+    },
+    {
+        path: '/epc/manage/:id/add-items',
+        name: 'Manage Catalogs',
+        isProtected: true,
+        roles: ['Manage Catalogs'],
+        component: AddItemsPartCatalogue,
         layout: AppLayout,
     },
     {

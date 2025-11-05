@@ -1488,7 +1488,6 @@ export const useEmployees = (autoInit: boolean = true) => {
             const res = await employeesService.resetEmployeePassword(id);
             setConfirmResetPassword({ show: false });
             fetchEmployees();
-            console.log({res});
 
             toast.success(res.message || 'Password reset successfully');
             return true;

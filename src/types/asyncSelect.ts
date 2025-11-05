@@ -55,8 +55,9 @@ export interface PartCatalogueFormData {
     part_id: string;
     type_id: string;
     master_category: string;
-    svg_image: File | null;
+    svg_image: File | null | undefined; // undefined = keep existing, null = remove, File = new upload
     file_foto: File | null;
+    dokumen_id?: string;
     // use_csv_upload: boolean;
     // csv_file: File | null;
     parts: PartItem[];

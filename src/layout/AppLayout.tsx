@@ -6,7 +6,6 @@ import { ReactNode } from 'react';
 
 const LayoutContent: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { isExpanded, isHovered, isMobileOpen } = useSidebar();
-    const heightScreen = 'calc(100vh - 100px)';
     return (
         <div className="min-h-screen xl:flex">
             <div>

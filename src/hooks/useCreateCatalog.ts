@@ -54,7 +54,6 @@ interface UseCreateCatalogReturn {
     catalogueDataLoading: boolean;
     selectedPartData: any; 
     subTypes: any[];
-    getSubTypeOptions: () => SelectOption[];
     handleSelectChange: (name: string) => (selectedOption: { value: string; label: string; } | null) => void;
     handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleAddPart: () => void;
@@ -386,7 +385,7 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
         const errors: CatalogValidationErrors = {};
 
         if (!formData.code_cabin.trim()) {
-            errors.code_cabin = 'Code Cabin is required';
+            errors.code_cabin = 'Document Name is required';
         }
 
         if (!formData.master_category) {

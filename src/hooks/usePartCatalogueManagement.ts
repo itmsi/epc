@@ -2,13 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { 
     PartCatalogueData, 
-    PartType, 
-    SelectOption, 
     PartCatalogueFormData, 
     CatalogValidationErrors,
     PartItem 
 } from '@/types/asyncSelect';
-import { CatalogAsyncSelectService } from './useCustomAsyncSelect';
+import { CatalogManageService } from '@/services/partCatalogueService';
 
 interface UsePartCatalogueManagementProps {
     onPartTypeChange?: (partType: string) => void;
@@ -32,9 +30,6 @@ interface UsePartCatalogueManagementReturn {
     // Selected data
     selectedPartData: any;
     subTypes: any[];
-    
-    // Options
-    getSubTypeOptions: () => SelectOption[];
     
     // Form handlers
     handleSelectChange: (name: string) => (selectedOption: { value: string; label: string; } | null) => void;
@@ -60,6 +55,7 @@ export const usePartCatalogueManagement = ({
         master_category: '',
         svg_image: null,
         file_foto: null,
+        dokumen_id:'',
         // use_csv_upload: false,
         // csv_file: null,
         parts: []
@@ -241,27 +237,28 @@ export const usePartCatalogueManagement = ({
 
     // Handle part item change
     const handlePartChange = useCallback((partId: string, field: keyof PartItem, value: string | number) => {
-        setFormData(prev => ({
-            ...prev,
-            parts: prev.parts.map(part => 
-                part.id === partId 
-                    ? { ...part, [field]: field === 'quantity' ? Number(value) : value }
-                    : part
-            )
-        }));
+        
+        setFormData(prev => {
+            const updatedParts = prev.parts.map(part => {
+                if (part.id === partId) {
+                    return { ...part, [field]: field === 'quantity' ? Number(value) : value };
+                }
+                return part;
+            });
+            
+            return {
+                ...prev,
+                parts: updatedParts
+            };
+        });
     }, []);
-
-    // Get options for sub type selection
-    const getSubTypeOptions = useCallback(() => {
-        return CatalogAsyncSelectService.transformSubTypeDataToOptions(formData.part_type as PartType, subTypes);
-    }, [formData.part_type, subTypes]);
 
     // Validate form
     const validateForm = useCallback((): CatalogValidationErrors => {
         const errors: CatalogValidationErrors = {};
 
         if (!formData.code_cabin.trim()) {
-            errors.code_cabin = 'Code cabin is required';
+            errors.code_cabin = 'Document Name is required';
         }
 
         if (!formData.part_type) {
@@ -356,7 +353,6 @@ export const usePartCatalogueManagement = ({
         fetchPartCatalogueData,
         selectedPartData,
         subTypes,
-        getSubTypeOptions,
         handleSelectChange,
         handleInputChange,
         handleCheckboxChange,
@@ -364,6 +360,45 @@ export const usePartCatalogueManagement = ({
         handleRemovePart,
         handlePartChange,
         handleSubmit,
+        loading
+    };
+};
+
+export const useViewCatalogItems = () => {
+    const [loading, setLoading] = useState(false);
+
+    // Handle delete category items dengan proper error handling
+    const handleDeleteCategoryItems = useCallback(async (itemCategoryID: string, onSuccess?: () => void) => {
+        if (!itemCategoryID) {
+            toast.error('Item ID is required');
+            return false;
+        }
+
+        setLoading(true);
+        try {
+            const response = await CatalogManageService.deleteItemsCatalog(itemCategoryID);
+
+            if (response.data?.success) {
+                toast.success('Category item deleted successfully');
+                // Call onSuccess callback jika disediakan
+                if (onSuccess) {
+                    onSuccess();
+                }
+                return true;
+            } else {
+                throw new Error(response.data?.message || 'Failed to delete category item');
+            }
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to delete category items';
+            toast.error(errorMessage);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return {
+        handleDeleteCategoryItems,
         loading
     };
 };

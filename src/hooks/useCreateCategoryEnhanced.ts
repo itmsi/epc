@@ -63,11 +63,7 @@ export const useCreateCategoryEnhanced = (): UseCreateCategoryEnhancedReturn => 
     } = useCreateCategory();
 
     // Enhanced handleSubmit with logging
-    const handleSubmit = useCallback(async (e: React.FormEvent) => {
-        console.log('FormData before submit:', formData);
-        console.log('Master Category ID:', formData.master_category_id);
-        console.log('Master Category Name EN:', formData.master_category_name_en);
-        
+    const handleSubmit = useCallback(async (e: React.FormEvent) => {        
         return await originalHandleSubmit(e);
     }, [formData, originalHandleSubmit]);
 
