@@ -195,7 +195,6 @@ export default function ViewCatalog() {
                 </div>
             ),
             wrap: true,
-            sortable: false, // Disable built-in sorting since we handle it manually
         },
         {
             name: (
@@ -222,7 +221,6 @@ export default function ViewCatalog() {
                 </div>
             ),
             wrap: true,
-            sortable: false, // Disable built-in sorting since we handle it manually
         },
         createActionsColumn([
             {
@@ -595,7 +593,7 @@ export default function ViewCatalog() {
                                                             handleManualSearch();
                                                         }
                                                     }}
-                                                    className={`pl-10 py-2 w-full rounded-r-none`}
+                                                    className={`py-2 w-full rounded-r-none`}
                                                 />
                                                 {searchTerm && (
                                                     <button
@@ -622,17 +620,6 @@ export default function ViewCatalog() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
                                     </div>
-                                    {searchTerm && (
-                                        <button
-                                            onClick={handleClearSearch}
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center hover:bg-gray-100 rounded-r"
-                                            title="Clear search"
-                                        >
-                                            <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    )}
                                 </div>
                             </div>
 
