@@ -103,11 +103,23 @@ export async function sendChatMessage(
 ): Promise<ChatResponsePayload> {
   const endpointUrl = buildEndpointUrl();
 
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (typeof window !== "undefined") {
+    const token =
+      window.localStorage.getItem("auth_token") ??
+      window.sessionStorage.getItem("auth_token");
+
+    if (token && token.trim().length > 0) {
+      headers.Authorization = `Bearer ${token.trim()}`;
+    }
+  }
+
   const response = await fetch(endpointUrl, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify(payload),
   });
 
