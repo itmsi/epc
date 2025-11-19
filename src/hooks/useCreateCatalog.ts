@@ -396,10 +396,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
             errors.part_id = 'Part selection is required';
         }
 
-        if (!formData.type_id) {
-            errors.type_id = 'Type selection is required';
-        }
-
         if (formData.parts.length === 0) {
             errors.parts = 'At least one part is required';
         } else {
