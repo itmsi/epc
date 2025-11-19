@@ -100,7 +100,7 @@ export default function ViewCatalog() {
     };
     
     const handleManualSearch = useCallback(() => {
-         if (searchTerm || sortField) {
+        if (searchTerm || sortField) {
             const searchParams = {
                 search: searchTerm,
                 sort_by: sortField,
@@ -153,11 +153,18 @@ export default function ViewCatalog() {
         if (!confirmed) return;
 
         try {
+            const isLastItem = catalogData?.items?.length === 1;
+            
             const response = await CatalogManageService.deleteItemsCatalog(row.item_category_id);
             
             if (response.data?.success) {
                 toast.success('Catalog item deleted successfully!');
-                await fetchCatalogData();
+                
+                if (isLastItem) {
+                    navigate('/epc/manage');
+                } else {
+                    await fetchCatalogData();
+                }
             } else {
                 toast.error(response.data?.message || 'Failed to delete catalog item');
             }
@@ -165,7 +172,7 @@ export default function ViewCatalog() {
             console.error('Error deleting catalog item:', error);
             toast.error('Failed to delete catalog item');
         }
-    }, [showConfirmation]);
+    }, [showConfirmation, catalogData, navigate, fetchCatalogData]);
 
 
     // Define table columns for items

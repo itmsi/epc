@@ -413,9 +413,6 @@ export const useCreateCatalog = (): UseCreateCatalogReturn => {
                 if (!part.catalog_item_name_en.trim()) {
                     (errors as any)[`part_${index}_name_en`] = `Part ${index + 1} English name is required`;
                 }
-                if (!part.catalog_item_name_ch.trim()) {
-                    (errors as any)[`part_${index}_name_cn`] = `Part ${index + 1} Chinese name is required`;
-                }
                 if (part.quantity <= 0) {
                     (errors as any)[`part_${index}_quantity`] = `Part ${index + 1} quantity must be greater than 0`;
                 }

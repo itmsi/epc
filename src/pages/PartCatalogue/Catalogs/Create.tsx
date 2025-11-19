@@ -193,7 +193,7 @@ export default function CreateCatalog() {
                                     )}
 
                                     {/* Display selected part information */}
-                                    {formData.master_category && formData.part_id && formData.type_id && (
+                                    {formData.master_category && formData.part_id && (
                                         <div className="md:col-span-2 p-4 bg-green-50 border border-green-200 rounded-lg">
                                             <h3 className="font-medium text-gray-900 mb-2">Selected Configuration</h3>
                                             <div className="text-sm text-gray-600 space-y-1">
@@ -219,7 +219,7 @@ export default function CreateCatalog() {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* CSV Upload Section - Show after type selection */}
-                                    {formData.master_category && formData.part_id && formData.type_id && (
+                                    {formData.master_category && formData.part_id && (
                                         <>
                                             {/* SVG Image Upload */}
                                             <div className="md:col-span-2">

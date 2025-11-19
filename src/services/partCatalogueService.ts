@@ -250,7 +250,7 @@ export class CatalogManageService {
     }
 
     static async deleteCatalog(id: string): Promise<ApiResponse<{ success: boolean; message?: string }>> {
-        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/item_category/${id}`);
+        return await apiDelete<{ success: boolean; message?: string }>(`${API_BASE_URL}/epc/dokumen/${id}`);
     }
 }
 // Vin Services

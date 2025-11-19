@@ -227,26 +227,6 @@ export function useManageVins(props: UseManageVinsProps = {}): UseManageVinsRetu
         await fetchVins();
     }, [fetchVins]);
 
-    // Debounced search effect
-    useEffect(() => {
-        // Clear previous timeout
-        if (debounceRef.current) {
-            clearTimeout(debounceRef.current);
-        }
-
-        // Set new timeout for debounced search
-        debounceRef.current = setTimeout(() => {
-            setFilters(prev => ({ ...prev, search: searchInput, page: 1 }));
-        }, 500); // 500ms delay
-
-        // Cleanup timeout on unmount
-        return () => {
-            if (debounceRef.current) {
-                clearTimeout(debounceRef.current);
-            }
-        };
-    }, [searchInput]);
-
     // Event handlers
     const handlePageChange = useCallback((page: number) => {
         setFilters(prev => ({ ...prev, page }));
@@ -263,9 +243,9 @@ export function useManageVins(props: UseManageVinsProps = {}): UseManageVinsRetu
     // Manual search handler for immediate search trigger
     const handleManualSearch = useCallback(() => {
         // Clear any pending debounced search
-        if (debounceRef.current) {
-            clearTimeout(debounceRef.current);
-        }
+        // if (debounceRef.current) {
+        //     clearTimeout(debounceRef.current);
+        // }
         // Immediately trigger search with current input
         setFilters(prev => ({ ...prev, search: searchInput, page: 1 }));
     }, [searchInput]);

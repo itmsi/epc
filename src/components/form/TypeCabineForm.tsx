@@ -92,7 +92,7 @@ function ReusableTypeForm<T extends Record<string, any>>({
             <div className='space-y-4 max-h-[770px] overflow-y-auto'>
                 {typeData.length === 0 && (
                     <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
-                        <p>No type {config.entityName}s added. Click "Add Type {config.entityDisplayName}" to add one.</p>
+                        <p>No type {config.entityName} added. Click "Add Type {config.entityDisplayName}" to add one.</p>
                     </div>
                 )}
 

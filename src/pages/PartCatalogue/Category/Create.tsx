@@ -31,7 +31,7 @@ export default function Create() {
     return (
         <>
             <PageMeta
-                title={`Create Cagtegory | MSI`}
+                title={`Create Category | MSI`}
                 description={`Create category information`}
                 image="/motor-sights-international.png"
             />
@@ -51,7 +51,7 @@ export default function Create() {
                             </Link>
                             <div className="border-l border-gray-300 h-6 mx-3"></div>
                             <MdAdd size={20} className="text-primary" />
-                            <h1 className="ms-2 font-primary-bold font-normal text-xl">Create Cagtegory</h1>
+                            <h1 className="ms-2 font-primary-bold font-normal text-xl">Create Category</h1>
                         </div>
                     </div>
 
@@ -61,7 +61,7 @@ export default function Create() {
                             <div className="md:col-span-1 p-8 relative space-y-5 min-h-[770px]">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                                    <h2 className="text-lg font-primary-bold font-medium text-gray-900 md:col-span-2">Type Cagtegory</h2>
+                                    <h2 className="text-lg font-primary-bold font-medium text-gray-900 md:col-span-2">Type Category</h2>
                                     <div className="md:col-span-2">
                                         <Label htmlFor="master_category_id">Select Master Category *</Label>
                                         <CustomAsyncSelect
@@ -90,9 +90,9 @@ export default function Create() {
                                         )}
                                     </div>
 
-                                    {/* Cagtegory Name English */}
+                                    {/* Category Name English */}
                                     <div className="md:col-span-2">
-                                        <Label htmlFor="category_name_en">Cagtegory Name - English *</Label>
+                                        <Label htmlFor="category_name_en">Category Name - English *</Label>
                                         <Input
                                             id="category_name_en"
                                             name="category_name_en"
@@ -109,9 +109,9 @@ export default function Create() {
                                         )}
                                     </div>
 
-                                    {/* Cagtegory Name Chinese */}
+                                    {/* Category Name Chinese */}
                                     <div className="md:col-span-2">
-                                        <Label htmlFor="category_name_cn">Cagtegory Name - Chinese</Label>
+                                        <Label htmlFor="category_name_cn">Category Name - Chinese</Label>
                                         <Input
                                             id="category_name_cn"
                                             name="category_name_cn"
