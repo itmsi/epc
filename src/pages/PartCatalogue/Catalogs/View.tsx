@@ -29,6 +29,7 @@ export default function ViewCatalog() {
     // State for catalog detail data
     const [catalogData, setCatalogData] = useState<CatalogDetailData | null>(null);
     const [loadingCatalog, setLoadingCatalog] = useState(true);
+    const [loadingItems, setLoadingItems] = useState(false);
     const [error, setError] = useState<string | null>(null);
     
     // State for edit document name
@@ -41,34 +42,24 @@ export default function ViewCatalog() {
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [totalRows, setTotalRows] = useState(0);
     
     // Use confirmation hook for delete action
     const { showConfirmation, modalProps } = useConfirmation();
     
-    const fetchCatalogData = async (searchParams?: {
-        search?: string;
-        sort_by?: string;
-        sort_order?: 'asc' | 'desc';
-        page?: number;
-        limit?: number;
-    }) => {
+    // Fetch initial catalog data (info + items)
+    const fetchInitialCatalogData = async () => {
         if (!id) return;
         
         try {
             setLoadingCatalog(true);
             setError(null);
             
-            let response;
-            if (searchParams && (searchParams.search || searchParams.sort_by)) {
-                // Use search method when there are search/sort parameters
-                response = await CatalogManageService.searchCatalogItems(id, searchParams);
-            } else {
-                // Use regular method for initial load
-                response = await CatalogManageService.getItemsById(id);
-            }
+            const response = await CatalogManageService.getItemsById(id);
             
             if (response.success) {
                 setCatalogData(response.data);
+                setTotalRows(response.data?.items?.length || 0);
             } else {
                 setError(response.message || 'Failed to fetch catalog data');
             }
@@ -79,41 +70,58 @@ export default function ViewCatalog() {
             setLoadingCatalog(false);
         }
     };
+    
+    // Fetch items with search/sort/pagination (only items, not document info)
+    const fetchCatalogItems = async (searchParams?: {
+        search?: string;
+        sort_by?: string;
+        sort_order?: 'asc' | 'desc';
+        page?: number;
+        limit?: number;
+    }) => {
+        if (!id) return;
+        
+        try {
+            setLoadingItems(true);
+            
+            const response = await CatalogManageService.searchCatalogItems(id, searchParams || {});
+            
+            if (response.success) {
+                // Update only items, keep document info unchanged
+                setCatalogData(prev => prev ? {
+                    ...prev,
+                    items: response.data?.items || [],
+                    pagination: response.data?.pagination
+                } : response.data);
+                setTotalRows(response.data?.pagination?.total || response.data?.items?.length || 0);
+            }
+        } catch (error) {
+            console.error('Error fetching catalog items:', error);
+        } finally {
+            setLoadingItems(false);
+        }
+    };
 
     useEffect(() => {
-        fetchCatalogData();
+        fetchInitialCatalogData();
     }, [id]);
-
-    // Debounce search term and trigger server search
-    // useEffect(() => {
-    //     const timer = setTimeout(() => {
-    //         setDebouncedSearchTerm(searchTerm);
-    //     }, 300);
-
-    //     return () => clearTimeout(timer);
-    // }, [searchTerm]);
-
 
     // Handle search input change
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
     };
     
+    // Manual search trigger
     const handleManualSearch = useCallback(() => {
-        if (searchTerm || sortField) {
-            const searchParams = {
-                search: searchTerm,
-                sort_by: sortField,
-                sort_order: sortDirection,
-                page: currentPage,
-                limit: itemsPerPage
-            };
-            fetchCatalogData(searchParams);
-        } else if (searchTerm === '' && !sortField) {
-            // Reload without search when search is cleared
-            fetchCatalogData();
-        }
-    }, [searchTerm, sortField, sortDirection, currentPage, itemsPerPage]);
+        setCurrentPage(1);
+        fetchCatalogItems({
+            search: searchTerm,
+            sort_by: sortField,
+            sort_order: sortDirection,
+            page: 1,
+            limit: itemsPerPage
+        });
+    }, [searchTerm, sortField, sortDirection, itemsPerPage]);
 
 
     // Handle sort column click
@@ -127,12 +135,15 @@ export default function ViewCatalog() {
     };
 
     // Clear search and sort
-    const handleClearSearch = async () => {
+    const handleClearSearch = () => {
         setSearchTerm('');
         setSortField('');
         setSortDirection('asc');
         setCurrentPage(1);
-        await fetchCatalogData();
+        fetchCatalogItems({
+            page: 1,
+            limit: itemsPerPage
+        });
     };
 
     // Handle delete individual catalog item
@@ -163,7 +174,13 @@ export default function ViewCatalog() {
                 if (isLastItem) {
                     navigate('/epc/manage');
                 } else {
-                    await fetchCatalogData();
+                    await fetchCatalogItems({
+                        search: searchTerm,
+                        sort_by: sortField,
+                        sort_order: sortDirection,
+                        page: currentPage,
+                        limit: itemsPerPage
+                    });
                 }
             } else {
                 toast.error(response.data?.message || 'Failed to delete catalog item');
@@ -172,7 +189,7 @@ export default function ViewCatalog() {
             console.error('Error deleting catalog item:', error);
             toast.error('Failed to delete catalog item');
         }
-    }, [showConfirmation, catalogData, navigate, fetchCatalogData]);
+    }, [showConfirmation, catalogData, navigate, fetchCatalogItems, searchTerm, sortField, sortDirection, currentPage, itemsPerPage]);
 
 
     // Define table columns for items
@@ -591,8 +608,6 @@ export default function ViewCatalog() {
                                                     type="text"
                                                     placeholder="Search by part name or type..."
                                                     value={searchTerm}
-                                                    // onChange={handleSearchChange}
-                                                    // className="pl-10 pr-10"
                                                     onChange={handleSearchChange}
                                                     onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
                                                         if (e.key === 'Enter') {
@@ -619,7 +634,6 @@ export default function ViewCatalog() {
                                             >
                                                 <MdSearch className="w-4 h-4" />
                                             </Button>
-                                            
                                         </div>
                                     </div>
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -633,14 +647,33 @@ export default function ViewCatalog() {
                             <CustomDataTable
                                 columns={columns}
                                 data={catalogData?.items || []}
-                                loading={loadingCatalog}
+                                loading={loadingItems}
                                 pagination={true}
-                                paginationServer={false}
+                                paginationServer={true}
+                                paginationTotalRows={totalRows}
+                                paginationDefaultPage={currentPage}
                                 paginationPerPage={itemsPerPage}
                                 paginationRowsPerPageOptions={[10, 25, 50, 100]}
+                                onChangePage={(page) => {
+                                    setCurrentPage(page);
+                                    fetchCatalogItems({
+                                        search: searchTerm,
+                                        sort_by: sortField,
+                                        sort_order: sortDirection,
+                                        page: page,
+                                        limit: itemsPerPage
+                                    });
+                                }}
                                 onChangeRowsPerPage={(newPerPage) => {
                                     setItemsPerPage(newPerPage);
                                     setCurrentPage(1);
+                                    fetchCatalogItems({
+                                        search: searchTerm,
+                                        sort_by: sortField,
+                                        sort_order: sortDirection,
+                                        page: 1,
+                                        limit: newPerPage
+                                    });
                                 }}
                                 responsive
                                 highlightOnHover
