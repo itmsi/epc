@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { SelectOption } from '@/types/asyncSelect';
 import { UseManageVinsProps, Vin, VinFilters, VinFormData, VinDetailItem, VinListRequest, VinPagination } from '@/types/partCatalogue';
 import { VinService } from '@/services/partCatalogueService';
@@ -176,7 +176,7 @@ export function useManageVins(props: UseManageVinsProps = {}): UseManageVinsRetu
 
     // Search input state for debouncing
     const [searchInput, setSearchInput] = useState<string>(initialFilters.search || '');
-    const debounceRef = useRef<NodeJS.Timeout | null>(null);
+    // const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
     // Filter state
     const [filters, setFilters] = useState<VinListRequest>({
