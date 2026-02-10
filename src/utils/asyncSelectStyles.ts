@@ -40,8 +40,11 @@ export const createAsyncSelectStyles = ({ error, success, disabled }: StyleOptio
                             ? '#ef4444'
                             : success
                                 ? '#22c55e'
-                                : '#d1d5db')),
-                backgroundColor: 'transparent',
+                                : '#d1d5db')
+                        ),
+                backgroundColor: (state.isDisabled || disabled) 
+                    ? '#f3f4f6' 
+                    : 'transparent',
                 cursor: (state.isDisabled || disabled) ? 'not-allowed' : 'default',
                 opacity: (state.isDisabled || disabled) ? 0.4 : 1,
                 '&:hover': {
@@ -175,9 +178,6 @@ export const createAsyncSelectStyles = ({ error, success, disabled }: StyleOptio
     };
 };
 
-/**
- * Generate CSS class names for CustomAsyncSelect
- */
 export const generateSelectClassNames = (
     error?: string, 
     success?: boolean, 

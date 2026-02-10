@@ -7,6 +7,7 @@ import CustomSelect from "@/components/form/select/CustomSelect";
 import { MdArrowBack, MdEdit, MdKeyboardArrowLeft, MdSave, MdExpandMore, MdExpandLess } from "react-icons/md";
 import LoadingSpinner from "@/components/common/Loading";
 import PageMeta from "@/components/common/PageMeta";
+import Avatar from "@/components/common/Avatar";
 import { useDropdownData, useEmployeeDetail } from "@/hooks/useAdministration";
 import { EmployeePermissionDetail, EmployeeMenuPermission, EmployeeSystemPermission } from "@/types/administration";
 import Switch from "@/components/form/switch/Switch";
@@ -153,7 +154,8 @@ export default function EditEmployee() {
             'edit': 3,      // Update
             'update': 3,    // Update alternative
             'delete': 4,    // Delete
-            'remove': 4     // Delete alternative
+            'remove': 4,     // Delete alternative
+            'duplicate': 5   // Duplicate
         };
         
         // First filter to only include CRUD permissions
@@ -261,7 +263,8 @@ export default function EditEmployee() {
         // Determine if this is a CRUD permission
         const isCUD = permissionName.includes('write') || permissionName.includes('create') || 
                      permissionName.includes('edit') || permissionName.includes('update') || 
-                     permissionName.includes('delete') || permissionName.includes('remove');
+                     permissionName.includes('delete') || permissionName.includes('remove') ||
+                     permissionName.includes('duplicate') || permissionName.includes('duplicate');
         
         const isRead = permissionName.includes('read') || permissionName.includes('view');
 
@@ -303,7 +306,8 @@ export default function EditEmployee() {
                                         const pName = permission.permission_name.toLowerCase();
                                         if (pName.includes('write') || pName.includes('create') || 
                                             pName.includes('edit') || pName.includes('update') || 
-                                            pName.includes('delete') || pName.includes('remove')) {
+                                            pName.includes('delete') || pName.includes('remove') ||
+                                            pName.includes('duplicate') || pName.includes('duplicate')) {
                                             return {
                                                 ...permission,
                                                 permission_status: false
@@ -423,15 +427,13 @@ export default function EditEmployee() {
                         <div className="p-8 border-b border-gray-200">
                             <div className="flex flex-col items-center gap-6 sm:flex-row">
                                 <div className="relative">
-                                    <div className="w-24 h-24 overflow-hidden border-2 border-gray-200 rounded-full bg-gray-100">
-                                        {employee.employee_foto && (
-                                            <img 
-                                                src={employee.employee_foto} 
-                                                alt="Profile Preview" 
-                                                className="w-full h-full object-cover"
-                                            />
-                                        )}
-                                    </div>
+                                    <Avatar
+                                        src={employee.employee_foto}
+                                        nama={employee.employee_name}
+                                        size={96}
+                                        className="border-2 border-gray-200"
+                                        alt="Profile Preview"
+                                    />
                                 </div>
                                 
                                 <div className="text-center sm:text-left">
@@ -445,12 +447,12 @@ export default function EditEmployee() {
                                 </div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                            <div className="md:col-span-1 p-8 relative">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <h3 className="text-lg font-primary-bold font-medium text-gray-900 md:col-span-2">Basic Information</h3>
+                        <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+                            <div className="lg:col-span-1 p-8 relative">
+                                <div className="space-y-6">
+                                    <h2 className="text-lg font-primary-bold font-medium text-gray-900 lg:col-span-4">Basic Information</h2>
                                     {/* Employee Name */}
-                                    <div className="md:col-span-2">
+                                    <div className="lg:col-span-2">
                                         <Label htmlFor="employee_name">Name</Label>
                                         <Input
                                             id="employee_name"
@@ -466,7 +468,7 @@ export default function EditEmployee() {
                                     </div>
 
                                     {/* Employee Email */}
-                                    <div className="md:col-span-2">
+                                    <div className="lg:col-span-2">
                                         <Label htmlFor="employee_email">Email</Label>
                                         <Input
                                             id="employee_email"
@@ -482,7 +484,7 @@ export default function EditEmployee() {
                                     </div>
 
                                     {/* Company */}
-                                    <div className="md:col-span-2">
+                                    <div className="lg:col-span-2">
                                         <Label htmlFor="company_id">Company *</Label>
                                         <CustomSelect
                                             options={companyOptions}
@@ -498,7 +500,7 @@ export default function EditEmployee() {
                                     </div>
 
                                     {/* Department */}
-                                    <div className="md:col-span-2">
+                                    <div className="lg:col-span-2">
                                         <Label htmlFor="department_id">Department *</Label>
                                         <CustomSelect
                                             options={departmentOptions}
@@ -515,7 +517,7 @@ export default function EditEmployee() {
                                     </div>
 
                                     {/* Position */}
-                                    <div className="md:col-span-2">
+                                    <div className="lg:col-span-2">
                                         <Label htmlFor="title_id">Position *</Label>
                                         <CustomSelect
                                             options={positionOptions}
@@ -532,7 +534,7 @@ export default function EditEmployee() {
                                     </div>
 
                                     {/* Employee Mobile */}
-                                    <div className="md:col-span-2">
+                                    <div className="lg:col-span-2">
                                         <Label htmlFor="employee_mobile">Mobile Phone</Label>
                                         <Input
                                             id="employee_mobile"
@@ -544,7 +546,7 @@ export default function EditEmployee() {
                                     </div>
 
                                     {/* Employee Office Number */}
-                                    <div className="md:col-span-2">
+                                    <div className="lg:col-span-2">
                                         <Label htmlFor="employee_office_number">Office Phone</Label>
                                         <Input
                                             id="employee_office_number"
@@ -556,12 +558,32 @@ export default function EditEmployee() {
                                     </div>
 
                                     {/* Employee Address */}
-                                    <div className="md:col-span-2">
+                                    <div className="lg:col-span-2">
                                         <Label htmlFor="employee_address">Address</Label>
                                         <TextArea
                                             value={formData.employee_address || ''}
                                             onChange={(e) => handleInputChange('employee_address', e.target.value)}
                                             placeholder="Enter employee address"
+                                        />
+                                    </div>
+
+                                    {/* Employee Status */}
+                                    <div className="lg:col-span-4">
+                                        <Switch 
+                                            label="Status Employee" 
+                                            showStatusText={true} 
+                                            checked={formData.employee_status === 'active'}
+                                            onChange={(checked) => handleInputChange('employee_status', checked ? 'active' : 'inactive')}
+                                        />
+                                    </div>
+
+                                    {/* Employee Salses */}
+                                    <div className="lg:col-span-4">
+                                        <Switch 
+                                            label="Status Sales" 
+                                            showStatusText={true} 
+                                            checked={formData.is_sales_quotation === true || formData.is_sales_quotation === 'true'}
+                                            onChange={(checked) => handleInputChange('is_sales_quotation', checked ? 'true' : 'false')}
                                         />
                                     </div>
                                 </div>
@@ -570,9 +592,9 @@ export default function EditEmployee() {
 
                             {/* Permissions Section - Accordion with Select All */}
                             {employee && employee.permission_detail && employee.permission_detail.length > 0 && (
-                                <div className="md:col-span-2 p-8 lg:ps-0">
+                                <div className="lg:col-span-2 p-8 lg:ps-0">
                                     <h2 className="text-lg font-primary-bold font-medium text-gray-900 mb-6">Permission</h2>
-                                    <div className="space-y-4 max-h-[770px] overflow-y-auto">
+                                    <div className="space-y-4 max-h-[870px] overflow-y-auto">
                                         {employee.permission_detail.map((system: EmployeeSystemPermission) => {
                                             const isExpanded = expandedSystems.has(system.system_id);
                                             const isAllChecked = isSystemAllChecked(system.system_id);
@@ -649,7 +671,7 @@ export default function EditEmployee() {
                             )}
                             
                             {/* Form Actions */}
-                            <div className="flex justify-end gap-4 p-6 border-t border-gray-200 md:col-span-3">
+                            <div className="flex justify-end gap-4 p-6 border-t border-gray-200 lg:col-span-3">
                                 <Button
                                     type="button"
                                     variant="outline"

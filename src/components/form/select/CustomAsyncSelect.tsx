@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 import AsyncSelect from 'react-select/async';
 import { SingleValue, MultiValue, ActionMeta } from 'react-select';
-import { SelectOption, CustomAsyncSelectProps } from '@/types/asyncSelect';
 import { createAsyncSelectStyles, generateSelectClassNames } from '@/utils/asyncSelectStyles';
+import { CustomAsyncSelectProps, SelectOption } from '@/types/asyncSelect';
 
 const CustomAsyncSelect: React.FC<CustomAsyncSelectProps> = ({ 
     error, 

@@ -10,6 +10,7 @@ import Input from "@/components/form/input/InputField";
 import { Employee } from "@/types/administration";
 import { createActionsColumn } from "@/components/ui/table";
 import { PermissionGate } from "@/components/common/PermissionComponents";
+import { ActiveStatusBadge } from "@/components/ui/badge";
 
 export default function ManageEmployee() {
     const navigate = useNavigate();
@@ -33,10 +34,9 @@ export default function ManageEmployee() {
         handleLimitChange,
         handleFilterChange,
         handleSearchChange,
-        clearFilters,
         setConfirmDelete,
         setConfirmResetPassword
-    } = useEmployees();
+    } = useEmployees(true, { employee_status: 'all' });
 
     // Data table columns dengan permission-based actions
     const columns: TableColumn<Employee>[] = [
@@ -59,6 +59,14 @@ export default function ManageEmployee() {
         {
             name: 'Email',
             selector: row => row.employee_email || 'N/A',
+        },
+        {
+            name: 'Status',
+            selector: (row) => row?.employee_status || 'inactive',
+            cell: (row) => <ActiveStatusBadge status={(row?.employee_status as 'active' | 'inactive') || 'inactive'} />,
+            width: '120px',
+            center: true,
+            wrap: true,
         },
         createActionsColumn([
             {
@@ -174,41 +182,6 @@ export default function ManageEmployee() {
 
                 {/* Data Table */}
                 <div className="p-6 font-secondary">
-                    {(filters.search || filters.sort_by || filters.sort_order) && (
-                        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-sm text-blue-700">
-                                    <MdSearch className="w-4 h-4" />
-                                    <span className="font-medium">Active filters:</span>
-                                    {filters.search && (
-                                        <span className="px-2 py-1 bg-blue-100 rounded text-blue-800">
-                                            Search: "{filters.search}"
-                                        </span>
-                                    )}
-                                    {filters.sort_by && (
-                                        <span className="px-2 py-1 bg-blue-100 rounded text-blue-800">
-                                            Sort: {filters.sort_by === 'company_name' ? 'Company Name' : 
-                                                filters.sort_by === 'created_at' ? 'Created Date' : 
-                                                filters.sort_by === 'employee_name' ? 'Employee Name' : 
-                                                filters.sort_by === 'title_name' ? 'Position' : 
-                                                filters.sort_by === 'department_name' ? 'Department Name' : 
-                                                filters.sort_by === 'company_name' ? 'Company Name' : 
-                                                'Employee Order'}
-                                            {filters.sort_order && ` (${filters.sort_order === 'asc' ? 'Ascending' : 'Descending'})`}
-                                        </span>
-                                    )}
-                                </div>
-                                <Button
-                                    variant="outline"
-                                    onClick={clearFilters}
-                                    size="sm"
-                                    className="text-blue-700 border-blue-300 hover:bg-blue-100"
-                                >
-                                    Clear all
-                                </Button>
-                            </div>
-                        </div>
-                    )}
 
                     <CustomDataTable
                         columns={columns}
@@ -217,8 +190,8 @@ export default function ManageEmployee() {
                         pagination
                         paginationServer
                         paginationTotalRows={pagination.total || 0}
-                        paginationPerPage={pagination.per_page || 10}
-                        paginationDefaultPage={pagination.current_page || 1}
+                        paginationPerPage={pagination.limit || 10}
+                        paginationDefaultPage={pagination.page || 1}
                         paginationRowsPerPageOptions={[5, 10, 15, 20, 25, 50]}
                         onChangePage={handlePageChange}
                         onChangeRowsPerPage={(newPerPage) => {
