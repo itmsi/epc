@@ -21,6 +21,9 @@ const ViewMasterCategoryPartCatalogue = lazy(() => import('@/pages/PartCatalogue
 const CategoryCatalogue = lazy(() => import('@/pages/PartCatalogue/Category/Manage'));
 const CreateCategoryCatalogue = lazy(() => import('@/pages/PartCatalogue/Category/Create'));
 const ViewCategoryCatalogue = lazy(() => import('@/pages/PartCatalogue/Category/View'));
+const VinIdentifierCustomer = lazy(() => import('@/pages/PartCatalogue/VinCustomerVehicle/Manage'));
+const VinIdentifierCustomerCreate = lazy(() => import('@/pages/PartCatalogue/VinCustomerVehicle/Create'));
+const VinIdentifierCustomerView = lazy(() => import('@/pages/PartCatalogue/VinCustomerVehicle/View'));
 // PowerBiForm is imported by Create and Edit components, no need to add here
 
 export type TAppRoute = {
@@ -195,6 +198,30 @@ export const routes: TAppRoute[] = [
         isProtected: true,
         roles: ['Category Catalogs'],
         component: ViewCategoryCatalogue,
+        layout: AppLayout,
+    },
+    {
+        path: '/epc/vehicle-identification',
+        name: 'Manage Vin Customer',
+        isProtected: true,
+        roles: ['Manage Vin Customer'],
+        component: VinIdentifierCustomer,
+        layout: AppLayout,
+    },
+    {
+        path: '/epc/vehicle-identification/create',
+        name: 'Manage Vin Customer',
+        isProtected: true,
+        roles: ['Manage Vin Customer'],
+        component: VinIdentifierCustomerCreate,
+        layout: AppLayout,
+    },
+    {
+        path: '/epc/vehicle-identification/view/:customerId',
+        name: 'Manage Vin Customer',
+        isProtected: true,
+        roles: ['Manage Vin Customer'],
+        component: VinIdentifierCustomerView,
         layout: AppLayout,
     },
 ];

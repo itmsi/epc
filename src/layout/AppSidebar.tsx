@@ -48,6 +48,7 @@ const navItems: NavItem[] = [
             { name: "VIN", path: "/epc/vins", allowedRoles: ['Vin Catalogs'] },
             { name: "Catalog", path: "/epc/manage", allowedRoles: ['Manage Catalogs'] },
             { name: "Category", path: "/epc/category", allowedRoles: ['Manage Catalogs'] },
+            { name: "VIN Customer Vehicle", path: "/epc/vehicle-identification", allowedRoles: ['Manage Vin Customer'] },
         ],
     },
 ];
