@@ -154,20 +154,6 @@ const SearchVin = () => {
                                     </button>
                                 </div>
                             </div>
-                            
-                            {/* Popular Tags */}
-                            <div className="mt-4 flex items-center justify-center gap-4 text-sm text-gray-500">
-                                <span>Popular Tags:</span>
-                                <button className="hover:text-brand-500 underline transition-colors">
-                                    Rigid Haulers
-                                </button>
-                                <button className="hover:text-brand-500 underline transition-colors">
-                                    Komatsu Series
-                                </button>
-                                <button className="hover:text-brand-500 underline transition-colors">
-                                    Cat 797F
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </section>
