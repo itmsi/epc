@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { GrLineChart } from "react-icons/gr";
+import { FiSearch } from "react-icons/fi";
 
 // Assume these icons are imported from an icon library
 import {
@@ -38,6 +39,22 @@ const navItems: NavItem[] = [
         name: "Dashboard",
         allowedRoles: ['ADMIN'],
         subItems: [{ name: "Main", path: "/home", allowedRoles: ['ADMIN'], }],
+    },
+    {
+        name: "Power BI",
+        icon: <GrLineChart />,
+        allowedRoles: ['Dashboard Power BI', 'Manage Power BI'],
+        subItems: [
+            { name: "Dashboard", path: "/power-bi/dashboard", allowedRoles: ['Dashboard Power BI'], },
+            { name: "Category", path: "/power-bi/category", allowedRoles: ['Category Power BI'], },
+            { name: "Manage", path: "/power-bi/manage", allowedRoles: ['Manage Power BI'], },
+        ],
+    },
+    {
+        name: "Search VIN",
+        icon: <FiSearch />,
+        path: "/search-vin",
+        // No allowedRoles - will be handled by conditional rendering based on is_customer
     },
     {
         name: "EPC",
@@ -140,15 +157,36 @@ const AppSidebar: React.FC = () => {
     };
 
     const mainFiltered = useMemo(
-        () => navItems.filter((item) => {
-            if (!authMenu || authMenu.length === 0) {
-                return true;
+        () => {
+            // Get current user from localStorage to check is_customer
+            const authUserStr = localStorage.getItem('auth_user');
+            let isCustomer = false;
+            
+            if (authUserStr) {
+                try {
+                    const authUser = JSON.parse(authUserStr);
+                    isCustomer = authUser.is_customer === true;
+                } catch (error) {
+                    console.error('Error parsing auth_user:', error);
+                }
             }
-            if (!item.allowedRoles || item.allowedRoles.length === 0) {
-                return true;
-            }
-            return item.allowedRoles.some(name => allowedMenuNames.includes(name));
-        }),
+            
+            return navItems.filter((item) => {
+                // Special handling for Search VIN - only show to customers
+                if (item.name === "Search VIN") {
+                    return isCustomer;
+                }
+                
+                // Regular role-based filtering
+                if (!authMenu || authMenu.length === 0) {
+                    return true;
+                }
+                if (!item.allowedRoles || item.allowedRoles.length === 0) {
+                    return true;
+                }
+                return item.allowedRoles.some(name => allowedMenuNames.includes(name));
+            });
+        },
         [allowedMenuNames, authMenu]
     );
 
