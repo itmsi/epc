@@ -13,14 +13,31 @@ const VinDetail = () => {
     useEffect(() => {
         const fetchVehicleData = async () => {
             if (!vinId) {
-                toast.error('Product ID is required');
+                toast.error('VIN number is required');
+                navigate('/search-vin');
+                return;
+            }
+
+            // Get customer_id from auth_user in localStorage
+            const authUserStr = localStorage.getItem('auth_user');
+            if (!authUserStr) {
+                toast.error('User not authenticated');
                 navigate('/search-vin');
                 return;
             }
 
             try {
+                const authUser = JSON.parse(authUserStr);
+                const customerId = authUser.id; // customer_id = auth_user.id
+
+                if (!customerId) {
+                    toast.error('Customer ID not found');
+                    navigate('/search-vin');
+                    return;
+                }
+
                 setIsLoading(true);
-                const response = await VinSearchService.getVinDetail(vinId);
+                const response = await VinSearchService.getVinDetail(vinId, customerId);
 
                 if (response.data.success) {
                     setVehicleData(response.data.data);
