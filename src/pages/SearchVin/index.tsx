@@ -40,10 +40,8 @@ const SearchVin = () => {
 
             if (response.data.success) {
                 if (response.data.data.items && response.data.data.items.length > 0) {
-                    const vinData = response.data.data.items[0];
                     toast.success(response.data.message || 'VIN found! Redirecting...');
-                    // Navigate directly to VIN detail page using VIN number
-                    navigate(`/${vinData.vin_number}`);
+                    navigate(`/${vinInput.trim()}`);
                 } else {
                     toast.error('No vehicle found with this VIN');
                 }
@@ -153,20 +151,6 @@ const SearchVin = () => {
                                         {isSearching ? 'Searching...' : 'Search'}
                                     </button>
                                 </div>
-                            </div>
-                            
-                            {/* Popular Tags */}
-                            <div className="mt-4 flex items-center justify-center gap-4 text-sm text-gray-500">
-                                <span>Popular Tags:</span>
-                                <button className="hover:text-brand-500 underline transition-colors">
-                                    Rigid Haulers
-                                </button>
-                                <button className="hover:text-brand-500 underline transition-colors">
-                                    Komatsu Series
-                                </button>
-                                <button className="hover:text-brand-500 underline transition-colors">
-                                    Cat 797F
-                                </button>
                             </div>
                         </div>
                     </div>
