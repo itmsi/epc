@@ -26,6 +26,10 @@ export default function SignInForm() {
     // Redirect if already authenticated
     useEffect(() => {
         if (authState.isAuthenticated) {
+            if(authState.user?.is_customer) {
+                navigate('/search-vin');
+                return;
+            }
             navigate('/home');
         }
     }, [authState.isAuthenticated, navigate]);
