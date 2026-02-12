@@ -10,6 +10,17 @@ export interface ProfileData {
     title_name: string;
     department_name: string;
     company_name: string;
+    // Customer fields
+    customer_id?: string;
+    customer_name?: string;
+    customer_email?: string;
+    customer_phone?: string;
+    customer_address?: string;
+    customer_city?: string;
+    customer_state?: string;
+    customer_zip?: string;
+    customer_country?: string;
+    is_customer?: boolean;
     created_at: string;
     updated_at: string;
 }
