@@ -1,4 +1,4 @@
-import { apiPost, apiGet, ApiResponse } from '@/helpers/apiHelper';
+import { apiPost, ApiResponse } from '@/helpers/apiHelper';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -66,6 +66,11 @@ export interface VinDetailResponse {
     timestamp: string;
 }
 
+export interface VinDetailRequest {
+    vin_number: string;
+    customer_id: string;
+}
+
 // VIN Search Service
 export class VinSearchService {
     /**
@@ -92,14 +97,22 @@ export class VinSearchService {
     }
 
     /**
-     * Get VIN detail with categories by product_id
-     * @param productId - Product ID / VIN ID
+     * Get VIN detail with categories by VIN number
+     * @param vinNumber - VIN number
+     * @param customerId - Customer ID from auth_user
      */
     static async getVinDetail(
-        productId: string
+        vinNumber: string,
+        customerId: string
     ): Promise<ApiResponse<VinDetailResponse>> {
-        return await apiGet<VinDetailResponse>(
-            `${API_BASE_URL}/epc/parts-catalogs/vin/category/${productId}`
+        const payload: Record<string, unknown> = {
+            vin_number: vinNumber,
+            customer_id: customerId
+        };
+
+        return await apiPost<VinDetailResponse>(
+            `${API_BASE_URL}/epc/parts-catalogs/vin/category-by-vin`,
+            payload
         );
     }
 }
