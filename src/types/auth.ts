@@ -14,6 +14,10 @@ export interface User {
   employee_name: string;
   created_at: string;
   updated_at: string | null;
+  // Customer fields
+  is_customer: boolean;
+  customer_id?: string;
+  customer_name?: string;
 }
 
 export interface Permission {
