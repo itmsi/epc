@@ -40,10 +40,8 @@ const SearchVin = () => {
 
             if (response.data.success) {
                 if (response.data.data.items && response.data.data.items.length > 0) {
-                    const vinData = response.data.data.items[0];
                     toast.success(response.data.message || 'VIN found! Redirecting...');
-                    // Navigate directly to VIN detail page using VIN number
-                    navigate(`/${vinData.vin_number}`);
+                    navigate(`/${vinInput.trim()}`);
                 } else {
                     toast.error('No vehicle found with this VIN');
                 }
