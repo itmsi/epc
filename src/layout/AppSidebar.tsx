@@ -177,10 +177,11 @@ const AppSidebar: React.FC = () => {
                     return isCustomer;
                 }
                 
-                // Regular role-based filtering
-                if (!authMenu || authMenu.length === 0) {
+                // Jika authMenu belum diload (null/undefined), tampilkan semua
+                if (!authMenu) {
                     return true;
                 }
+                // Jika item tidak punya allowedRoles, tampilkan
                 if (!item.allowedRoles || item.allowedRoles.length === 0) {
                     return true;
                 }
@@ -192,9 +193,11 @@ const AppSidebar: React.FC = () => {
 
     const othersFiltered = useMemo(
         () => othersItems.filter((item) => {
-            if (!authMenu || authMenu.length === 0) {
+            // Jika authMenu belum diload (null/undefined), tampilkan semua
+            if (!authMenu) {
                 return true;
             }
+            // Jika item tidak punya allowedRoles, tampilkan
             if (!item.allowedRoles || item.allowedRoles.length === 0) {
                 return true;
             }
