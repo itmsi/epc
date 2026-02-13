@@ -61,10 +61,6 @@ const VinDetail = () => {
         navigate('/search-vin');
     };
 
-    const handleFullExport = () => {
-        toast.success('Export functionality coming soon');
-    };
-
     // Helper function to get category icon based on name
     const getCategoryIcon = (categoryName: string) => {
         const name = categoryName.toLowerCase();
@@ -151,15 +147,6 @@ const VinDetail = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
                                     Change VIN
-                                </button>
-                                <button
-                                    onClick={handleFullExport}
-                                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors shadow-sm"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                                    </svg>
-                                    Full Export
                                 </button>
                             </div>
                         </div>
