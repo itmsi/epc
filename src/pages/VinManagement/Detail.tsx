@@ -182,76 +182,93 @@ const VinManagementDetail = () => {
             <div className="min-h-screen bg-gray-50 p-6">
                 {/* Header Summary Card */}
                 <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                        <div className="flex items-center gap-5 w-full">
-                            {/* Truck Icon */}
-                            <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center">
-                                <svg className="w-16 h-16 text-gray-400" viewBox="0 0 200 200" fill="currentColor">
-                                    <path d="M20 120 L50 120 L50 80 L100 80 L120 100 L160 100 L160 120 L180 120 L180 140 L160 140 L160 160 L140 160 L140 140 L60 140 L60 160 L40 160 L40 140 L20 140 Z M110 90 L140 90 L150 100 L110 100 Z" />
-                                    <circle cx="50" cy="150" r="15" fill="currentColor" opacity="0.5" />
-                                    <circle cx="150" cy="150" r="15" fill="currentColor" opacity="0.5" />
-                                </svg>
+                    <div className="flex flex-col md:flex-row gap-6 items-start">
+                        {/* Truck Icon */}
+                        <div className="flex-shrink-0 w-20 h-20 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                            <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 200 200">
+                                <path d="M20 120 L50 120 L50 80 L100 80 L120 100 L160 100 L160 120 L180 120 L180 140 L160 140 L160 160 L140 160 L140 140 L60 140 L60 160 L40 160 L40 140 L20 140 Z M110 90 L140 90 L150 100 L110 100 Z" />
+                                <circle cx="50" cy="150" r="15" fill="currentColor" opacity="0.5" />
+                                <circle cx="150" cy="150" r="15" fill="currentColor" opacity="0.5" />
+                            </svg>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-6">
+                                <h1 className="text-2xl font-bold text-gray-900 leading-none tracking-tight">
+                                    VIN: {vinResponse.data.vin_number}
+                                </h1>
+                                <span className={`px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wide ${
+                                    vinResponse.data.is_delete 
+                                        ? 'bg-red-100 text-red-700' 
+                                        : 'bg-emerald-100 text-emerald-700'
+                                }`}>
+                                    {vinResponse.data.is_delete ? 'Inactive' : 'Active'}
+                                </span>
                             </div>
-                            <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-1">
-                                    <h2 className="text-2xl font-bold">VIN: {vinResponse.data.vin_number}</h2>
-                                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded uppercase">
-                                        {vinResponse.data.is_delete ? 'Inactive' : 'Active'}
-                                    </span>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-6">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Model</p>
+                                    <p className="text-sm font-semibold text-gray-900 truncate" title={vinResponse.data.product_name_en}>
+                                        {vinResponse.data.product_name_en || '-'}
+                                    </p>
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-1">
-                                    <p className="text-sm">
-                                        <span className="text-gray-500">Model:</span>{' '}
-                                        <span className="font-semibold">{vinResponse.data.product_name_en || '-'}</span>
+                                <div>
+                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Model Type</p>
+                                    <p className="text-sm font-semibold text-gray-900 truncate">
+                                        {vinResponse.data.model_type || '-'}
                                     </p>
-                                    <p className="text-sm">
-                                        <span className="text-gray-500">Model Type:</span>{' '}
-                                        <span className="font-semibold">{vinResponse.data.model_type || '-'}</span>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Dimension</p>
+                                    <p className="text-sm font-semibold text-gray-900 truncate">
+                                        {vinResponse.data.dimensi || '-'}
                                     </p>
-                                    <p className="text-sm">
-                                        <span className="text-gray-500">Dimension:</span>{' '}
-                                        <span className="font-semibold">{vinResponse.data.dimensi || '-'}</span>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Model Engine</p>
+                                    <p className="text-sm font-semibold text-gray-900 truncate">
+                                        {vinResponse.data.model_engine || '-'}
                                     </p>
-                                    <p className="text-sm">
-                                        <span className="text-gray-500">Model Engine:</span>{' '}
-                                        <span className="font-semibold">{vinResponse.data.model_engine || '-'}</span>
-                                    </p>
-                                    <div className="text-sm flex items-center gap-2 h-6">
-                                        <span className="text-gray-500">Body No:</span>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Body No</p>
+                                    <div className="h-5 flex items-center">
                                         {isEditingBodyNo ? (
                                             <div className="flex items-center gap-1">
                                                 <input 
                                                     type="text" 
                                                     value={tempBodyNo}
                                                     onChange={(e) => setTempBodyNo(e.target.value)}
-                                                    className="border border-gray-300 rounded px-2 py-0.5 text-sm w-32 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                                                    className="border border-gray-300 rounded px-2 py-0.5 text-xs w-28 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
                                                     autoFocus
                                                 />
                                                 <button 
                                                     onClick={handleSaveBodyNo} 
-                                                    className="p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors"
+                                                    className="p-0.5 text-white bg-green-500 hover:bg-green-600 rounded transition-colors shadow-sm"
                                                     title="Save"
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                     </svg>
                                                 </button>
                                                 <button 
                                                     onClick={() => setIsEditingBodyNo(false)} 
-                                                    className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                                                    className="p-0.5 text-white bg-red-500 hover:bg-red-600 rounded transition-colors shadow-sm"
                                                     title="Cancel"
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                                     </svg>
                                                 </button>
                                             </div>
                                         ) : (
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-semibold">{vinResponse.data.body_number || '-'}</span>
+                                            <div className="flex items-center gap-2 group">
+                                                <span className="text-sm font-semibold text-gray-900">{vinResponse.data.body_number || '-'}</span>
                                                 <button 
                                                     onClick={handleEditBodyNo} 
-                                                    className="p-1 text-primary-400 hover:text-primary hover:bg-primary/5 rounded"
+                                                    className="p-1 text-gray-400 hover:text-primary hover:bg-primary/5 rounded transition-colors"
                                                     title="Edit Body Number"
                                                 >
                                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -261,14 +278,37 @@ const VinManagementDetail = () => {
                                             </div>
                                         )}
                                     </div>
-                                    <p className="text-sm col-span-2 md:col-span-3 mt-1">
-                                        <span className="text-gray-500 block mb-1">Description:</span>
-                                        <span className="font-semibold text-gray-700 whitespace-pre-wrap text-xs md:text-sm leading-relaxed">
-                                            {vinResponse.data.product_description || '-'}
-                                        </span>
-                                    </p>
                                 </div>
                             </div>
+
+                            {/* Product Description */}
+                            {vinResponse.data.product_description && (
+                                <div className="mt-6 pt-6 border-t border-gray-100">
+                                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+                                        Unit Description
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                        {vinResponse.data.product_description.split('\n').map((line, index) => {
+                                            const parts = line.split(':');
+                                            if (parts.length > 1) {
+                                                const label = parts[0].trim();
+                                                const value = parts.slice(1).join(':').trim();
+                                                return (
+                                                    <div key={index} className="flex items-start">
+                                                        <span className="text-sm text-gray-500 w-32 flex-shrink-0">{label}:</span>
+                                                        <span className="text-sm font-medium text-gray-900">{value}</span>
+                                                    </div>
+                                                );
+                                            }
+                                            return (
+                                                <div key={index} className="text-sm text-gray-700 col-span-full py-1">
+                                                    {line}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>

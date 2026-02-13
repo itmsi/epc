@@ -287,8 +287,76 @@ export class VinSearchService {
                         next_inspection_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                         health_index: 85
                     },
-                    maintenance_activities: [],
-                    part_replacements: []
+                    maintenance_activities: [
+                        {
+                            id: '1',
+                            service_date: '2026-01-15',
+                            service_type: 'routine',
+                            title: 'Routine Maintenance 500H',
+                            description: 'Standard 500-hour service check. Oil change, filter replacement, and general inspection.',
+                            technician: 'Ahmad Supriyadi',
+                            service_id: 'SVC-2026-001'
+                        },
+                        {
+                            id: '2',
+                            service_date: '2025-11-20',
+                            service_type: 'repair',
+                            title: 'Hydraulic System Repair',
+                            description: 'Fixed leak in main hydraulic cylinder. Replaced seals and tested system pressure.',
+                            technician: 'Budi Santoso',
+                            service_id: 'SVC-2025-089'
+                        },
+                        {
+                            id: '3',
+                            service_date: '2025-09-10',
+                            service_type: 'inspection',
+                            title: 'Quarterly Inspection',
+                            description: 'Comprehensive safety and performance inspection. All systems nominal.',
+                            technician: 'Cahyo Wibowo',
+                            service_id: 'SVC-2025-065'
+                        },
+                        {
+                            id: '4',
+                            service_date: '2025-06-05',
+                            service_type: 'overhaul',
+                            title: 'Engine Overhaul',
+                            description: 'Major engine overhaul due to performance drop. Replaced piston rings and gaskets.',
+                            technician: 'Dedi Kurniawan',
+                            service_id: 'SVC-2025-042'
+                        }
+                    ],
+                    part_replacements: [
+                         {
+                            date: '2026-01-15',
+                            part_number: '612600081334',
+                            description: 'Fuel Filter Element',
+                            quantity: 1
+                        },
+                        {
+                            date: '2026-01-15',
+                            part_number: '1000424916',
+                            description: 'Oil Filter',
+                            quantity: 1
+                        },
+                        {
+                            date: '2025-11-20',
+                            part_number: '612630010055',
+                            description: 'Cylinder Head Gasket',
+                            quantity: 2
+                        },
+                        {
+                            date: '2025-11-20',
+                            part_number: 'DZ9112340062',
+                            description: 'Hydraulic Seal Kit',
+                            quantity: 1
+                        },
+                        {
+                            date: '2025-06-05',
+                            part_number: '61500010334',
+                            description: 'Piston Ring Set',
+                            quantity: 6
+                        }
+                    ]
                 }
             };
 
