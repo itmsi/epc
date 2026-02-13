@@ -25,6 +25,8 @@ const VinIdentifierCustomer = lazy(() => import('@/pages/PartCatalogue/VinCustom
 const VinIdentifierCustomerCreate = lazy(() => import('@/pages/PartCatalogue/VinCustomerVehicle/Create'));
 const VinIdentifierCustomerView = lazy(() => import('@/pages/PartCatalogue/VinCustomerVehicle/View'));
 const SearchVin = lazy(() => import('@/pages/SearchVin'));
+const VinManagement = lazy(() => import('@/pages/VinManagement/manage'));
+const VinManagementDetail = lazy(() => import('@/pages/VinManagement/Detail'));
 const VinDetail = lazy(() => import('@/pages/VinDetail'));
 // PowerBiForm is imported by Create and Edit components, no need to add here
 
@@ -233,7 +235,21 @@ export const routes: TAppRoute[] = [
         layout: AppLayout,
     },
     {
-        path: '/:vinId',
+        path: '/vin-management/manage',
+        name: 'VIN Management',
+        isProtected: false,
+        component: VinManagement,
+        layout: AppLayout,
+    },
+    {
+        path: '/vin-management/detail/:productId',
+        name: 'VIN Detail',
+        isProtected: false,
+        component: VinManagementDetail,
+        layout: AppLayout,
+    },
+    {
+        path: '/vin/:vinId',
         name: 'VIN Detail',
         isProtected: false,
         component: VinDetail,
