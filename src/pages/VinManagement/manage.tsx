@@ -97,11 +97,15 @@ const VinManagement = () => {
     };
 
     // Handle view details - show coming soon
-    const handleViewDetails = (e: React.MouseEvent) => {
+    const handleViewDetails = (productId: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        toast.success('Coming soon!');
+        if(productId){
+            navigate(`/vin-management/detail/${productId}`);
+        }else{
+            toast.error('Product ID not found');
+        }
     };
-
+    
     // Handle VIN click - navigate to detail page
     const handleVinClick = (vinNumber: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -131,10 +135,10 @@ const VinManagement = () => {
             },
             {
                 name: 'Body Number',
-                selector: (row) => row.product_id || '-',
+                selector: (row) => row.body_number || '-',
                 cell: (row) => (
                     <span className="text-sm font-mono text-slate-600">
-                        {row.product_id || '-'}
+                        {row.body_number || '-'}
                     </span>
                 ),
             },
@@ -198,10 +202,10 @@ const VinManagement = () => {
             },
             {
                 name: 'Actions',
-                cell: () => (
+                cell: (row) => (
                     <div className="flex items-center !justify-center gap-2">
                         <button
-                            onClick={handleViewDetails}
+                            onClick={(e) => handleViewDetails(row.product_id, e)}
                             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
