@@ -71,6 +71,48 @@ export interface VinDetailRequest {
     customer_id: string;
 }
 
+// VIN Management Types
+export interface VinManagementRequest {
+    search?: string;
+    customer_id: string;
+    page?: number;
+    limit?: number;
+    sort_by?: string;
+    sort_order?: 'asc' | 'desc';
+}
+
+export interface VinManagementItem {
+    product_id: string;
+    product_name_en: string;
+    product_name_cn: string;
+    product_description: string;
+    vin_number: string;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    deleted_at: string | null;
+    deleted_by: string | null;
+    is_delete: boolean;
+    model_type: string | null;
+    dimensi: string | null;
+    model_engine: string | null;
+}
+
+export interface VinManagementResponse {
+    success: boolean;
+    message: string;
+    data: {
+        items: VinManagementItem[];
+        pagination: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+        };
+    };
+}
+
 // VIN Search Service
 export class VinSearchService {
     /**
@@ -112,6 +154,32 @@ export class VinSearchService {
 
         return await apiPost<VinDetailResponse>(
             `${API_BASE_URL}/epc/parts-catalogs/vin/category-by-vin`,
+            payload
+        );
+    }
+
+    /**
+     * Get VIN Management list with pagination, search, and sorting
+     * @param request - VIN Management request parameters
+     */
+    static async getVinManagement(
+        request: VinManagementRequest
+    ): Promise<ApiResponse<VinManagementResponse>> {
+        const payload: Record<string, unknown> = {
+            customer_id: request.customer_id,
+            page: request.page || 1,
+            limit: request.limit || 10,
+            sort_by: request.sort_by || 'created_at',
+            sort_order: request.sort_order || 'desc'
+        };
+
+        // Only add search if provided
+        if (request.search && request.search.trim()) {
+            payload.search = request.search.trim();
+        }
+
+        return await apiPost<VinManagementResponse>(
+            `${API_BASE_URL}/epc/parts-catalogs/vin/get`,
             payload
         );
     }
