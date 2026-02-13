@@ -1,4 +1,4 @@
-import { apiPost, apiGet, ApiResponse } from '@/helpers/apiHelper';
+import { apiPost, apiGet, apiPut, ApiResponse } from '@/helpers/apiHelper';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -295,5 +295,22 @@ export class VinSearchService {
         } catch (error) {
             throw error;
         }
+    }
+
+    /**
+     * Update VIN Body Number
+     */
+    static async updateVinBodyNumber(
+        productId: string,
+        bodyNumber: string
+    ): Promise<ApiResponse<VinAPIResponseWrapper<VinDetailAPIResponse>>> {
+        const payload = {
+            body_number: bodyNumber
+        };
+
+        return await apiPut<VinAPIResponseWrapper<VinDetailAPIResponse>>(
+            `${API_BASE_URL}/epc/parts-catalogs/vin/get/${productId}`,
+            payload
+        );
     }
 }

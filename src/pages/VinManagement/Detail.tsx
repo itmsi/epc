@@ -19,6 +19,10 @@ const VinManagementDetail = () => {
     const [partsPage, setPartsPage] = useState(1);
     const partsPerPage = 10;
 
+    // Edit Body Number State
+    const [isEditingBodyNo, setIsEditingBodyNo] = useState(false);
+    const [tempBodyNo, setTempBodyNo] = useState('');
+
     // Get customer ID from localStorage
     const getCustomerId = (): string | null => {
         const authUserStr = localStorage.getItem('auth_user');
@@ -128,6 +132,32 @@ const VinManagementDetail = () => {
         toast.success('Coming soon!');
     };
 
+    // Edit Body Number Handlers
+    const handleEditBodyNo = () => {
+        setTempBodyNo(vinResponse?.data.body_number || '');
+        setIsEditingBodyNo(true);
+    };
+
+    const handleSaveBodyNo = async () => {
+        if (!vinResponse) return;
+        try {
+            const res = await VinSearchService.updateVinBodyNumber(vinResponse.data.product_id, tempBodyNo);
+            if (res.data.success) {
+                 toast.success(res.data.message || 'Body number updated successfully');
+                 setVinResponse(prev => prev ? {
+                     ...prev,
+                     data: { ...prev.data, body_number: tempBodyNo }
+                 } : null);
+                 setIsEditingBodyNo(false);
+            } else {
+                 toast.error(res.data.message || 'Failed to update body number');
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error('Error updating body number');
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -153,7 +183,7 @@ const VinManagementDetail = () => {
                 {/* Header Summary Card */}
                 <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                        <div className="flex items-center gap-5">
+                        <div className="flex items-center gap-5 w-full">
                             {/* Truck Icon */}
                             <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center">
                                 <svg className="w-16 h-16 text-gray-400" viewBox="0 0 200 200" fill="currentColor">
@@ -162,7 +192,7 @@ const VinManagementDetail = () => {
                                     <circle cx="150" cy="150" r="15" fill="currentColor" opacity="0.5" />
                                 </svg>
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-1">
                                     <h2 className="text-2xl font-bold">VIN: {vinResponse.data.vin_number}</h2>
                                     <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded uppercase">
@@ -172,20 +202,69 @@ const VinManagementDetail = () => {
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-1">
                                     <p className="text-sm">
                                         <span className="text-gray-500">Model:</span>{' '}
-                                        <span className="font-semibold">{vinResponse.data.product_name_en}</span>
+                                        <span className="font-semibold">{vinResponse.data.product_name_en || '-'}</span>
                                     </p>
                                     <p className="text-sm">
-                                        <span className="text-gray-500">Body No:</span>{' '}
-                                        <span className="font-semibold">{vinResponse.data.product_id || '-'}</span>
+                                        <span className="text-gray-500">Model Type:</span>{' '}
+                                        <span className="font-semibold">{vinResponse.data.model_type || '-'}</span>
                                     </p>
                                     <p className="text-sm">
-                                        <span className="text-gray-500">Fleet ID:</span>{' '}
-                                        <span className="font-semibold">{'T-992'}</span>
+                                        <span className="text-gray-500">Dimension:</span>{' '}
+                                        <span className="font-semibold">{vinResponse.data.dimensi || '-'}</span>
                                     </p>
                                     <p className="text-sm">
-                                        <span className="text-gray-500">Total Hours:</span>{' '}
-                                        <span className="font-semibold text-primary">
-                                            {(12450).toLocaleString()} hrs
+                                        <span className="text-gray-500">Model Engine:</span>{' '}
+                                        <span className="font-semibold">{vinResponse.data.model_engine || '-'}</span>
+                                    </p>
+                                    <div className="text-sm flex items-center gap-2 h-6">
+                                        <span className="text-gray-500">Body No:</span>
+                                        {isEditingBodyNo ? (
+                                            <div className="flex items-center gap-1">
+                                                <input 
+                                                    type="text" 
+                                                    value={tempBodyNo}
+                                                    onChange={(e) => setTempBodyNo(e.target.value)}
+                                                    className="border border-gray-300 rounded px-2 py-0.5 text-sm w-32 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                                                    autoFocus
+                                                />
+                                                <button 
+                                                    onClick={handleSaveBodyNo} 
+                                                    className="p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors"
+                                                    title="Save"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </button>
+                                                <button 
+                                                    onClick={() => setIsEditingBodyNo(false)} 
+                                                    className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                                                    title="Cancel"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-semibold">{vinResponse.data.body_number || '-'}</span>
+                                                <button 
+                                                    onClick={handleEditBodyNo} 
+                                                    className="p-1 text-primary-400 hover:text-primary hover:bg-primary/5 rounded"
+                                                    title="Edit Body Number"
+                                                >
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <p className="text-sm col-span-2 md:col-span-3 mt-1">
+                                        <span className="text-gray-500 block mb-1">Description:</span>
+                                        <span className="font-semibold text-gray-700 whitespace-pre-wrap text-xs md:text-sm leading-relaxed">
+                                            {vinResponse.data.product_description || '-'}
                                         </span>
                                     </p>
                                 </div>
