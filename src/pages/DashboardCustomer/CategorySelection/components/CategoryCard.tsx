@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { MdChevronRight } from 'react-icons/md';
 import { CategoryChildItem } from '../types/categorySelection';
 
 interface CategoryCardProps {

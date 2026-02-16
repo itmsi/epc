@@ -1,17 +1,16 @@
 import { useMemo, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useVehicleData } from './hooks/useVehicleData';
 import { useCategorySelection } from './hooks/useCategorySelection';
 import { LoadingSpinner } from '@/components/common/Loading';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
-import { MdArrowBack } from 'react-icons/md';
 import { CategoryCard, EmptyState, NavigationAccordion, Pagination } from './components';
 import { CategoryChildItem } from './types/categorySelection';
 
 const CategorySelectionDetail = () => {
     const { vinId, categorySlug, masterCategoryId } = useParams<{ vinId: string; categorySlug: string; masterCategoryId: string }>();
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     const { vehicleData, productId, loading: vehicleLoading } = useVehicleData(vinId);
 
@@ -30,7 +29,7 @@ const CategorySelectionDetail = () => {
         items,
         loading,
         currentPage,
-        totalItems,
+        // totalItems,
         totalPages,
         goToPage,
     } = useCategorySelection({
