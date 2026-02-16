@@ -90,7 +90,7 @@ const CategorySelectionDetail = () => {
                         <Breadcrumbs
                             items={[
                             { label: 'Home', path: '/' },
-                            { label: `VIN: ${vehicleData.data_vin.vin_number}`, path: `/${vinId}` },
+                            { label: `VIN: ${vehicleData.data_vin.vin_number}`, path: `/vin/${vinId}` },
                             { label: getMasterCategoryName() },
                             ]}
                         />

@@ -179,7 +179,7 @@ const VinDetail = () => {
                         {vehicleData.items.map((category) => (
                             <Link
                                 key={category.master_category_id}
-                                to={`/${vinId}/${category.master_category_name_en.toLowerCase().replace(/[&\s]+/g, '-')}/${category.master_category_id}`}
+                                to={`/vin/${vinId}/${category.master_category_name_en.toLowerCase().replace(/[&\s]+/g, '-')}/${category.master_category_id}`}
                                 className="group bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all cursor-pointer flex flex-col"
                             >
                                 {/* Icon - Left aligned at top */}
