@@ -1,0 +1,55 @@
+import { Link } from 'react-router-dom';
+import { MdChevronRight } from 'react-icons/md';
+import { CategoryChildItem } from '../types/categorySelection';
+
+interface CategoryCardProps {
+    item: CategoryChildItem;
+    parentName: string;
+    linkTo: string;
+}
+
+const CategoryCard: React.FC<CategoryCardProps> = ({ item, parentName, linkTo }) => {
+    return (
+        <Link
+            to={linkTo}
+            className="group bg-white rounded-md border border-gray-200 overflow-hiddentransition-transform duration-800"
+        >
+            <div className="aspect-video bg-gray-100 relative overflow-hidden">
+                <img
+                    src="/images/product/placeholder.png"
+                    alt={item.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/images/icons/part-placeholder.svg';
+                        target.onerror = null;
+                    }}
+                />
+                <div className="absolute top-3 left-3">
+                    <span className="px-2 py-1 text-xs uppercase font-medium font-secondary tracking-[0.05em] bg-[#0253a5] text-white rounded-md">
+                        {parentName}
+                    </span>
+                </div>
+            </div>
+
+            <div className="p-4">
+                <h3 className="text-base font-primary-bold mb-2 line-clamp-3 transition-colors">
+                    {item.name}
+                </h3>
+
+                {item.name_cn && (
+                    <p className="text-sm text-gray-500 mb-3 line-clamp-2 transition-colors">
+                        {item.name_cn}
+                    </p>
+                )}
+
+                {/* <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <span className="text-sm text-brand-600 font-semibold">View Details</span>
+                    <MdChevronRight className="w-5 h-5 text-brand-500 group-hover:translate-x-1 transition-transform" />
+                </div> */}
+            </div>
+        </Link>
+    );
+};
+
+export default CategoryCard;

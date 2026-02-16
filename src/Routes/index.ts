@@ -26,6 +26,7 @@ const VinIdentifierCustomerCreate = lazy(() => import('@/pages/PartCatalogue/Vin
 const VinIdentifierCustomerView = lazy(() => import('@/pages/PartCatalogue/VinCustomerVehicle/View'));
 const SearchVin = lazy(() => import('@/pages/SearchVin'));
 const VinDetail = lazy(() => import('@/pages/VinDetail'));
+const CategorySelectionDetail = lazy(() => import('@/pages/DashboardCustomer/CategorySelection/Detail'));
 // PowerBiForm is imported by Create and Edit components, no need to add here
 
 export type TAppRoute = {
@@ -230,6 +231,13 @@ export const routes: TAppRoute[] = [
         name: 'Search VIN',
         isProtected: false,
         component: SearchVin,
+        layout: AppLayout,
+    },
+    {
+        path: '/:vinId/:categorySlug/:masterCategoryId',
+        name: 'Category Selection Detail',
+        isProtected: false,
+        component: CategorySelectionDetail,
         layout: AppLayout,
     },
     {
