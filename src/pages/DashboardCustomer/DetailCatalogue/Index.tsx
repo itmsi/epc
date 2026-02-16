@@ -1,15 +1,30 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { LoadingSpinner } from '@/components/common/Loading';
 import { useDetailCatalogue } from './hooks/useDetailCatalogue';
 import { SvgViewer, PartsTable, DetailCatalogueHeader } from './components';
 import { PartTableRow } from './types';
+import Breadcrumbs from '@/components/common/Breadcrumbs';
 
 /**
  * Halaman Detail Catalogue - menampilkan diagram SVG dan tabel parts
  */
 export default function DetailCatalogView() {
+    const { vinId, categorySlug, masterCategoryId } = useParams<{
+        vinId: string;
+        categorySlug: string;
+        masterCategoryId: string;
+        id_link: string;
+    }>();
+    
     const { header, items, loading, error, svgContent, svgLoading } = useDetailCatalogue();
     const [selected, setSelected] = useState<string | null>(null);
+
+    // Helper untuk mendapatkan nama kategori dari header
+    const getCategoryName = useCallback(() => {
+        if (!header) return 'Detail Catalogue';
+        return header.category_name_en || header.category_name_cn || 'Detail Catalogue';
+    }, [header]);
 
     // Transform items API ke format tabel
     const parts: PartTableRow[] = useMemo(() => {
@@ -25,42 +40,27 @@ export default function DetailCatalogView() {
 
     // Handle selection dari SVG atau tabel
     const handlePartSelect = useCallback((targetId: string, source: 'table' | 'svg') => {
-        console.log('handlePartSelect called:', { targetId, source });
         setSelected(current => current === targetId ? null : targetId);
 
         // Scroll ke komponen yang berlawanan
         if (source === 'svg') {
-            console.log('Scrolling to table for targetId:', targetId);
             // Dari SVG, scroll ke tabel
             setTimeout(() => {
                 const partIndex = parts.findIndex(part => part.target_id === targetId);
-                console.log('Found part index:', partIndex, 'in parts array length:', parts.length);
                 
                 if (partIndex !== -1) {
                     const tableBody = document.querySelector('.rdt_TableBody') as HTMLElement;
-                    console.log('Table body found:', !!tableBody);
                     
                     if (tableBody) {
                         const rows = tableBody.querySelectorAll('.rdt_TableRow');
-                        console.log('Found rows count:', rows.length, 'looking for index:', partIndex);
                         
                         if (rows[partIndex]) {
-                            console.log('Scrolling to row:', partIndex);
                             (rows[partIndex] as HTMLElement).scrollIntoView({
                                 behavior: 'smooth',
                                 block: 'center',
                             });
-                        } else {
-                            console.log('Row not found at index:', partIndex);
                         }
-                    } else {
-                        console.log('Table body not found, searching alternative selectors...');
-                        const altTableBody = document.querySelector('[class*="TableBody"]');
-                        console.log('Alternative table body:', !!altTableBody);
                     }
-                } else {
-                    console.log('Part not found in array for targetId:', targetId);
-                    console.log('Available target_ids:', parts.map(p => p.target_id));
                 }
             }, 100);
         }
@@ -87,7 +87,24 @@ export default function DetailCatalogView() {
     }
 
     return (
-        <div className="bg-white shadow rounded-lg">
+        <div className="min-h-screen bg-gray-50">
+            {/* Header */}
+            <div className="bg-white border-b border-gray-200 shadow-sm border-b rounded-2xl">
+                <div className="px-8 py-4">
+                    <div className="flex items-center justify-between">
+                        {/* Breadcrumb */}
+                        <Breadcrumbs
+                            items={[
+                                { label: 'Home', path: '/' },
+                                ...(vinId ? [{ label: `VIN: ${vinId}`, path: `/vin/${vinId}` }] : []),
+                                ...(categorySlug ? [{ label: categorySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), path: `/vin/${vinId}/${categorySlug}/${masterCategoryId}` }] : []),
+                                { label: getCategoryName() },
+                            ]}
+                        />
+                    </div>
+                </div>
+            </div>
+            
             <DetailCatalogueHeader header={header} />
 
             <div className="grid grid-cols-1 lg:grid-cols-8 gap-2 px-6 py-4">

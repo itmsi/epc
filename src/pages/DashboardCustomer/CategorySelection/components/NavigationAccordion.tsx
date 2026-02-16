@@ -70,7 +70,7 @@ const NavigationAccordion: React.FC<NavigationAccordionProps> = ({ items, loadin
         return (
             <Link
                 key={child.id}
-                to={`/${vinId}/${categorySlug}/${masterCategoryId}/${child.id_link}`}
+                to={`/vin/${vinId}/${categorySlug}/${masterCategoryId}/${child.id_link}`}
                 className="flex items-center gap-2 px-4 py-2 pl-10 text-sm text-gray-600 hover:bg-brand-50 hover:text-brand-600 transition-colors rounded-md"
             >
                 <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
