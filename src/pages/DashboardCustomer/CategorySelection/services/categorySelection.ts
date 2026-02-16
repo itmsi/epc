@@ -1,33 +1,29 @@
 import { apiPost, ApiResponse } from '@/helpers/apiHelper';
 import { 
-  CategorySelectionRequest, 
-  CategorySelectionResponse 
+    CategorySelectionRequest, 
+    CategorySelectionResponse 
 } from '../types/categorySelection';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export class CategorySelectionService {
-  /**
-   * Mengambil data category items berdasarkan master category ID
-   * @param request - Request parameters untuk mengambil category items
-   */
-  static async getCategoryItems(
-    request: CategorySelectionRequest
-  ): Promise<ApiResponse<CategorySelectionResponse>> {
-    const payload: CategorySelectionRequest = {
-      master_category_id: request.master_category_id,
-      product_id: request.product_id,
-      customer_id: request.customer_id,
-      search: request.search || '',
-      page: request.page || 1,
-      limit: request.limit || 10,
-      sort_by: request.sort_by || 'created_at',
-      sort_order: request.sort_order || 'desc'
-    };
+    static async getCategoryItems(
+        request: CategorySelectionRequest
+    ): Promise<ApiResponse<CategorySelectionResponse>> {
+        const payload: CategorySelectionRequest = {
+            master_category_id: request.master_category_id,
+            product_id: request.product_id,
+            customer_id: request.customer_id,
+            search: request.search || '',
+            page: request.page || 1,
+            limit: request.limit || 10,
+            sort_by: request.sort_by || 'created_at',
+            sort_order: request.sort_order || 'desc'
+        };
 
-    return await apiPost<CategorySelectionResponse>(
-      `${API_BASE_URL}/epc/parts-catalogs/get-by-master-category-id`,
-      payload as unknown as Record<string, unknown>
-    );
-  }
+        return await apiPost<CategorySelectionResponse>(
+            `${API_BASE_URL}/epc/parts-catalogs/get-by-master-category-id`,
+            payload as unknown as Record<string, unknown>
+        );
+    }
 }

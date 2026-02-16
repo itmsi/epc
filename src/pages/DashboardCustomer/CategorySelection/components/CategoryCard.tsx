@@ -24,8 +24,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ item, parentName, linkTo })
                         target.onerror = null;
                     }}
                 />
-                <div className="absolute top-3 left-3">
-                    <span className="px-2 py-1 text-xs uppercase font-medium font-secondary tracking-[0.05em] bg-[#0253a5] text-white rounded-md">
+                <div className="absolute top-3 left-3 right-3">
+                    <span className="px-2 py-1 text-xs uppercase font-medium font-secondary tracking-[0.05em] bg-[#0253a5] text-white rounded-md inline-block leading-tight">
                         {parentName}
                     </span>
                 </div>
@@ -41,11 +41,6 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ item, parentName, linkTo })
                         {item.name_cn}
                     </p>
                 )}
-
-                {/* <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <span className="text-sm text-brand-600 font-semibold">View Details</span>
-                    <MdChevronRight className="w-5 h-5 text-brand-500 group-hover:translate-x-1 transition-transform" />
-                </div> */}
             </div>
         </Link>
     );

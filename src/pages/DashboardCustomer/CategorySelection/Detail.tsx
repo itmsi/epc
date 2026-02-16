@@ -93,35 +93,20 @@ const CategorySelectionDetail = () => {
                             { label: getMasterCategoryName() },
                             ]}
                         />
-
-                        {/* Back Button */}
-                        {/* <button
-                            onClick={() => navigate(`/${vinId}`)}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                            <MdArrowBack className="w-4 h-4" />
-                            Back
-                        </button> */}
                     </div>
                 </div>
             </div>
 
             {/* Main Content */}
             <div className="py-8">
-                <div className="flex gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
                     {/* Navigation Sidebar */}
-                    <div className="w-80 flex-shrink-0 sticky top-0 self-start font-secondary">
+                    <div className="md:col-span-2 flex-shrink-0 md:sticky top-0 self-start font-secondary">
                         <NavigationAccordion items={navItems} loading={navLoading} />
                     </div>
 
                     {/* Content Area */}
-                    <div className="flex-1 min-w-0">
-                        {/* Header Info */}
-                        {/* <div className="mb-4 text-sm text-gray-600">
-                            Showing <span className="font-semibold">{childItems.length}</span> of{' '}
-                            <span className="font-semibold">{totalItems}</span> items
-                        </div> */}
-
+                    <div className="flex-1 min-w-0 md:col-span-5">
                         {childItems.length === 0 && !loading ? (
                             <EmptyState title="No parts found" description="Try adjusting your search or filters" />
                         ) : (
@@ -131,7 +116,7 @@ const CategorySelectionDetail = () => {
                                         key={child.id_link}
                                         item={child}
                                         parentName={parentName}
-                                        linkTo={`/${vinId}/${categorySlug}/${masterCategoryId}/${child.id_link}`}
+                                        linkTo={`/vin/${vinId}/${categorySlug}/${masterCategoryId}/${child.id_link}`}
                                     />
                                 ))}
                             </div>

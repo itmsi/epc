@@ -116,7 +116,7 @@ const NavigationAccordion: React.FC<NavigationAccordionProps> = ({ items, loadin
             </div>
 
             {/* Accordion List */}
-            <div className="p-2 max-h-[500px] overflow-y-auto">
+            <div className="p-2 max-h-[700px] overflow-y-auto">
                 {filteredItems.length === 0 ? (
                     <div className="text-center py-8 text-gray-500 text-sm">
                         No categories found
