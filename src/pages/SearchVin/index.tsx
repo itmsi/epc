@@ -41,7 +41,7 @@ const SearchVin = () => {
             if (response.data.success) {
                 if (response.data.data.items && response.data.data.items.length > 0) {
                     toast.success(response.data.message || 'VIN found! Redirecting...');
-                    navigate(`/${vinInput.trim()}`);
+                    navigate(`/vin/${vinInput.trim()}`);
                 } else {
                     toast.error('No vehicle found with this VIN');
                 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { GrLineChart } from "react-icons/gr";
 import { FiSearch } from "react-icons/fi";
+import { MdTableChart } from "react-icons/md";
 
 // Assume these icons are imported from an icon library
 import {
@@ -54,7 +55,13 @@ const navItems: NavItem[] = [
         name: "Search VIN",
         icon: <FiSearch />,
         path: "/search-vin",
-        // No allowedRoles - will be handled by conditional rendering based on is_customer
+    },
+    {
+        name: "VIN Management",
+        icon: <MdTableChart />,
+        subItems: [
+            { name: "Manage", path: "/vin-management/manage" },
+        ],
     },
     {
         name: "EPC",
@@ -172,8 +179,8 @@ const AppSidebar: React.FC = () => {
             }
             
             return navItems.filter((item) => {
-                // Special handling for Search VIN - only show to customers
-                if (item.name === "Search VIN") {
+                // Special handling for Search VIN and VIN Management menus - only show to customers
+                if (item.name === "Search VIN" || item.name === "VIN Management") {
                     return isCustomer;
                 }
                 
