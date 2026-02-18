@@ -59,7 +59,7 @@ export default function ViewCatalog() {
             
             if (response.success) {
                 setCatalogData(response.data);
-                setTotalRows(response.data?.items?.length || 0);
+                setTotalRows(response.data?.pagination?.total || response.data?.items?.length || 0);
             } else {
                 setError(response.message || 'Failed to fetch catalog data');
             }
@@ -195,48 +195,23 @@ export default function ViewCatalog() {
     // Define table columns for items
     const columns: TableColumn<CatalogDetailItem>[] = React.useMemo(() => [
         {
-            name: (
-                <div 
-                    className="flex items-center cursor-pointer hover:text-blue-600 select-none"
-                    onClick={() => handleSort('category_name_en')}
-                >
-                    Part
-                    {sortField === 'category_name_en' && (
-                        <span className="ml-1 text-blue-600">
-                            {sortDirection === 'asc' ? '▲' : '▼'}
-                        </span>
-                    )}
-                    {sortField !== 'category_name_en' && (
-                        <span className="ml-1 text-gray-300">▲▼</span>
-                    )}
-                </div>
-            ),
+            name: "Part",
             selector: (row: CatalogDetailItem) => row.category_name_en || '',
-            cell: (row: CatalogDetailItem) => (
+            cell: (row: CatalogDetailItem) => (<>
+                <a
+                    href={`/epc/manage/edit/${row.item_category_id}`}
+                    className="absolute inset-0 z-10"
+                    aria-label="Open quotation"
+                />
                 <div className="py-2">
                     <div className="font-medium text-gray-900">{row.category_name_en}</div>
                     <div className="text-xs text-gray-400">{row.category_name_cn}</div>
                 </div>
-            ),
+            </>),
             wrap: true,
         },
         {
-            name: (
-                <div 
-                    className="flex items-center cursor-pointer hover:text-blue-600 select-none"
-                    onClick={() => handleSort('type_category_name_en')}
-                >
-                    Type
-                    {sortField === 'type_category_name_en' && (
-                        <span className="ml-1 text-blue-600">
-                            {sortDirection === 'asc' ? '▲' : '▼'}
-                        </span>
-                    )}
-                    {sortField !== 'type_category_name_en' && (
-                        <span className="ml-1 text-gray-300">▲▼</span>
-                    )}
-                </div>
-            ),
+            name: "Type",
             selector: (row: CatalogDetailItem) => row.type_category_name_en || '',
             cell: (row: CatalogDetailItem) => (
                 <div className="py-2">
