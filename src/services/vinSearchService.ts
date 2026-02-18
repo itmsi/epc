@@ -82,6 +82,7 @@ export interface VinManagementRequest {
     limit?: number;
     sort_by?: string;
     sort_order?: 'asc' | 'desc';
+    vin_status?: string;
 }
 
 export interface VinManagementItem {
@@ -101,6 +102,8 @@ export interface VinManagementItem {
     model_type: string | null;
     dimensi: string | null;
     model_engine: string | null;
+    vin_status: string | null;
+    updated_by_name: string | null;
 }
 
 export interface VinManagementResponse {
@@ -157,6 +160,7 @@ export interface VinDetailAPIResponse {
     dimensi: null | string;
     model_engine: null | string;
     body_number: null | string;
+    vin_status: string | null;
 }
 
 export interface VinAPIResponseWrapper<T> {
@@ -244,6 +248,10 @@ export class VinSearchService {
         // Only add search if provided
         if (request.search && request.search.trim()) {
             payload.search = request.search.trim();
+        }
+
+        if (request.vin_status && request.vin_status.trim()) {
+            payload.vin_status = request.vin_status.trim();
         }
 
         return await apiPost<VinManagementResponse>(
@@ -373,11 +381,16 @@ export class VinSearchService {
      */
     static async updateVinBodyNumber(
         productId: string,
-        bodyNumber: string
+        bodyNumber: string,
+        vinStatus?: string
     ): Promise<ApiResponse<VinAPIResponseWrapper<VinDetailAPIResponse>>> {
-        const payload = {
+        const payload: Record<string, unknown> = {
             body_number: bodyNumber
         };
+
+        if (vinStatus !== undefined) {
+            payload.vin_status = vinStatus;
+        }
 
         return await apiPut<VinAPIResponseWrapper<VinDetailAPIResponse>>(
             `${API_BASE_URL}/epc/parts-catalogs/vin/get/${productId}`,
