@@ -59,7 +59,7 @@ const CategorySelectionDetail = () => {
                         description: category.description,
                         child: []
                     }, 
-                    parentName: 'Direct Category'
+                    parentName: ''
                 });
             }
             

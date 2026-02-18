@@ -24,11 +24,13 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ item, parentName, linkTo })
                         target.onerror = null;
                     }}
                 />
+                {parentName !== '' && (
                 <div className="absolute top-3 left-3 right-3">
                     <span className="px-2 py-1 text-xs uppercase font-medium font-secondary tracking-[0.05em] bg-[#0253a5] text-white rounded-md inline-block leading-tight">
                         {parentName}
                     </span>
                 </div>
+                )}
             </div>
 
             <div className="p-4">
