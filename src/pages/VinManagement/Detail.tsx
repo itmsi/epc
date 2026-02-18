@@ -1,7 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { MdArrowBack, MdEdit, MdSave, MdCancel } from 'react-icons/md';
+import PageMeta from '@/components/common/PageMeta';
+import Button from '@/components/ui/button/Button';
+import Input from '@/components/form/input/InputField';
+import Label from '@/components/form/Label';
+import TextArea from '@/components/form/input/TextArea';
+// import CustomSelect from '@/components/form/select/CustomSelect';
 import {
     VinSearchService,
     VinDetailMaintenanceResponse,
@@ -22,6 +28,7 @@ const VinManagementDetail = () => {
     // Edit Body Number State
     const [isEditingBodyNo, setIsEditingBodyNo] = useState(false);
     const [tempBodyNo, setTempBodyNo] = useState('');
+    // const [tempVinStatus, setTempVinStatus] = useState('');
 
     // Get customer ID from localStorage
     const getCustomerId = (): string | null => {
@@ -33,7 +40,7 @@ const VinManagementDetail = () => {
 
         try {
             const authUser = JSON.parse(authUserStr);
-            
+
             // Strict check for customer access
             if (!authUser.is_customer) {
                 toast.error('Unauthorized access');
@@ -135,37 +142,54 @@ const VinManagementDetail = () => {
     // Edit Body Number Handlers
     const handleEditBodyNo = () => {
         setTempBodyNo(vinResponse?.data.body_number || '');
+        // setTempVinStatus(vinResponse?.data.vin_status || '');
         setIsEditingBodyNo(true);
     };
 
     const handleSaveBodyNo = async () => {
         if (!vinResponse) return;
         try {
-            const res = await VinSearchService.updateVinBodyNumber(vinResponse.data.product_id, tempBodyNo);
+            const res = await VinSearchService.updateVinBodyNumber(vinResponse.data.product_id, 
+                tempBodyNo
+                // , tempVinStatus
+            );
             if (res.data.success) {
-                 toast.success(res.data.message || 'Body number updated successfully');
-                 setVinResponse(prev => prev ? {
-                     ...prev,
-                     data: { ...prev.data, body_number: tempBodyNo }
-                 } : null);
-                 setIsEditingBodyNo(false);
+                toast.success(res.data.message || 'Updated successfully');
+                setVinResponse(prev => prev ? {
+                    ...prev,
+                    data: { ...prev.data, 
+                        body_number: tempBodyNo,
+                        // vin_status: tempVinStatus 
+                    }
+                } : null);
+                setIsEditingBodyNo(false);
             } else {
-                 toast.error(res.data.message || 'Failed to update body number');
+                toast.error(res.data.message || 'Failed to update');
             }
         } catch (error) {
             console.error(error);
-            toast.error('Error updating body number');
+            toast.error('Error updating VIN information');
         }
     };
 
+    // Loading state
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                    <p className="mt-4 text-gray-600">Loading VIN details...</p>
+            <>
+                <PageMeta
+                    title="VIN Detail | MSI"
+                    description="View VIN detail and maintenance history"
+                    image="/motor-sights-international.png"
+                />
+                <div className="bg-gray-50 overflow-auto">
+                    <div className="mx-auto p-4 sm:px-3">
+                        <div className="flex items-center justify-center h-64">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                            <span className="ml-3 text-gray-600">Loading VIN details...</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </>
         );
     }
 
@@ -173,315 +197,347 @@ const VinManagementDetail = () => {
         return null;
     }
 
+    const vinData = vinResponse.data;
+
     return (
         <>
-            <Helmet>
-                <title>{`VIN Detail: ${vinResponse.data?.vin_number || '-'}`}</title>
-            </Helmet>
+            <PageMeta
+                title={`VIN Detail: ${vinData?.vin_number || '-'} | MSI`}
+                description="View VIN detail and maintenance history"
+                image="/motor-sights-international.png"
+            />
 
-            <div className="min-h-screen bg-gray-50 p-6">
-                {/* Header Summary Card */}
-                <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-                    <div className="flex flex-col md:flex-row gap-6 items-start">
-                        {/* Truck Icon */}
-                        <div className="flex-shrink-0 w-20 h-20 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                            <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 200 200">
-                                <path d="M20 120 L50 120 L50 80 L100 80 L120 100 L160 100 L160 120 L180 120 L180 140 L160 140 L160 160 L140 160 L140 140 L60 140 L60 160 L40 160 L40 140 L20 140 Z M110 90 L140 90 L150 100 L110 100 Z" />
-                                <circle cx="50" cy="150" r="15" fill="currentColor" opacity="0.5" />
-                                <circle cx="150" cy="150" r="15" fill="currentColor" opacity="0.5" />
-                            </svg>
+            <div className="bg-gray-50 overflow-auto">
+                <div className="mx-auto p-4 sm:px-3 space-y-6">
+
+                    {/* HEADER */}
+                    <div className="flex items-center justify-between h-16 bg-white shadow-sm border-b rounded-2xl p-6">
+                        <div className="flex items-center gap-1">
+                            <Link to="/vin-management/manage">
+                                <Button
+                                    variant="outline"
+                                    className="flex items-center gap-2 p-1 rounded-full bg-gray-100 hover:bg-gray-200 ring-0 border-none shadow-none me-1"
+                                >
+                                    <MdArrowBack className="w-4 h-4" />
+                                </Button>
+                            </Link>
+                            <div className="border-l border-gray-300 h-6 mx-3"></div>
+                            <h1 className="ms-2 font-primary-bold font-normal text-xl">
+                                VIN: {vinData.vin_number}
+                            </h1>
                         </div>
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 mb-6">
-                                <h1 className="text-2xl font-bold text-gray-900 leading-none tracking-tight">
-                                    VIN: {vinResponse.data.vin_number}
-                                </h1>
-                                <span className={`px-2.5 py-1 text-xs font-bold rounded-full uppercase tracking-wide ${
-                                    vinResponse.data.is_delete 
-                                        ? 'bg-red-100 text-red-700' 
-                                        : 'bg-emerald-100 text-emerald-700'
-                                }`}>
-                                    {vinResponse.data.is_delete ? 'Inactive' : 'Active'}
-                                </span>
-                            </div>
-
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-6">
-                                <div>
-                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Model</p>
-                                    <p className="text-sm font-semibold text-gray-900 truncate" title={vinResponse.data.product_name_en}>
-                                        {vinResponse.data.product_name_en || '-'}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Model Type</p>
-                                    <p className="text-sm font-semibold text-gray-900 truncate">
-                                        {vinResponse.data.model_type || '-'}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Dimension</p>
-                                    <p className="text-sm font-semibold text-gray-900 truncate">
-                                        {vinResponse.data.dimensi || '-'}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Model Engine</p>
-                                    <p className="text-sm font-semibold text-gray-900 truncate">
-                                        {vinResponse.data.model_engine || '-'}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Body No</p>
-                                    <div className="h-5 flex items-center">
-                                        {isEditingBodyNo ? (
-                                            <div className="flex items-center gap-1">
-                                                <input 
-                                                    type="text" 
-                                                    value={tempBodyNo}
-                                                    onChange={(e) => setTempBodyNo(e.target.value)}
-                                                    className="border border-gray-300 rounded px-2 py-0.5 text-xs w-28 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
-                                                    autoFocus
-                                                />
-                                                <button 
-                                                    onClick={handleSaveBodyNo} 
-                                                    className="p-0.5 text-white bg-green-500 hover:bg-green-600 rounded transition-colors shadow-sm"
-                                                    title="Save"
-                                                >
-                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                </button>
-                                                <button 
-                                                    onClick={() => setIsEditingBodyNo(false)} 
-                                                    className="p-0.5 text-white bg-red-500 hover:bg-red-600 rounded transition-colors shadow-sm"
-                                                    title="Cancel"
-                                                >
-                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center gap-2 group">
-                                                <span className="text-sm font-semibold text-gray-900">{vinResponse.data.body_number || '-'}</span>
-                                                <button 
-                                                    onClick={handleEditBodyNo} 
-                                                    className="p-1 text-gray-400 hover:text-primary hover:bg-primary/5 rounded transition-colors"
-                                                    title="Edit Body Number"
-                                                >
-                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Product Description */}
-                            {vinResponse.data.product_description && (
-                                <div className="mt-6 pt-6 border-t border-gray-100">
-                                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
-                                        Unit Description
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                                        {vinResponse.data.product_description.split('\n').map((line, index) => {
-                                            const parts = line.split(':');
-                                            if (parts.length > 1) {
-                                                const label = parts[0].trim();
-                                                const value = parts.slice(1).join(':').trim();
-                                                return (
-                                                    <div key={index} className="flex items-start">
-                                                        <span className="text-sm text-gray-500 w-32 flex-shrink-0">{label}:</span>
-                                                        <span className="text-sm font-medium text-gray-900">{value}</span>
-                                                    </div>
-                                                );
-                                            }
-                                            return (
-                                                <div key={index} className="text-sm text-gray-700 col-span-full py-1">
-                                                    {line}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-3">
+                            {!isEditingBodyNo ? (
+                                <Button
+                                    variant="outline"
+                                    onClick={handleEditBodyNo}
+                                    className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 ring-[#0253a5] font-secondary py-2 hover:bg-[#0253a5] hover:text-white"
+                                >
+                                    <MdEdit size={20} className="text-primary group-hover:text-white" /> Edit
+                                </Button>
+                            ) : (
+                                <>
+                                    <Button
+                                        variant="primary"
+                                        onClick={handleSaveBodyNo}
+                                        className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 ring-[#0253a5] font-secondary py-2 bg-[#0253a5] text-white"
+                                    >
+                                        <MdSave className="w-4 h-4 text-white" /> Save
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setIsEditingBodyNo(false)}
+                                        className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 font-secondary py-2"
+                                    >
+                                        <MdCancel className="w-4 h-4" /> Cancel
+                                    </Button>
+                                </>
                             )}
                         </div>
                     </div>
-                </section>
 
-                {/* Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* Maintenance Activity Timeline */}
-                    <div className="lg:col-span-5 space-y-4">
-                        <h3 className="text-lg font-bold flex items-center gap-2">
-                            <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                            </svg>
-                            Maintenance Activity
-                        </h3>
-                        <div className="bg-white rounded-xl border border-gray-200 p-6 relative">
-                            <div className="absolute left-[39px] top-10 bottom-10 w-0.5 bg-gray-100"></div>
-                            <div className="space-y-8 relative">
-                                {vinResponse.maintenance_activities?.map((activity) => {
-                                    const { icon, color } = getMaintenanceIcon(activity.service_type);
-                                    return (
-                                        <div key={activity.id} className="flex gap-4 relative group">
-                                            <div
-                                                className={`z-10 ${color} p-2 rounded-full border-2 border-white w-10 h-10 flex items-center justify-center text-lg flex-shrink-0`}
-                                            >
-                                                {icon}
-                                            </div>
-                                            <div className="flex-1 pb-2">
-                                                <div className="flex justify-between items-start">
-                                                    <h4 className="font-bold text-gray-900">{activity.title}</h4>
-                                                    <span className="text-xs font-medium text-gray-400">
-                                                        {new Date(activity.service_date).toLocaleDateString('en-US', {
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                            year: 'numeric',
-                                                        })}
-                                                    </span>
-                                                </div>
-                                                <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                                                <div className="mt-2 flex gap-2">
-                                                    <span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded font-medium text-gray-500">
-                                                        ID: {activity.service_id}
-                                                    </span>
-                                                    <span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded font-medium text-gray-500">
-                                                        Tech: {activity.technician}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                    {/* VIN Summary Card */}
+                    <div className="bg-white rounded-2xl shadow-sm">
+                        <div className="p-8">
+                            <h2 className="text-lg font-primary-bold font-medium text-gray-900 mb-6">
+                                VIN Information
+                            </h2>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 font-secondary">
+                                <div>
+                                    <Label>VIN Number</Label>
+                                    <Input
+                                        type="text"
+                                        value={vinData.vin_number || ''}
+                                        readonly={true}
+                                        className="bg-gray-50"
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Model</Label>
+                                    <Input
+                                        type="text"
+                                        value={vinData.product_name_en || ''}
+                                        readonly={true}
+                                        className="bg-gray-50"
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Model Type</Label>
+                                    <Input
+                                        type="text"
+                                        value={vinData.model_type || ''}
+                                        readonly={true}
+                                        className="bg-gray-50"
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Dimension</Label>
+                                    <Input
+                                        type="text"
+                                        value={vinData.dimensi || ''}
+                                        readonly={true}
+                                        className="bg-gray-50"
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Model Engine</Label>
+                                    <Input
+                                        type="text"
+                                        value={vinData.model_engine || ''}
+                                        readonly={true}
+                                        className="bg-gray-50"
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Body No</Label>
+                                    <Input
+                                        type="text"
+                                        value={isEditingBodyNo ? tempBodyNo : (vinData.body_number || '')}
+                                        readonly={!isEditingBodyNo}
+                                        onChange={(e) => setTempBodyNo(e.target.value)}
+                                        className={isEditingBodyNo ? '' : 'bg-gray-50'}
+                                        placeholder={isEditingBodyNo ? 'Enter body number' : '-'}
+                                    />
+                                </div>
+                                {/* <div>
+                                    <Label>Status</Label>
+                                    <CustomSelect
+                                        options={[
+                                            { value: 'active', label: 'Active' },
+                                            { value: 'inactive', label: 'Inactive' },
+                                        ]}
+                                        value={(() => {
+                                            const val = isEditingBodyNo ? tempVinStatus : (vinData.vin_status || '');
+                                            if (!val) return null;
+                                            return { value: val, label: val.charAt(0).toUpperCase() + val.slice(1) };
+                                        })()}
+                                        onChange={(opt) => setTempVinStatus(opt?.value || '')}
+                                        isSearchable={false}
+                                        isClearable={false}
+                                        disabled={!isEditingBodyNo}
+                                        placeholder="-- Select Status --"
+                                    />
+                                </div> */}
                             </div>
-                            <button
-                                onClick={handleComingSoon}
-                                className="w-full mt-6 py-2 text-sm font-semibold text-primary hover:bg-primary/5 rounded transition-colors"
-                            >
-                                View Older Activity
-                            </button>
+
+                            {/* Product Description */}
+                            <div className="pt-6 mt-6 border-t border-gray-100 font-secondary">
+                                <Label>Unit Description</Label>
+                                <TextArea
+                                    value={vinData.product_description || ''}
+                                    rows={5}
+                                    readonly={true}
+                                    className="bg-gray-50"
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Part Replacement History */}
-                    <div className="lg:col-span-7 space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <h3 className="text-lg font-bold flex items-center gap-2">
-                                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                                    />
-                                </svg>
-                                Part Replacement History
-                            </h3>
-                            <div className="relative">
-                                <svg
-                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                    />
-                                </svg>
-                                <input
-                                    className="pl-9 pr-4 py-1.5 bg-white border border-gray-200 rounded-lg text-sm focus:ring-primary focus:border-primary w-full sm:w-64"
-                                    placeholder="Search Part No..."
-                                    type="text"
-                                    value={partsSearch}
-                                    onChange={(e) => {
-                                        setPartsSearch(e.target.value);
-                                        setPartsPage(1);
-                                    }}
-                                />
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                            <table className="w-full text-left text-sm border-collapse">
-                                <thead>
-                                    <tr className="bg-gray-50 border-b border-gray-200">
-                                        <th className="px-6 py-4 font-semibold text-gray-700">Date</th>
-                                        <th className="px-6 py-4 font-semibold text-gray-700">Part Number</th>
-                                        <th className="px-6 py-4 font-semibold text-gray-700">Description</th>
-                                        <th className="px-6 py-4 font-semibold text-gray-700">Qty</th>
-                                        <th className="px-6 py-4 font-semibold text-gray-700 text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {paginatedParts.map((part, index) => (
-                                        <tr key={index} className="hover:bg-gray-50/50 transition-colors">
-                                            <td className="px-6 py-4 text-gray-500">
-                                                {new Date(part.date).toLocaleDateString('en-US', {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    year: 'numeric',
-                                                })}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="font-mono text-primary font-medium">{part.part_number}</span>
-                                            </td>
-                                            <td className="px-6 py-4">{part.description}</td>
-                                            <td className="px-6 py-4">{part.quantity}</td>
-                                            <td className="px-6 py-4 text-right">
-                                                <button
-                                                    onClick={handleComingSoon}
-                                                    className="text-gray-400 hover:text-primary transition-colors"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth={2}
-                                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                        />
-                                                    </svg>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-                                <span className="text-xs text-gray-500">
-                                    Showing {paginatedParts.length} of {filteredParts.length} records
-                                </span>
-                                <div className="flex gap-2">
+
+                    {/* Content Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                        {/* Maintenance Activity Timeline */}
+                        <div className="lg:col-span-5">
+                            <div className="bg-white rounded-2xl shadow-sm">
+                                <div className="p-6">
+                                    <h2 className="text-lg font-primary-bold font-medium text-gray-900 mb-6 flex items-center gap-2">
+                                        <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Maintenance Activity
+                                    </h2>
+
+                                    <div className="relative">
+                                        <div className="absolute left-[19px] top-0 bottom-0 w-0.5 bg-gray-100"></div>
+                                        <div className="space-y-8 relative">
+                                            {vinResponse.maintenance_activities?.length ? (
+                                                vinResponse.maintenance_activities.map((activity) => {
+                                                    const { icon, color } = getMaintenanceIcon(activity.service_type);
+                                                    return (
+                                                        <div key={activity.id} className="flex gap-4 relative">
+                                                            <div className={`z-10 ${color} p-2 rounded-full border-2 border-white w-10 h-10 flex items-center justify-center text-lg flex-shrink-0`}>
+                                                                {icon}
+                                                            </div>
+                                                            <div className="flex-1 pb-2">
+                                                                <div className="flex justify-between items-start">
+                                                                    <h4 className="font-bold text-gray-900">{activity.title}</h4>
+                                                                    <span className="text-xs font-medium text-gray-400">
+                                                                        {new Date(activity.service_date).toLocaleDateString('en-US', {
+                                                                            month: 'short',
+                                                                            day: 'numeric',
+                                                                            year: 'numeric',
+                                                                        })}
+                                                                    </span>
+                                                                </div>
+                                                                <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                                                                <div className="mt-2 flex gap-2">
+                                                                    <span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded font-medium text-gray-500">
+                                                                        ID: {activity.service_id}
+                                                                    </span>
+                                                                    <span className="text-[10px] px-2 py-0.5 bg-gray-100 rounded font-medium text-gray-500">
+                                                                        Tech: {activity.technician}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                <div className="text-center py-8 text-gray-500 text-sm">
+                                                    No maintenance activity recorded.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
                                     <button
-                                        onClick={() => setPartsPage((p) => Math.max(1, p - 1))}
-                                        disabled={partsPage === 1}
-                                        className="px-3 py-1 text-xs font-semibold bg-white border border-gray-200 rounded shadow-sm disabled:opacity-50 hover:bg-gray-50"
+                                        onClick={handleComingSoon}
+                                        className="w-full mt-6 py-2 text-sm font-semibold text-primary hover:bg-primary/5 rounded transition-colors"
                                     >
-                                        Previous
-                                    </button>
-                                    <button
-                                        onClick={() => setPartsPage((p) => Math.min(totalPartsPages, p + 1))}
-                                        disabled={partsPage >= totalPartsPages}
-                                        className="px-3 py-1 text-xs font-semibold bg-white border border-gray-200 rounded shadow-sm disabled:opacity-50 hover:bg-gray-50"
-                                    >
-                                        Next
+                                        View Older Activity
                                     </button>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Part Replacement History */}
+                        <div className="lg:col-span-7">
+                            <div className="bg-white rounded-2xl shadow-sm">
+                                <div className="p-6">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                        <h2 className="text-lg font-primary-bold font-medium text-gray-900 flex items-center gap-2">
+                                            <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                            </svg>
+                                            Part Replacement History
+                                        </h2>
+                                        <div className="relative">
+                                            <svg
+                                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            <input
+                                                className="pl-9 pr-4 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-primary focus:border-primary w-full sm:w-64 focus:outline-none"
+                                                placeholder="Search Part No..."
+                                                type="text"
+                                                value={partsSearch}
+                                                onChange={(e) => {
+                                                    setPartsSearch(e.target.value);
+                                                    setPartsPage(1);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="overflow-hidden rounded-xl border border-gray-200">
+                                        <table className="w-full text-left text-sm border-collapse">
+                                            <thead>
+                                                <tr className="bg-gray-50 border-b border-gray-200">
+                                                    <th className="px-5 py-3 font-semibold text-gray-700">Date</th>
+                                                    <th className="px-5 py-3 font-semibold text-gray-700">Part Number</th>
+                                                    <th className="px-5 py-3 font-semibold text-gray-700">Description</th>
+                                                    <th className="px-5 py-3 font-semibold text-gray-700">Qty</th>
+                                                    <th className="px-5 py-3 font-semibold text-gray-700 text-right">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100">
+                                                {paginatedParts.length ? (
+                                                    paginatedParts.map((part, index) => (
+                                                        <tr key={index} className="hover:bg-gray-50/50 transition-colors">
+                                                            <td className="px-5 py-4 text-gray-500">
+                                                                {new Date(part.date).toLocaleDateString('en-US', {
+                                                                    month: 'short',
+                                                                    day: 'numeric',
+                                                                    year: 'numeric',
+                                                                })}
+                                                            </td>
+                                                            <td className="px-5 py-4">
+                                                                <span className="font-mono text-primary font-medium">{part.part_number}</span>
+                                                            </td>
+                                                            <td className="px-5 py-4 text-gray-700">{part.description}</td>
+                                                            <td className="px-5 py-4 text-gray-700">{part.quantity}</td>
+                                                            <td className="px-5 py-4 text-right">
+                                                                <button
+                                                                    onClick={handleComingSoon}
+                                                                    className="text-gray-400 hover:text-primary transition-colors"
+                                                                >
+                                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                    </svg>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan={5} className="px-5 py-8 text-center text-gray-500 text-sm">
+                                                            No part replacement records found.
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+
+                                        {/* Pagination */}
+                                        <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+                                            <span className="text-xs text-gray-500">
+                                                Showing {paginatedParts.length} of {filteredParts.length} records
+                                            </span>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setPartsPage((p) => Math.max(1, p - 1))}
+                                                    disabled={partsPage === 1}
+                                                    className="px-3 py-1 text-xs rounded-lg"
+                                                >
+                                                    Previous
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setPartsPage((p) => Math.min(totalPartsPages, p + 1))}
+                                                    disabled={partsPage >= totalPartsPages}
+                                                    className="px-3 py-1 text-xs rounded-lg"
+                                                >
+                                                    Next
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </>

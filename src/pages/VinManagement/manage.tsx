@@ -3,8 +3,11 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { TableColumn } from 'react-data-table-component';
+// import { MdSearch, MdClear } from 'react-icons/md';
 import { VinSearchService, VinManagementItem } from '@/services/vinSearchService';
 import CustomDataTable from '@/components/ui/table/CustomDataTable';
+// import Input from '@/components/form/input/InputField';
+// import CustomSelect from '@/components/form/select/CustomSelect';
 
 const VinManagement = () => {
     const navigate = useNavigate();
@@ -12,7 +15,11 @@ const VinManagement = () => {
     // State
     const [vinData, setVinData] = useState<VinManagementItem[]>([]);
     const [loading, setLoading] = useState(false);
+    // const [searchTerm, setSearchTerm] = useState('');
     const [searchTerm] = useState('');
+    // const [searchInput, setSearchInput] = useState('');
+    // const [vinStatusFilter, setVinStatusFilter] = useState('');
+    const [vinStatusFilter] = useState('');
     const [sortOrder] = useState<'asc' | 'desc'>('desc');
     
     // Pagination state
@@ -62,6 +69,7 @@ const VinManagement = () => {
                 limit: pagination.limit,
                 sort_by: 'created_at',
                 sort_order: sortOrder,
+                vin_status: vinStatusFilter || undefined,
             });
 
             if (response.data.success) {
@@ -80,7 +88,7 @@ const VinManagement = () => {
         } finally {
             setLoading(false);
         }
-    }, [getCustomerId, searchTerm, pagination.page, pagination.limit, sortOrder]);
+    }, [getCustomerId, searchTerm, vinStatusFilter, pagination.page, pagination.limit, sortOrder]);
 
     // Initial load
     useEffect(() => {
@@ -95,6 +103,22 @@ const VinManagement = () => {
     const handleRowsPerPageChange = (newPerPage: number) => {
         setPagination(prev => ({ ...prev, limit: newPerPage, page: 1 }));
     };
+
+    // const handleSearch = () => {
+    //     setSearchTerm(searchInput);
+    //     setPagination(prev => ({ ...prev, page: 1 }));
+    // };
+
+    // const handleClearSearch = () => {
+    //     setSearchInput('');
+    //     setSearchTerm('');
+    //     setVinStatusFilter('');
+    //     setPagination(prev => ({ ...prev, page: 1 }));
+    // };
+
+    // const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    //     if (e.key === 'Enter') handleSearch();
+    // };
 
     // Handle view details - show coming soon
     const handleViewDetails = (productId: string, e: React.MouseEvent) => {
@@ -170,35 +194,28 @@ const VinManagement = () => {
                 maxWidth: '80px',
             },
             {
-                name: 'Last Updated',
+                name: 'Updated By',
                 selector: (row) => row.updated_at,
+                sortable: false,
                 cell: (row) => {
-                    const date = new Date(row.updated_at);
-                    const now = new Date();
-                    const diffMs = now.getTime() - date.getTime();
-                    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                    
-                    let timeText = '';
-                    let badgeClass = 'bg-slate-100 text-slate-600';
-                    
-                    if (diffHours < 24) {
-                        timeText = `${diffHours} hours ago`;
-                        badgeClass = 'bg-blue-50 text-blue-600';
-                    } else if (diffDays < 7) {
-                        timeText = `${diffDays} days ago`;
-                        badgeClass = 'bg-blue-50 text-blue-600';
-                    } else {
-                        timeText = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                    }
-                    
+                    const date = row.updated_at ? new Date(row.updated_at) : null;
+                    const formatted = date
+                        ? date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
+                          ' ' +
+                          date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                        : '-';
                     return (
-                        <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${badgeClass}`}>
-                            {timeText}
-                        </span>
+                        <div className="flex flex-col py-2">
+                            <span className="font-medium text-gray-900">
+                                {row.updated_by_name || '-'}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                                {formatted}
+                            </span>
+                        </div>
                     );
                 },
-                center: true,
+                width: '200px',
             },
             {
                 name: 'Actions',
@@ -240,6 +257,48 @@ const VinManagement = () => {
                         </p>
                     </div>
                 </div>
+
+                {/* Search & Filter */}
+                {/* <div className="px-6 py-4 border-b border-gray-200">
+                    <div className="flex gap-3 items-center">
+                        <div className="relative flex-1">
+                            <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                            <Input
+                                type="text"
+                                placeholder="Search body no or VIN number..."
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                className={`pl-10 ${searchInput ? 'pr-10' : 'pr-4'}`}
+                            />
+                            {searchInput && (
+                                <button
+                                    onClick={handleClearSearch}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                    type="button"
+                                >
+                                    <MdClear className="h-4 w-4" />
+                                </button>
+                            )}
+                        </div>
+                        <div className="w-48">
+                            <CustomSelect
+                                options={[
+                                    { value: 'active', label: 'Active' },
+                                    { value: 'inactive', label: 'Inactive' },
+                                ]}
+                                value={vinStatusFilter ? { value: vinStatusFilter, label: vinStatusFilter.charAt(0).toUpperCase() + vinStatusFilter.slice(1) } : null}
+                                onChange={(opt) => {
+                                    setVinStatusFilter(opt?.value || '');
+                                    setPagination(prev => ({ ...prev, page: 1 }));
+                                }}
+                                placeholder="Status"
+                                isSearchable={false}
+                                isClearable={true}
+                            />
+                        </div>
+                    </div>
+                </div> */}
 
                 {/* Data Table */}
                 <div className="p-6 font-secondary">

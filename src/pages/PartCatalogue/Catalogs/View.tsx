@@ -70,7 +70,7 @@ export default function ViewCatalog() {
             setLoadingCatalog(false);
         }
     };
-    
+
     // Fetch items with search/sort/pagination (only items, not document info)
     const fetchCatalogItems = async (searchParams?: {
         search?: string;
