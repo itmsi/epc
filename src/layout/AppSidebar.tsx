@@ -66,7 +66,7 @@ const navItems: NavItem[] = [
     {
         name: "EPC",
         icon: <GrLineChart />,
-        allowedRoles: ['Dashboard Catalogs', 'Cabin Catalogs', 'Engine Catalogs', 'Axle Catalogs', 'Transmission Catalogs', 'Steering Catalogs', 'Vin Catalogs', 'Manage Catalogs', 'Manage Vin Customer'],
+        allowedRoles: ['Dashboard Catalogs', 'Cabin Catalogs', 'Engine Catalogs', 'Axle Catalogs', 'Transmission Catalogs', 'Steering Catalogs'],
         subItems: [
             { name: "Dashboard", path: "/epc/dashboard", allowedRoles: ['Dashboard Catalogs'], },
             { name: "VIN", path: "/epc/vins", allowedRoles: ['Vin Catalogs'] },
@@ -245,11 +245,7 @@ const AppSidebar: React.FC = () => {
         const checkItems = (items: NavItem[], type: 'main' | 'others') => {
             items.forEach((nav) => {
                 // Check level 2 items
-                const filteredSubItems = nav.subItems?.filter(
-                    (sub) => !sub.allowedRoles || sub.allowedRoles.some(name => allowedMenuNames.includes(name))
-                );
-                
-                const matches = filteredSubItems?.filter((sub) => sub.path && isSubActive(sub.path)) ?? [];
+                const matches = nav.subItems?.filter((sub) => sub.path && isSubActive(sub.path)) ?? [];
                 if (matches.length) {
                     const longest = matches.reduce((a, b) => ((a.path?.length || 0) >= (b.path?.length || 0) ? a : b));
                     if (longest.path && longest.path.length > bestLength) {
@@ -260,19 +256,9 @@ const AppSidebar: React.FC = () => {
                 }
 
                 // Check level 3 nested items
-                filteredSubItems?.forEach((subItem, subIndex) => {
+                nav.subItems?.forEach((subItem, subIndex) => {
                     if (subItem.subItems && subItem.subItems.length > 0) {
-                        const allowedNestedItems = subItem.subItems.filter((nestedItem) => {
-                            if (!authMenu || authMenu.length === 0) {
-                                return true;
-                            }
-                            if (!nestedItem.allowedRoles || nestedItem.allowedRoles.length === 0) {
-                                return true;
-                            }
-                            return nestedItem.allowedRoles.some(name => allowedMenuNames.includes(name));
-                        });
-
-                        const nestedMatches = allowedNestedItems.filter((nested) => nested.path && isSubActive(nested.path));
+                        const nestedMatches = subItem.subItems.filter((nested) => nested.path && isSubActive(nested.path));
                         if (nestedMatches.length) {
                             const longestNested = nestedMatches.reduce((a, b) => ((a.path?.length || 0) >= (b.path?.length || 0) ? a : b));
                             if (longestNested.path && longestNested.path.length > bestLength) {
@@ -292,7 +278,7 @@ const AppSidebar: React.FC = () => {
 
         setOpenSubmenu(bestMatch);
         setOpenNestedSubmenu(bestNestedKey);
-    }, [location.pathname, mainFiltered, othersFiltered, allowedMenuNames, isSubActive, authMenu]);
+    }, [location.pathname, isSubActive, authMenu]);
     
     const handleSubmenuToggle = (menuType: 'main' | 'others', nav: NavItem) => {
         const key = buildNavKey(menuType, nav);
