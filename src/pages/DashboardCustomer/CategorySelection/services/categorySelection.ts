@@ -11,7 +11,7 @@ export class CategorySelectionService {
         request: CategorySelectionRequest
     ): Promise<ApiResponse<CategorySelectionResponse>> {
         const payload: CategorySelectionRequest = {
-            master_category_id: request.master_category_id,
+            dokumen_ids: request.dokumen_ids,
             product_id: request.product_id,
             customer_id: request.customer_id,
             search: request.search || '',

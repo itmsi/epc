@@ -1,5 +1,5 @@
 export interface CategorySelectionRequest {
-  master_category_id: string;
+  dokumen_ids: string[];
   product_id: string;
   customer_id: string;
   search?: string;
@@ -47,7 +47,7 @@ export interface CategorySelectionResponse {
 }
 
 export interface CategorySelectionHookParams {
-  masterCategoryId?: string;
+  dokumenIds?: string[];
   productId?: string;
   customerId?: string;
   initialLimit?: number;

@@ -46,6 +46,9 @@ export interface VinSearchResponse {
 export interface VinCategoryItem {
     master_category_id: string;
     master_category_name_en: string;
+    dokumen_ids: Array<{
+        dokumen_id: string;
+    }>;
 }
 
 export interface VinDetailData {

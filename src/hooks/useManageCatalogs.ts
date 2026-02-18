@@ -87,9 +87,9 @@ export function useManageCatalogs(props: UseManageCatalogsProps = {}): UseManage
                     setCatalogs(prev => [...prev, ...response.data.items]);
                 } else {
                     // Replace all items for new search/filter
+                    setPagination(response.data.pagination);
                     setCatalogs(response.data.items);
                 }
-                setPagination(response.data.pagination);
                 
                 setFilters(prev => ({ ...prev, ...requestParams }));
             } else {
