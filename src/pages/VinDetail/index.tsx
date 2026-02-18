@@ -176,18 +176,22 @@ const VinDetail = () => {
 
                     {/* Category Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        {vehicleData.items.map((category) => (
-                            <Link
-                                key={category.master_category_id}
-                                to={`/vin/${vinId}/${category.master_category_name_en.toLowerCase().replace(/[&\s]+/g, '-')}/${category.master_category_id}`}
-                                className="group bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all cursor-pointer flex flex-col"
-                            >
-                                {/* Icon - Left aligned at top */}
-                                <div className="flex justify-start mb-4">
-                                    <div className="w-20 h-20 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-500 group-hover:bg-brand-100 transition-colors">
-                                        {getCategoryIcon(category.master_category_name_en)}
+                        {vehicleData.items.map((category) => {
+                            // Extract dokumen_ids as query parameters
+                            const dokumenIds = category.dokumen_ids.map(doc => doc.dokumen_id).join(',');
+                            
+                            return (
+                                <Link
+                                    key={category.master_category_id}
+                                    to={`/vin/${vinId}/${category.master_category_name_en.toLowerCase().replace(/[&\s]+/g, '-')}/${category.master_category_id}?dokumen_ids=${encodeURIComponent(dokumenIds)}`}
+                                    className="group bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all cursor-pointer flex flex-col"
+                                >
+                                    {/* Icon - Left aligned at top */}
+                                    <div className="flex justify-start mb-4">
+                                        <div className="w-20 h-20 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-500 group-hover:bg-brand-100 transition-colors">
+                                            {getCategoryIcon(category.master_category_name_en)}
+                                        </div>
                                     </div>
-                                </div>
 
                                 {/* Title - Left aligned */}
                                 <h3 className="text-xl font-bold text-gray-900 mb-3 text-start">{category.master_category_name_en}</h3>
@@ -199,7 +203,7 @@ const VinDetail = () => {
 
                                 {/* Footer - Part count and arrow - Always at bottom */}
                                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
-                                    <span className="text-sm font-semibold text-gray-500">View Parts</span>
+                                    <span className="text-sm font-primary-bold text-gray-500">View Parts</span>
                                     <svg
                                         className="w-5 h-5 text-brand-500 group-hover:translate-x-1 transition-all"
                                         fill="none"
@@ -210,7 +214,8 @@ const VinDetail = () => {
                                     </svg>
                                 </div>
                             </Link>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     {/* Truck Illustration */}

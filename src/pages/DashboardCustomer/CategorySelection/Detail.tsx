@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useVehicleData } from './hooks/useVehicleData';
 import { useCategorySelection } from './hooks/useCategorySelection';
@@ -10,7 +10,12 @@ import { CategoryChildItem } from './types/categorySelection';
 
 const CategorySelectionDetail = () => {
     const { vinId, categorySlug, masterCategoryId } = useParams<{ vinId: string; categorySlug: string; masterCategoryId: string }>();
+    const [searchParams] = useSearchParams();
     // const navigate = useNavigate();
+
+    // Extract dokumen_ids from query parameters
+    const dokumenIdsParam = searchParams.get('dokumen_ids');
+    const dokumenIds = dokumenIdsParam ? dokumenIdsParam.split(',') : [];
 
     const { vehicleData, productId, loading: vehicleLoading } = useVehicleData(vinId);
 
@@ -19,7 +24,7 @@ const CategorySelectionDetail = () => {
         items: navItems,
         loading: navLoading,
     } = useCategorySelection({
-        masterCategoryId,
+        dokumenIds,
         productId,
         initialLimit: 1000,
     });
@@ -33,22 +38,41 @@ const CategorySelectionDetail = () => {
         totalPages,
         goToPage,
     } = useCategorySelection({
-        masterCategoryId,
+        dokumenIds,
         productId,
         initialLimit: 12,
     });
 
-    // Extract child items dari response (langsung tanpa slice)
+    // Extract items yang bisa ditampilkan (kategori dengan id_link + children dengan id_link)
     const childItems = useMemo(() => {
-        const allChildren: { child: CategoryChildItem; parentName: string }[] = [];
+        const allItems: { child: CategoryChildItem; parentName: string }[] = [];
+        
         items.forEach((category) => {
-            category.child.forEach((child) => {
+            // Jika kategori sendiri memiliki id_link, tambahkan sebagai item
+            if (category.id_link) {
+                allItems.push({ 
+                    child: {
+                        id: category.id,
+                        id_link: category.id_link,
+                        name: category.name,
+                        name_cn: category.name_cn,
+                        description: category.description,
+                        child: []
+                    }, 
+                    parentName: ''
+                });
+            }
+            
+            // Jika ada children, iterasi dan tambahkan yang memiliki id_link
+            const categoryChildren = category.child || [];
+            categoryChildren.forEach((child) => {
                 if (child.id_link) {
-                    allChildren.push({ child, parentName: category.name });
+                    allItems.push({ child, parentName: category.name });
                 }
             });
         });
-        return allChildren;
+        
+        return allItems;
     }, [items]);
 
     // Handle page change dengan scroll to top
@@ -80,7 +104,7 @@ const CategorySelectionDetail = () => {
             {getMasterCategoryName()} - {vehicleData.data_vin.vin_number} - EPC
         </Helmet>
 
-        <div className="min-h-screen bg-gray-50">
+        <div className="bg-gray-50">
             {/* Header */}
             <div className="bg-white border-b border-gray-200 shadow-sm border-b rounded-2xl">
                 <div className="px-8 py-4">
@@ -102,7 +126,14 @@ const CategorySelectionDetail = () => {
                 <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
                     {/* Navigation Sidebar */}
                     <div className="md:col-span-2 flex-shrink-0 md:sticky top-0 self-start font-secondary">
-                        <NavigationAccordion items={navItems} loading={navLoading} />
+                        <NavigationAccordion 
+                            items={navItems} 
+                            loading={navLoading}
+                            dokumenIds={dokumenIds}
+                            vinId={vinId}
+                            categorySlug={categorySlug}
+                            masterCategoryId={masterCategoryId}
+                        />
                     </div>
 
                     {/* Content Area */}
@@ -110,15 +141,22 @@ const CategorySelectionDetail = () => {
                         {childItems.length === 0 && !loading ? (
                             <EmptyState title="No parts found" description="Try adjusting your search or filters" />
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {childItems.map(({ child, parentName }) => (
-                                    <CategoryCard
-                                        key={child.id_link}
-                                        item={child}
-                                        parentName={parentName}
-                                        linkTo={`/vin/${vinId}/${categorySlug}/${masterCategoryId}/${child.id_link}`}
-                                    />
-                                ))}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {childItems.map(({ child, parentName }) => {
+                                    // Construct linkTo dengan dokumen_ids parameter
+                                    const detailCatalogueLink = dokumenIdsParam 
+                                        ? `/vin/${vinId}/${categorySlug}/${masterCategoryId}/${child.id_link}?dokumen_ids=${encodeURIComponent(dokumenIdsParam)}`
+                                        : `/vin/${vinId}/${categorySlug}/${masterCategoryId}/${child.id_link}`;
+                                    
+                                    return (
+                                        <CategoryCard
+                                            key={child.id_link}
+                                            item={child}
+                                            parentName={parentName}
+                                            linkTo={detailCatalogueLink}
+                                        />
+                                    );
+                                })}
                             </div>
                         )}
 

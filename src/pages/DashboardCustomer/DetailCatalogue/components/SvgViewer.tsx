@@ -10,9 +10,6 @@ interface SvgViewerProps {
     onPartSelect: (targetId: string, source: 'table' | 'svg') => void;
 }
 
-/**
- * Komponen untuk menampilkan dan berinteraksi dengan SVG diagram
- */
 export const SvgViewer = ({
     svgContent,
     svgLoading,
@@ -20,6 +17,8 @@ export const SvgViewer = ({
     onPartSelect,
 }: SvgViewerProps) => {
     const svgWrapperRef = useRef<HTMLDivElement>(null);
+    const justFinishedDragRef = useRef(false);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Track timeout for cleanup
 
     const {
         zoom,
@@ -48,26 +47,29 @@ export const SvgViewer = ({
 
     // Tambah highlight ke part yang dipilih
     const addHighlight = useCallback((targetId: string) => {
+        const svgElement = svgWrapperRef.current?.querySelector('svg');
         const group = svgWrapperRef.current?.querySelector<SVGGElement>(`g#${targetId}`);
-        if (!group) return;
+        if (!group || !svgElement) return;
 
         try {
             const bbox = group.getBBox();
             const cx = bbox.x + bbox.width / 2;
             const cy = bbox.y + bbox.height / 2;
-            const r = Math.max(bbox.width, bbox.height) / 0.7; // Perbesar dari 0.9 ke 0.7
+            const r = Math.max(bbox.width, bbox.height) / 0.7;
 
             const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             circle.setAttribute('class', 'highlight-circle');
             circle.setAttribute('cx', String(cx));
             circle.setAttribute('cy', String(cy));
             circle.setAttribute('r', String(r));
-            circle.setAttribute('fill', 'rgba(255, 200, 0, 0.3)'); // Kurangi opacity sedikit
-            circle.setAttribute('stroke', 'rgba(255, 200, 0, 0.9)'); // Stroke lebih solid
-            circle.setAttribute('stroke-width', '4'); // Perbesar dari 2 ke 4
+            circle.setAttribute('fill', 'rgba(255, 200, 0, 0.3)');
+            circle.setAttribute('stroke', 'rgba(255, 200, 0, 0.9)');
+            circle.setAttribute('stroke-width', '4');
             circle.style.pointerEvents = 'none';
-
-            group.insertBefore(circle, group.firstChild);
+            // Remove CSS properties that don't work in SVG
+            
+            // Append ke SVG root sebagai last child untuk layering yang tepat
+            svgElement.appendChild(circle);
         } catch (error) {
             console.error('Error creating highlight:', error);
         }
@@ -81,47 +83,57 @@ export const SvgViewer = ({
         }
     }, [selected, clearHighlights, addHighlight]);
 
-    // Setup hover effects dan clickable areas
+    // Stable event handlers to prevent re-creation
+    const stableHandleMouseEnter = useCallback((event: Event) => {
+        if (isDragging || justFinishedDragRef.current) return;
+        
+        const group = event.currentTarget as SVGGElement;
+        group.style.cursor = 'pointer';
+        group.style.opacity = '0.8';
+        group.style.filter = 'brightness(1.1)';
+
+        const clickArea = group.querySelector('rect.click-area');
+        if (clickArea) {
+            clickArea.setAttribute('stroke', 'rgba(59, 130, 246, 0.7)');
+            clickArea.setAttribute('stroke-width', '2');
+            clickArea.setAttribute('stroke-dasharray', '4');
+            clickArea.setAttribute('fill', 'rgba(59, 130, 246, 0.15)');
+        }
+    }, [isDragging]);
+
+    const stableHandleMouseLeave = useCallback((event: Event) => {
+        if (justFinishedDragRef.current) return;
+        
+        const group = event.currentTarget as SVGGElement;
+        group.style.opacity = '1';
+        group.style.filter = 'none';
+        if (!isDragging) {
+            group.style.cursor = 'pointer';
+        }
+
+        const clickArea = group.querySelector('rect.click-area');
+        if (clickArea) {
+            clickArea.setAttribute('stroke', 'none');
+            clickArea.setAttribute('fill', 'transparent');
+        }
+    }, [isDragging]);
+
+    // Setup SVG basic styles - separate from interaction setup
     useEffect(() => {
         if (!svgContent || !svgWrapperRef.current) return;
 
-        // Tambahkan class ke SVG element untuk styling yang tepat
         const svgElement = svgWrapperRef.current.querySelector('svg');
         if (svgElement) {
             svgElement.classList.add('w-full', 'h-auto');
             svgElement.style.userSelect = 'none';
         }
+    }, [svgContent]);
+
+    // Setup clickable areas dan event listeners
+    useEffect(() => {
+        if (!svgContent || !svgWrapperRef.current) return;
         
-        // Ambil groups dengan pattern T untuk clickable areas
         const groups = svgWrapperRef.current.querySelectorAll<SVGGElement>("g[id^='T']");
-
-        const handleMouseEnter = (event: Event) => {
-            const group = event.currentTarget as SVGGElement;
-            group.style.width = '20px';
-            group.style.cursor = 'pointer';
-            group.style.opacity = '0.8';
-            group.style.filter = 'brightness(1.1)';
-
-            const clickArea = group.querySelector('rect.click-area');
-            if (clickArea) {
-                clickArea.setAttribute('stroke', 'rgba(59, 130, 246, 0.7)');
-                clickArea.setAttribute('stroke-width', '6');
-                clickArea.setAttribute('stroke-dasharray', '8,4');
-                clickArea.setAttribute('fill', 'rgba(59, 130, 246, 0.15)');
-            }
-        };
-
-        const handleMouseLeave = (event: Event) => {
-            const group = event.currentTarget as SVGGElement;
-            group.style.opacity = '1';
-            group.style.filter = 'none';
-
-            const clickArea = group.querySelector('rect.click-area');
-            if (clickArea) {
-                clickArea.setAttribute('stroke', 'none');
-                clickArea.setAttribute('fill', 'transparent');
-            }
-        };
 
         groups.forEach((group) => {
             group.style.pointerEvents = 'all';
@@ -135,7 +147,7 @@ export const SvgViewer = ({
                 if (existing) existing.remove();
 
                 const bbox = group.getBBox();
-                const padding = 40; // Tingkatkan dari 25 ke 40 untuk area click yang lebih besar
+                const padding = 15; // Kurangi dari 40 ke 25 untuk ukuran hover yang lebih wajar
 
                 const clickArea = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                 clickArea.setAttribute('class', 'click-area');
@@ -153,19 +165,19 @@ export const SvgViewer = ({
                 // Ignore getBBox errors silently
             }
 
-            group.addEventListener('mouseenter', handleMouseEnter);
-            group.addEventListener('mouseleave', handleMouseLeave);
+            group.addEventListener('mouseenter', stableHandleMouseEnter);
+            group.addEventListener('mouseleave', stableHandleMouseLeave);
         });
 
         return () => {
             groups.forEach((group) => {
                 const clickArea = group.querySelector('rect.click-area');
                 if (clickArea) clickArea.remove();
-                group.removeEventListener('mouseenter', handleMouseEnter);
-                group.removeEventListener('mouseleave', handleMouseLeave);
+                group.removeEventListener('mouseenter', stableHandleMouseEnter);
+                group.removeEventListener('mouseleave', stableHandleMouseLeave);
             });
         };
-    }, [svgContent]);
+    }, [svgContent, stableHandleMouseEnter, stableHandleMouseLeave]); // Fixed dependencies
 
     // Global mouse events untuk panning (seperti di Dashboard.tsx)
     useEffect(() => {
@@ -183,9 +195,22 @@ export const SvgViewer = ({
 
         const handleGlobalMouseUp = () => {
             setIsDragging(false);
+            justFinishedDragRef.current = true;
+            
             setTimeout(() => {
                 setIsDragOccurred(false);
-            }, 50);
+            }, 10);
+            
+            // Clear previous timeout untuk mencegah race conditions
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+            
+            // Set new timeout dengan proper cleanup
+            timeoutRef.current = setTimeout(() => {
+                justFinishedDragRef.current = false;
+                timeoutRef.current = null;
+            }, 100);
         };
 
         if (isDragging) {
@@ -197,7 +222,16 @@ export const SvgViewer = ({
             document.removeEventListener('mousemove', handleGlobalMouseMove);
             document.removeEventListener('mouseup', handleGlobalMouseUp);
         };
-    }, [isDragging, dragStart]); // Hapus dependencies yang menyebabkan re-render berulang
+    }, [isDragging, dragStart]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     // Handle mouseup untuk detect click vs drag
     const handleSvgMouseUp = (e: React.MouseEvent) => {
@@ -231,7 +265,7 @@ export const SvgViewer = ({
     };
 
     return (
-        <div className="bg-white md:col-span-4 relative overflow-hidden" style={{ height: '700px' }}>
+        <div className="bg-white md:col-span-4 relative overflow-hidden" style={{ height: '630px' }}>
             {/* Zoom Controls */}
             <div className="absolute top-4 right-4 z-10 flex flex-col gap-2 bg-white rounded-lg shadow-lg p-2 opacity-70 hover:opacity-100 transition duration-300">
                 <button

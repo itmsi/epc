@@ -11,7 +11,7 @@ export const DetailCatalogueHeader = ({ header }: DetailCatalogueHeaderProps) =>
     if (!header) return null;
 
     return (
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 my-4">
             <div className="flex justify-between items-center">
                 <div>
                     <h3 className="text-lg leading-6 font-primary-bold text-gray-900">

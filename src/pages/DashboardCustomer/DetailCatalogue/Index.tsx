@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { LoadingSpinner } from '@/components/common/Loading';
 import { useDetailCatalogue } from './hooks/useDetailCatalogue';
 import { SvgViewer, PartsTable, DetailCatalogueHeader } from './components';
@@ -16,6 +16,14 @@ export default function DetailCatalogView() {
         masterCategoryId: string;
         id_link: string;
     }>();
+    
+    const [searchParams] = useSearchParams();
+    
+    // Extract dokumen_ids from query parameters untuk breadcrumb navigation
+    const dokumenIdsParam = searchParams.get('dokumen_ids');
+    const categorySelectionPath = dokumenIdsParam 
+        ? `/vin/${vinId}/${categorySlug}/${masterCategoryId}?dokumen_ids=${encodeURIComponent(dokumenIdsParam)}`
+        : `/vin/${vinId}/${categorySlug}/${masterCategoryId}`;
     
     const { header, items, loading, error, svgContent, svgLoading } = useDetailCatalogue();
     const [selected, setSelected] = useState<string | null>(null);
@@ -87,7 +95,7 @@ export default function DetailCatalogView() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="bg-gray-50">
             {/* Header */}
             <div className="bg-white border-b border-gray-200 shadow-sm border-b rounded-2xl">
                 <div className="px-8 py-4">
@@ -97,7 +105,7 @@ export default function DetailCatalogView() {
                             items={[
                                 { label: 'Home', path: '/' },
                                 ...(vinId ? [{ label: `VIN: ${vinId}`, path: `/vin/${vinId}` }] : []),
-                                ...(categorySlug ? [{ label: categorySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), path: `/vin/${vinId}/${categorySlug}/${masterCategoryId}` }] : []),
+                                ...(categorySlug ? [{ label: categorySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), path: categorySelectionPath }] : []),
                                 { label: getCategoryName() },
                             ]}
                         />

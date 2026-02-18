@@ -6,10 +6,30 @@ import { CategoryItem, CategoryChildItem } from '../types/categorySelection';
 interface NavigationAccordionProps {
     items: CategoryItem[];
     loading?: boolean;
+    dokumenIds?: string[];
+    vinId?: string;
+    categorySlug?: string;
+    masterCategoryId?: string;
 }
 
-const NavigationAccordion: React.FC<NavigationAccordionProps> = ({ items, loading }) => {
-    const { vinId, categorySlug, masterCategoryId } = useParams();
+const NavigationAccordion: React.FC<NavigationAccordionProps> = ({ 
+    items, 
+    loading, 
+    dokumenIds,
+    vinId,
+    categorySlug,
+    masterCategoryId 
+}) => {
+    const params = useParams();
+    // Use passed params or fallback to URL params
+    const finalVinId = vinId || params.vinId;
+    const finalCategorySlug = categorySlug || params.categorySlug;
+    const finalMasterCategoryId = masterCategoryId || params.masterCategoryId;
+    
+    // Generate dokumen_ids query parameter
+    const dokumenIdsParam = dokumenIds && dokumenIds.length > 0 
+        ? `?dokumen_ids=${encodeURIComponent(dokumenIds.join(','))}`
+        : '';
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -20,22 +40,25 @@ const NavigationAccordion: React.FC<NavigationAccordionProps> = ({ items, loadin
         const query = searchQuery.toLowerCase();
         return items
             .map((category) => {
+                // Pastikan category memiliki child array
+                const categoryChildren = category.child || [];
+                
                 // Filter children yang match
-                const matchedChildren = category.child.filter(
+                const matchedChildren = categoryChildren.filter(
                     (child) =>
                         child.name.toLowerCase().includes(query) ||
                         child.name_cn?.toLowerCase().includes(query)
                 );
 
-                // Return category jika nama category match atau ada children yang match
                 if (
                     category.name.toLowerCase().includes(query) ||
                     category.name_cn?.toLowerCase().includes(query) ||
+                    category.id_link || // Category dengan id_link selalu ditampilkan
                     matchedChildren.length > 0
                 ) {
                     return {
                         ...category,
-                        child: matchedChildren.length > 0 ? matchedChildren : category.child,
+                        child: matchedChildren.length > 0 ? matchedChildren : categoryChildren,
                     };
                 }
                 return null;
@@ -70,11 +93,11 @@ const NavigationAccordion: React.FC<NavigationAccordionProps> = ({ items, loadin
         return (
             <Link
                 key={child.id}
-                to={`/vin/${vinId}/${categorySlug}/${masterCategoryId}/${child.id_link}`}
-                className="flex items-center gap-2 px-4 py-2 pl-10 text-sm text-gray-600 hover:bg-brand-50 hover:text-brand-600 transition-colors rounded-md"
+                to={`/vin/${finalVinId}/${finalCategorySlug}/${finalMasterCategoryId}/${child.id_link}${dokumenIdsParam}`}
+                className="flex items-center gap-2 px-4 py-2 pl-10 text-sm text-gray-600 hover:bg-brand-50 hover:text-[#0253a5] transition-colors rounded-md"
             >
                 <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                <span className="truncate flex-1">{child.name}</span>
+                <span className="flex-1">{child.name}</span>
             </Link>
         );
     };
@@ -124,32 +147,66 @@ const NavigationAccordion: React.FC<NavigationAccordionProps> = ({ items, loadin
                 ) : (
                     filteredItems.map((category) => {
                         const isExpanded = expandedItems.has(category.id);
-                        const childrenWithLink = category.child.filter((c) => c.id_link);
+                        const categoryChildren = category.child || [];
+                        const childrenWithLink = categoryChildren.filter((c) => c.id_link);
+                        const hasCategoryLink = !!category.id_link;
+                        const hasChildrenWithLink = childrenWithLink.length > 0;
 
                         return (
                             <div key={category.id} className="mb-1">
                                 {/* Parent Item */}
-                                <button
-                                    onClick={() => toggleExpand(category.id)}
-                                    className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
-                                >
-                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                        <span className="text-sm font-semibold text-gray-900 truncate">
-                                            {category.name}
-                                        </span>
-                                        <span className="text-xs text-gray-400 flex-shrink-0">
-                                            ({childrenWithLink.length})
-                                        </span>
+                                {hasCategoryLink ? (
+                                    // Kategori dengan id_link - render sebagai Link langsung
+                                    <Link
+                                        to={`/vin/${finalVinId}/${finalCategorySlug}/${finalMasterCategoryId}/${category.id_link}${dokumenIdsParam}`}
+                                        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-brand-50 hover:text-brand-600 rounded-lg transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                            <span className="text-sm font-semibold">
+                                                {category.name}
+                                            </span>
+                                            {/* <span className="text-xs text-brand-400 flex-shrink-0">
+                                                (Link)
+                                            </span> */}
+                                        </div>
+                                        <MdChevronRight className="w-5 h-5 text-brand-400 flex-shrink-0" />
+                                    </Link>
+                                ) : hasChildrenWithLink ? (
+                                    // Kategori tanpa id_link tapi ada children - render sebagai accordion
+                                    <button
+                                        onClick={() => toggleExpand(category.id)}
+                                        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                            <span className="text-sm font-semibold text-gray-900">
+                                                {category.name}
+                                            </span>
+                                            <span className="text-xs text-gray-400 flex-shrink-0">
+                                                ({childrenWithLink.length})
+                                            </span>
+                                        </div>
+                                        {isExpanded ? (
+                                            <MdExpandMore className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                        ) : (
+                                            <MdChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                        )}
+                                    </button>
+                                ) : (
+                                    // Kategori tanpa id_link dan tanpa children - render sebagai disabled
+                                    <div className="w-full flex items-center justify-between px-4 py-3 text-left opacity-50 cursor-not-allowed rounded-lg">
+                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                            <span className="text-sm font-semibold text-gray-500">
+                                                {category.name}
+                                            </span>
+                                            <span className="text-xs text-gray-400 flex-shrink-0">
+                                                (No content)
+                                            </span>
+                                        </div>
                                     </div>
-                                    {isExpanded ? (
-                                        <MdExpandMore className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                                    ) : (
-                                        <MdChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                                    )}
-                                </button>
+                                )}
 
-                                {/* Children Items */}
-                                {isExpanded && childrenWithLink.length > 0 && (
+                                {/* Children Items - hanya untuk kategori tanpa id_link */}
+                                {!hasCategoryLink && isExpanded && hasChildrenWithLink && (
                                     <div className="ml-2 mb-2">
                                         {childrenWithLink.map((child) =>
                                             renderChildItem(child)

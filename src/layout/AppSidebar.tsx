@@ -278,7 +278,7 @@ const AppSidebar: React.FC = () => {
 
         setOpenSubmenu(bestMatch);
         setOpenNestedSubmenu(bestNestedKey);
-    }, [location.pathname]);
+    }, [location.pathname, isSubActive, authMenu]);
     
     const handleSubmenuToggle = (menuType: 'main' | 'others', nav: NavItem) => {
         const key = buildNavKey(menuType, nav);
