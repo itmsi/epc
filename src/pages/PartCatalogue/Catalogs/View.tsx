@@ -59,7 +59,7 @@ export default function ViewCatalog() {
             
             if (response.success) {
                 setCatalogData(response.data);
-                setTotalRows(response.data?.items?.length || 0);
+                setTotalRows(response.data?.pagination?.total || response.data?.items?.length || 0);
             } else {
                 setError(response.message || 'Failed to fetch catalog data');
             }
@@ -70,7 +70,7 @@ export default function ViewCatalog() {
             setLoadingCatalog(false);
         }
     };
-    
+
     // Fetch items with search/sort/pagination (only items, not document info)
     const fetchCatalogItems = async (searchParams?: {
         search?: string;
