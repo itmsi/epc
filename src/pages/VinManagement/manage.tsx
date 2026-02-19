@@ -3,11 +3,11 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { TableColumn } from 'react-data-table-component';
-// import { MdSearch, MdClear } from 'react-icons/md';
 import { VinSearchService, VinManagementItem } from '@/services/vinSearchService';
 import CustomDataTable from '@/components/ui/table/CustomDataTable';
-// import Input from '@/components/form/input/InputField';
-// import CustomSelect from '@/components/form/select/CustomSelect';
+import { MdSearch, MdClear } from 'react-icons/md';
+import Input from '@/components/form/input/InputField';
+import CustomSelect from '@/components/form/select/CustomSelect';
 
 const VinManagement = () => {
     const navigate = useNavigate();
@@ -15,11 +15,9 @@ const VinManagement = () => {
     // State
     const [vinData, setVinData] = useState<VinManagementItem[]>([]);
     const [loading, setLoading] = useState(false);
-    // const [searchTerm, setSearchTerm] = useState('');
-    const [searchTerm] = useState('');
-    // const [searchInput, setSearchInput] = useState('');
-    // const [vinStatusFilter, setVinStatusFilter] = useState('');
-    const [vinStatusFilter] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchInput, setSearchInput] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
     const [sortOrder] = useState<'asc' | 'desc'>('desc');
     
     // Pagination state
@@ -69,7 +67,7 @@ const VinManagement = () => {
                 limit: pagination.limit,
                 sort_by: 'created_at',
                 sort_order: sortOrder,
-                vin_status: vinStatusFilter || undefined,
+                status: statusFilter || undefined,
             });
 
             if (response.data.success) {
@@ -88,7 +86,7 @@ const VinManagement = () => {
         } finally {
             setLoading(false);
         }
-    }, [getCustomerId, searchTerm, vinStatusFilter, pagination.page, pagination.limit, sortOrder]);
+    }, [getCustomerId, searchTerm, statusFilter, pagination.page, pagination.limit, sortOrder]);
 
     // Initial load
     useEffect(() => {
@@ -104,21 +102,21 @@ const VinManagement = () => {
         setPagination(prev => ({ ...prev, limit: newPerPage, page: 1 }));
     };
 
-    // const handleSearch = () => {
-    //     setSearchTerm(searchInput);
-    //     setPagination(prev => ({ ...prev, page: 1 }));
-    // };
+    const handleSearch = () => {
+        setSearchTerm(searchInput);
+        setPagination(prev => ({ ...prev, page: 1 }));
+    };
 
-    // const handleClearSearch = () => {
-    //     setSearchInput('');
-    //     setSearchTerm('');
-    //     setVinStatusFilter('');
-    //     setPagination(prev => ({ ...prev, page: 1 }));
-    // };
+    const handleClearSearch = () => {
+        setSearchInput('');
+        setSearchTerm('');
+        setStatusFilter('');
+        setPagination(prev => ({ ...prev, page: 1 }));
+    };
 
-    // const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    //     if (e.key === 'Enter') handleSearch();
-    // };
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') handleSearch();
+    };
 
     // Handle view details - show coming soon
     const handleViewDetails = (productId: string, e: React.MouseEvent) => {
@@ -194,6 +192,28 @@ const VinManagement = () => {
                 maxWidth: '80px',
             },
             {
+                name: 'Status',
+                selector: (row) => row.status || '',
+                cell: (row) => {
+                    const status = row.status?.toLowerCase();
+                    const styleMap: Record<string, string> = {
+                        active: 'bg-green-100 text-green-700',
+                        inactive: 'bg-red-100 text-red-600',
+                    };
+                    const style = styleMap[status ?? ''] ?? 'bg-gray-100 text-gray-500';
+                    const label = row.status
+                        ? row.status.charAt(0).toUpperCase() + row.status.slice(1)
+                        : '-';
+                    return (
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${style}`}>
+                            {label}
+                        </span>
+                    );
+                },
+                center: true,
+                maxWidth: '110px',
+            },
+            {
                 name: 'Updated By',
                 selector: (row) => row.updated_at,
                 sortable: false,
@@ -259,7 +279,7 @@ const VinManagement = () => {
                 </div>
 
                 {/* Search & Filter */}
-                {/* <div className="px-6 py-4 border-b border-gray-200">
+                <div className="px-6 py-4 border-b border-gray-200">
                     <div className="flex gap-3 items-center">
                         <div className="relative flex-1">
                             <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -287,9 +307,9 @@ const VinManagement = () => {
                                     { value: 'active', label: 'Active' },
                                     { value: 'inactive', label: 'Inactive' },
                                 ]}
-                                value={vinStatusFilter ? { value: vinStatusFilter, label: vinStatusFilter.charAt(0).toUpperCase() + vinStatusFilter.slice(1) } : null}
+                                value={statusFilter ? { value: statusFilter, label: statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1) } : null}
                                 onChange={(opt) => {
-                                    setVinStatusFilter(opt?.value || '');
+                                    setStatusFilter(opt?.value || '');
                                     setPagination(prev => ({ ...prev, page: 1 }));
                                 }}
                                 placeholder="Status"
@@ -298,7 +318,7 @@ const VinManagement = () => {
                             />
                         </div>
                     </div>
-                </div> */}
+                </div>
 
                 {/* Data Table */}
                 <div className="p-6 font-secondary">
