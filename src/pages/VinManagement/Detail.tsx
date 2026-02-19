@@ -7,7 +7,7 @@ import Button from '@/components/ui/button/Button';
 import Input from '@/components/form/input/InputField';
 import Label from '@/components/form/Label';
 import TextArea from '@/components/form/input/TextArea';
-// import CustomSelect from '@/components/form/select/CustomSelect';
+import CustomSelect from '@/components/form/select/CustomSelect';
 import {
     VinSearchService,
     VinDetailMaintenanceResponse,
@@ -28,7 +28,7 @@ const VinManagementDetail = () => {
     // Edit Body Number State
     const [isEditingBodyNo, setIsEditingBodyNo] = useState(false);
     const [tempBodyNo, setTempBodyNo] = useState('');
-    // const [tempVinStatus, setTempVinStatus] = useState('');
+    const [tempStatus, setTempStatus] = useState('');
 
     // Get customer ID from localStorage
     const getCustomerId = (): string | null => {
@@ -142,7 +142,7 @@ const VinManagementDetail = () => {
     // Edit Body Number Handlers
     const handleEditBodyNo = () => {
         setTempBodyNo(vinResponse?.data.body_number || '');
-        // setTempVinStatus(vinResponse?.data.vin_status || '');
+        setTempStatus(vinResponse?.data.status || '');
         setIsEditingBodyNo(true);
     };
 
@@ -150,8 +150,8 @@ const VinManagementDetail = () => {
         if (!vinResponse) return;
         try {
             const res = await VinSearchService.updateVinBodyNumber(vinResponse.data.product_id, 
-                tempBodyNo
-                // , tempVinStatus
+                tempBodyNo,
+                tempStatus
             );
             if (res.data.success) {
                 toast.success(res.data.message || 'Updated successfully');
@@ -159,7 +159,7 @@ const VinManagementDetail = () => {
                     ...prev,
                     data: { ...prev.data, 
                         body_number: tempBodyNo,
-                        // vin_status: tempVinStatus 
+                        status: tempStatus 
                     }
                 } : null);
                 setIsEditingBodyNo(false);
@@ -322,7 +322,7 @@ const VinManagementDetail = () => {
                                         placeholder={isEditingBodyNo ? 'Enter body number' : '-'}
                                     />
                                 </div>
-                                {/* <div>
+                                <div>
                                     <Label>Status</Label>
                                     <CustomSelect
                                         options={[
@@ -330,17 +330,17 @@ const VinManagementDetail = () => {
                                             { value: 'inactive', label: 'Inactive' },
                                         ]}
                                         value={(() => {
-                                            const val = isEditingBodyNo ? tempVinStatus : (vinData.vin_status || '');
+                                            const val = isEditingBodyNo ? tempStatus : (vinData.status || '');
                                             if (!val) return null;
                                             return { value: val, label: val.charAt(0).toUpperCase() + val.slice(1) };
                                         })()}
-                                        onChange={(opt) => setTempVinStatus(opt?.value || '')}
+                                        onChange={(opt) => setTempStatus(opt?.value || '')}
                                         isSearchable={false}
                                         isClearable={false}
                                         disabled={!isEditingBodyNo}
                                         placeholder="-- Select Status --"
                                     />
-                                </div> */}
+                                </div> 
                             </div>
 
                             {/* Product Description */}
