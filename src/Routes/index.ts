@@ -21,6 +21,15 @@ const ViewMasterCategoryPartCatalogue = lazy(() => import('@/pages/PartCatalogue
 const CategoryCatalogue = lazy(() => import('@/pages/PartCatalogue/Category/Manage'));
 const CreateCategoryCatalogue = lazy(() => import('@/pages/PartCatalogue/Category/Create'));
 const ViewCategoryCatalogue = lazy(() => import('@/pages/PartCatalogue/Category/View'));
+const VinIdentifierCustomer = lazy(() => import('@/pages/PartCatalogue/VinCustomerVehicle/Manage'));
+const VinIdentifierCustomerCreate = lazy(() => import('@/pages/PartCatalogue/VinCustomerVehicle/Create'));
+const VinIdentifierCustomerView = lazy(() => import('@/pages/PartCatalogue/VinCustomerVehicle/View'));
+const SearchVin = lazy(() => import('@/pages/SearchVin'));
+const VinManagement = lazy(() => import('@/pages/VinManagement/manage'));
+const VinManagementDetail = lazy(() => import('@/pages/VinManagement/Detail'));
+const VinDetail = lazy(() => import('@/pages/VinDetail'));
+const CategorySelectionDetail = lazy(() => import('@/pages/DashboardCustomer/CategorySelection/Detail'));
+const DetailCatalogView = lazy(() => import('@/pages/DashboardCustomer/DetailCatalogue/Index'));
 // PowerBiForm is imported by Create and Edit components, no need to add here
 
 export type TAppRoute = {
@@ -195,6 +204,71 @@ export const routes: TAppRoute[] = [
         isProtected: true,
         roles: ['Category Catalogs'],
         component: ViewCategoryCatalogue,
+        layout: AppLayout,
+    },
+    {
+        path: '/epc/vehicle-identification',
+        name: 'Manage Vin Customer',
+        isProtected: true,
+        roles: ['Manage Vin Customer'],
+        component: VinIdentifierCustomer,
+        layout: AppLayout,
+    },
+    {
+        path: '/epc/vehicle-identification/create',
+        name: 'Manage Vin Customer',
+        isProtected: true,
+        roles: ['Manage Vin Customer'],
+        component: VinIdentifierCustomerCreate,
+        layout: AppLayout,
+    },
+    {
+        path: '/epc/vehicle-identification/view/:customerId',
+        name: 'Manage Vin Customer',
+        isProtected: true,
+        roles: ['Manage Vin Customer'],
+        component: VinIdentifierCustomerView,
+    },
+    {
+        path: '/search-vin',
+        name: 'Search VIN',
+        isProtected: false,
+        component: SearchVin,
+        layout: AppLayout,
+    },
+    {
+        path: '/vin/:vinId/:categorySlug/:masterCategoryId',
+        name: 'Category Selection Detail',
+        isProtected: false,
+        component: CategorySelectionDetail,
+        layout: AppLayout,
+    },
+    {
+        path: '/vin-management/manage',
+        name: 'VIN Management',
+        isProtected: false,
+        component: VinManagement,
+        layout: AppLayout,
+    },
+    {
+        path: '/vin-management/detail/:productId',
+        name: 'VIN Detail',
+        isProtected: false,
+        component: VinManagementDetail,
+        layout: AppLayout,
+    },
+    {
+        path: '/vin/:vinId',
+        name: 'VIN Detail',
+        isProtected: false,
+        component: VinDetail,
+        layout: AppLayout,
+    },
+    {
+        path: '/vin/:vinId/:categorySlug/:masterCategoryId/:id_link',
+        name: 'VIN Detail',
+        isProtected: false,
+        component: DetailCatalogView,
         layout: AppLayout,
     },
 ];

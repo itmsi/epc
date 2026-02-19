@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { GrLineChart } from "react-icons/gr";
+import { FiSearch } from "react-icons/fi";
+import { MdTableChart } from "react-icons/md";
 
 // Assume these icons are imported from an icon library
 import {
@@ -14,21 +16,22 @@ import {
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "@/hooks/useAuth";
 import GridShape from "@/components/common/GridShape";
+type SubNavItem = {
+    name: string;
+    path?: string;
+    icon?: React.ReactNode;
+    pro?: boolean;
+    new?: boolean;
+    allowedRoles?: string[];
+    subItems?: SubNavItem[];
+};
 
 type NavItem = {
     name: string;
-    icon: React.ReactNode;
+    icon?: React.ReactNode;
     path?: string;
     allowedRoles?: string[];
-    subItems?: {
-        name: string;
-        path: string;
-        icon?: React.ReactNode;
-        pro?: boolean;
-        new?: boolean;
-        allowedRoles?: string[];
-    }[];
-    
+    subItems?: SubNavItem[];
 };
 
 const navItems: NavItem[] = [
@@ -49,6 +52,18 @@ const navItems: NavItem[] = [
         ],
     },
     {
+        name: "Search VIN",
+        icon: <FiSearch />,
+        path: "/search-vin",
+    },
+    {
+        name: "VIN Management",
+        icon: <MdTableChart />,
+        subItems: [
+            { name: "Manage", path: "/vin-management/manage" },
+        ],
+    },
+    {
         name: "EPC",
         icon: <GrLineChart />,
         allowedRoles: ['Dashboard Catalogs', 'Cabin Catalogs', 'Engine Catalogs', 'Axle Catalogs', 'Transmission Catalogs', 'Steering Catalogs'],
@@ -57,6 +72,7 @@ const navItems: NavItem[] = [
             { name: "VIN", path: "/epc/vins", allowedRoles: ['Vin Catalogs'] },
             { name: "Catalog", path: "/epc/manage", allowedRoles: ['Manage Catalogs'] },
             { name: "Category", path: "/epc/category", allowedRoles: ['Manage Catalogs'] },
+            { name: "VIN Customer Vehicle", path: "/epc/vehicle-identification", allowedRoles: ['Manage Vin Customer'] },
         ],
     },
 ];
@@ -139,6 +155,7 @@ const AppSidebar: React.FC = () => {
 
     type OpenState = { type: 'main' | 'others'; key: string } | null;
     const [openSubmenu, setOpenSubmenu] = useState<OpenState>(null);
+    const [openNestedSubmenu, setOpenNestedSubmenu] = useState<string | null>(null);
 
     const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -147,23 +164,47 @@ const AppSidebar: React.FC = () => {
     };
 
     const mainFiltered = useMemo(
-        () => navItems.filter((item) => {
-            if (!authMenu || authMenu.length === 0) {
-                return true;
+        () => {
+            // Get current user from localStorage to check is_customer
+            const authUserStr = localStorage.getItem('auth_user');
+            let isCustomer = false;
+            
+            if (authUserStr) {
+                try {
+                    const authUser = JSON.parse(authUserStr);
+                    isCustomer = authUser.is_customer === true;
+                } catch (error) {
+                    console.error('Error parsing auth_user:', error);
+                }
             }
-            if (!item.allowedRoles || item.allowedRoles.length === 0) {
-                return true;
-            }
-            return item.allowedRoles.some(name => allowedMenuNames.includes(name));
-        }),
+            
+            return navItems.filter((item) => {
+                // Special handling for Search VIN and VIN Management menus - only show to customers
+                if (item.name === "Search VIN" || item.name === "VIN Management") {
+                    return isCustomer;
+                }
+                
+                // Jika authMenu belum diload (null/undefined), tampilkan semua
+                if (!authMenu) {
+                    return true;
+                }
+                // Jika item tidak punya allowedRoles, tampilkan
+                if (!item.allowedRoles || item.allowedRoles.length === 0) {
+                    return true;
+                }
+                return item.allowedRoles.some(name => allowedMenuNames.includes(name));
+            });
+        },
         [allowedMenuNames, authMenu]
     );
 
     const othersFiltered = useMemo(
         () => othersItems.filter((item) => {
-            if (!authMenu || authMenu.length === 0) {
+            // Jika authMenu belum diload (null/undefined), tampilkan semua
+            if (!authMenu) {
                 return true;
             }
+            // Jika item tidak punya allowedRoles, tampilkan
             if (!item.allowedRoles || item.allowedRoles.length === 0) {
                 return true;
             }
@@ -174,12 +215,10 @@ const AppSidebar: React.FC = () => {
 
     const isActive = useCallback(
         (path: string) => {
-            // Exact match untuk root paths
             if (path === location.pathname) {
                 return true;
             }
             
-            // Check if current path starts with the path (untuk nested routes)
             const normalizedPath = path.endsWith('/') ? path : path + '/';
             const normalizedCurrentPath = location.pathname.endsWith('/') ? location.pathname : location.pathname + '/';
             
@@ -189,13 +228,9 @@ const AppSidebar: React.FC = () => {
     );
 
     const isSubActive = useCallback((subPath: string) => {
-        // Exact match untuk root paths
         if (subPath === location.pathname) {
             return true;
         }
-        
-        // Check if current path starts with the sub path (untuk nested routes)
-        // Tambahkan trailing slash untuk menghindari partial match yang salah
         const normalizedSubPath = subPath.endsWith('/') ? subPath : subPath + '/';
         const normalizedCurrentPath = location.pathname.endsWith('/') ? location.pathname : location.pathname + '/';
         
@@ -205,17 +240,36 @@ const AppSidebar: React.FC = () => {
     useEffect(() => {
         let bestMatch: OpenState = null;
         let bestLength = -1;
+        let bestNestedKey: string | null = null;
 
         const checkItems = (items: NavItem[], type: 'main' | 'others') => {
             items.forEach((nav) => {
-                const matches = nav.subItems?.filter((sub) => isSubActive(sub.path)) ?? [];
+                // Check level 2 items
+                const matches = nav.subItems?.filter((sub) => sub.path && isSubActive(sub.path)) ?? [];
                 if (matches.length) {
-                    const longest = matches.reduce((a, b) => (a.path.length >= b.path.length ? a : b));
-                    if (longest.path.length > bestLength) {
+                    const longest = matches.reduce((a, b) => ((a.path?.length || 0) >= (b.path?.length || 0) ? a : b));
+                    if (longest.path && longest.path.length > bestLength) {
                         bestLength = longest.path.length;
                         bestMatch = { type, key: buildNavKey(type, nav) };
+                        bestNestedKey = null;
                     }
                 }
+
+                // Check level 3 nested items
+                nav.subItems?.forEach((subItem, subIndex) => {
+                    if (subItem.subItems && subItem.subItems.length > 0) {
+                        const nestedMatches = subItem.subItems.filter((nested) => nested.path && isSubActive(nested.path));
+                        if (nestedMatches.length) {
+                            const longestNested = nestedMatches.reduce((a, b) => ((a.path?.length || 0) >= (b.path?.length || 0) ? a : b));
+                            if (longestNested.path && longestNested.path.length > bestLength) {
+                                bestLength = longestNested.path.length;
+                                bestMatch = { type, key: buildNavKey(type, nav) };
+                                const navKey = buildNavKey(type, nav);
+                                bestNestedKey = `${navKey}:${subItem.path || subItem.name}:${subIndex}`;
+                            }
+                        }
+                    }
+                });
             });
         };
 
@@ -223,11 +277,16 @@ const AppSidebar: React.FC = () => {
         checkItems(othersFiltered, 'others');
 
         setOpenSubmenu(bestMatch);
-    }, [location.pathname, isSubActive]);
+        setOpenNestedSubmenu(bestNestedKey);
+    }, [location.pathname, isSubActive, authMenu]);
     
     const handleSubmenuToggle = (menuType: 'main' | 'others', nav: NavItem) => {
         const key = buildNavKey(menuType, nav);
         setOpenSubmenu((prev) => (prev && prev.key === key ? null : { type: menuType, key }));
+    };
+
+    const handleNestedSubmenuToggle = (subItemKey: string) => {
+        setOpenNestedSubmenu((prev) => (prev === subItemKey ? null : subItemKey));
     };
 
     const renderMenuItems = (items: NavItem[], menuType: "main" | "others") => {
@@ -303,9 +362,67 @@ const AppSidebar: React.FC = () => {
                                 }}
                             >
                                 <ul className={`mt-2 space-y-1 ml-9 ${(isExpanded || isHovered || isMobileOpen) ? "" : "hidden"}`}>
-                                    {filteredSubItems.map((subItem) => {
+                                    {filteredSubItems.map((subItem, subIndex) => {
+                                        const subItemKey = `${navKey}:${subItem.path || subItem.name}:${subIndex}`;
+                                        const hasNestedSubItems = subItem.subItems && subItem.subItems.length > 0;
+                                        
+                                        // Filter nested items untuk mengecek apakah ada yang diizinkan
+                                        const allowedNestedItems = hasNestedSubItems ? subItem.subItems?.filter((nestedItem) => {
+                                            if (!authMenu || authMenu.length === 0) {
+                                                return true;
+                                            }
+                                            if (!nestedItem.allowedRoles || nestedItem.allowedRoles.length === 0) {
+                                                return true;
+                                            }
+                                            return nestedItem.allowedRoles.some(name => allowedMenuNames.includes(name));
+                                        }) : [];
+                                        
+                                        // Jika ada nested items tapi semua tidak diizinkan, skip item ini
+                                        if (hasNestedSubItems && (!allowedNestedItems || allowedNestedItems.length === 0)) {
+                                            return null;
+                                        }
+                                        
+                                        const isNestedOpen = openNestedSubmenu === subItemKey;
+                                        
                                         return (
-                                    <li key={`${navKey}:${subItem.path}`}>
+                                    <li key={subItemKey}>
+                                        {hasNestedSubItems ? (
+                                            <>
+                                                <button
+                                                    onClick={() => handleNestedSubmenuToggle(subItemKey)}
+                                                    className={`menu-dropdown-item w-full text-left flex items-center justify-between ${
+                                                        isNestedOpen ? "menu-dropdown-item-active" : "menu-dropdown-item-inactive"
+                                                    }`}
+                                                >
+                                                    <span>{subItem.name}</span>
+                                                    <ChevronDownIcon
+                                                        className={`w-4 h-4 transition-transform duration-200 ${
+                                                            isNestedOpen ? "rotate-180" : ""
+                                                        }`}
+                                                    />
+                                                </button>
+                                                {isNestedOpen && (
+                                                    <ul className="mt-1 space-y-1 ml-4">
+                                                        {allowedNestedItems?.map((nestedItem, nestedIndex) => {
+                                                            if (!nestedItem.path) return null;
+                                                            return (
+                                                            <li key={`${subItemKey}:nested:${nestedIndex}`}>
+                                                                <Link
+                                                                    to={nestedItem.path}
+                                                                    className={`menu-dropdown-item text-sm ${
+                                                                        isSubActive(nestedItem.path)
+                                                                        ? "menu-dropdown-item-active"
+                                                                        : "menu-dropdown-item-inactive"
+                                                                    }`}
+                                                                >
+                                                                    {nestedItem.name}
+                                                                </Link>
+                                                            </li>
+                                                        )})}
+                                                    </ul>
+                                                )}
+                                            </>
+                                        ) : subItem.path ? (
                                         <Link
                                             to={subItem.path}
                                             className={`menu-dropdown-item ${
@@ -316,6 +433,7 @@ const AppSidebar: React.FC = () => {
                                         >
                                             {subItem.name}
                                         </Link>
+                                        ) : null}
                                     </li>
                                     );})}
                                 </ul>
@@ -372,7 +490,7 @@ const AppSidebar: React.FC = () => {
                     <div className="flex flex-col gap-4">
                         {renderMenuItems(mainFiltered, "main")}
                         {othersFiltered.length === 0 ? null : (
-                        <div className="border-t border-t-gray-300">
+                        <div>
                             <h2
                                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
                                 !isExpanded && !isHovered

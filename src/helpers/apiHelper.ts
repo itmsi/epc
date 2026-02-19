@@ -169,8 +169,8 @@ const handleApiError = (error: AxiosError<ApiErrorResponse>): ApiError => {
     if (error.response) {
         // Server responded with error status
         const errorData = error.response.data;
-        if (errorData?.message === 'Token sudah expired') {
-            // // Clear all auth data from localStorage
+        if (errorData?.message === 'Token sudah expired' || error.response.status === 401) {
+            // Clear all auth data from localStorage
             localStorage.removeItem('auth_token');
             localStorage.removeItem('auth_user');
             localStorage.removeItem('auth_permissions');
@@ -190,10 +190,14 @@ const handleApiError = (error: AxiosError<ApiErrorResponse>): ApiError => {
         };
         
     } else if (error.request) {
+        // Request was made but no response received
+        console.log({'api error request': error.request});
         return {
             message: 'Network error - no response from server',
         };
     } else {
+        // Something else happened
+        console.log({'api error message': error.message});
         return {
             message: error.message || 'An unexpected error occurred',
         };

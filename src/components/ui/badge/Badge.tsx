@@ -59,6 +59,15 @@ const Badge: React.FC<BadgeProps> = ({
       light: "bg-gray-400 text-white",
       dark: "bg-gray-700 text-white",
     },
+    outline: {
+      primary: "border border-brand-500 text-brand-500",
+      success: "border border-success-500 text-success-500",
+      error: "border border-error-500 text-error-500",
+      warning: "border border-warning-500 text-warning-500",
+      info: "border border-blue-light-500 text-blue-light-500",
+      light: "border border-gray-400 text-gray-400",
+      dark: "border border-gray-700 text-gray-700",
+    },
   };
 
   // Get styles based on size and color variant

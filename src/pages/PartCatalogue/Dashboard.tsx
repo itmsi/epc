@@ -230,7 +230,7 @@ export default function ExplodedView() {
                 }
 
                 const bbox = group.getBBox();
-                const padding = 15; // Extra clickable area padding
+                const padding = 12; // Extra clickable area padding
                 
                 const clickArea = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 clickArea.setAttribute("class", "click-area");
@@ -338,7 +338,7 @@ export default function ExplodedView() {
                         <PartCataloguePage />
                     </div> */}
                     {/* SVG Diagram */}
-                    <div className="bg-white md:col-span-4 relative overflow-hidden" style={{ height: '700px' }}>
+                    <div className="bg-white md:col-span-4 relative overflow-hidden" style={{ height: '630px' }}>
                         {/* Zoom Controls */}
                         <div className="absolute top-4 right-4 z-10 flex flex-col gap-2 bg-white rounded-lg shadow-lg p-2 opacity-70 hover:opacity-100 transition duration-300">
                             <button

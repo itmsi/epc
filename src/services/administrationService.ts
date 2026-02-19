@@ -116,10 +116,6 @@ export class administrationService {
         return await apiDelete(`${API_BASE_URL}/menu-has-permissions/${mhpId}`);
     }
 
-    /**
-     * @deprecated Use createMenuPermission for checking and deleteMenuPermission for unchecking
-     * This method is kept for backward compatibility only
-     */
     static async updateMenuPermissionStatus(requestBody: { menu_id: number; permission_id: number; updatedBy: number }): Promise<{ status: number }> {
         return await apiPut(`${API_BASE_URL}/api/menu-has-permissions/${requestBody.menu_id}`, requestBody);
     }
@@ -365,7 +361,8 @@ export class employeesService {
         // Filter out empty parameters to avoid sending unnecessary data
         const filteredParams: Record<string, unknown> = {
             page: params.page,
-            limit: params.limit
+            limit: params.limit,
+            employee_status: params.employee_status
         };
 
         // Only include non-empty optional parameters
@@ -395,6 +392,10 @@ export class employeesService {
         
         if (params.title_name && params.title_name.trim() !== '') {
             filteredParams.title_name = params.title_name;
+        }
+        
+        if (params.is_sales_quotation !== undefined) {
+            filteredParams.is_sales_quotation = params.is_sales_quotation;
         }
 
         const response = await apiPost(`${API_BASE_URL}/employees/get`, filteredParams);

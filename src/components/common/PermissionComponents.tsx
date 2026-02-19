@@ -3,28 +3,26 @@ import { useHasPermission } from '@/hooks/usePermissions';
 import Button from '../ui/button/Button';
 
 interface PermissionGateProps {
-    permission: 'create' | 'read' | 'update' | 'delete';
+    permission: 'create' | 'read' | 'update' | 'delete' | 'duplicate' | ('create' | 'read' | 'update' | 'delete' | 'duplicate')[];
     routeName?: string;
     fallback?: React.ReactNode;
     children: React.ReactNode;
 }
-
-/**
- * Component wrapper untuk menampilkan/hide element berdasarkan permission
- */
 export const PermissionGate: React.FC<PermissionGateProps> = ({
     permission,
     routeName,
     fallback = null,
     children
 }) => {
-    const hasPermission = useHasPermission(permission, routeName);
+    const hasPermission = Array.isArray(permission) 
+        ? permission.some(perm => useHasPermission(perm, routeName))
+        : useHasPermission(permission, routeName);
     
     return hasPermission ? <>{children}</> : <>{fallback}</>;
 };
 
 interface PermissionButtonProps {
-    permission: 'create' | 'read' | 'update' | 'delete';
+    permission: 'create' | 'read' | 'update' | 'delete' | 'duplicate' | ('create' | 'read' | 'update' | 'delete' | 'duplicate')[];
     routeName?: string;
     children: React.ReactNode;
     className?: string;
@@ -34,9 +32,6 @@ interface PermissionButtonProps {
     type?: "button" | "submit" | "reset";
 }
 
-/**
- * Button component yang otomatis disabled berdasarkan permission
- */
 export const PermissionButton: React.FC<PermissionButtonProps> = ({
     permission,
     routeName,
@@ -47,7 +42,9 @@ export const PermissionButton: React.FC<PermissionButtonProps> = ({
     title,
     type = "button"
 }) => {
-    const hasPermission = useHasPermission(permission, routeName);
+    const hasPermission = Array.isArray(permission) 
+        ? permission.some(perm => useHasPermission(perm, routeName))
+        : useHasPermission(permission, routeName);
     return (
         <div title={title}>
             <Button
@@ -65,15 +62,12 @@ export const PermissionButton: React.FC<PermissionButtonProps> = ({
 };
 
 interface ConditionalRenderProps {
-    condition: 'canCreate' | 'canRead' | 'canUpdate' | 'canDelete';
+    condition: 'canCreate' | 'canRead' | 'canUpdate' | 'canDelete' | 'canDuplicate';
     routeName?: string;
     fallback?: React.ReactNode;
     children: React.ReactNode;
 }
 
-/**
- * Component untuk conditional rendering berdasarkan permission condition
- */
 export const ConditionalRender: React.FC<ConditionalRenderProps> = ({
     condition,
     routeName,
@@ -85,6 +79,7 @@ export const ConditionalRender: React.FC<ConditionalRenderProps> = ({
         canRead: 'read' as const,
         canUpdate: 'update' as const,
         canDelete: 'delete' as const,
+        canDuplicate: 'duplicate' as const,
     };
     
     const hasPermission = useHasPermission(permissionMap[condition], routeName);

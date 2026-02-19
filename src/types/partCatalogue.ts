@@ -348,13 +348,16 @@ export interface Vin {
   product_name_en: string;
   product_name_cn: string;
   product_description?: string;
-  created_at: string;
-  created_by: string | null;
-  updated_at: string;
-  updated_by: string | null;
-  deleted_at: string | null;
-  deleted_by: string | null;
-  is_delete: boolean;
+  model_type?: string | null;
+  dimensi?: string | null;
+  model_engine?: string | null;
+  created_at?: string;
+  created_by?: string | null;
+  updated_at?: string;
+  updated_by?: string | null;
+  deleted_at?: string | null;
+  deleted_by?: string | null;
+  is_delete?: boolean;
   details?: VinDetail[];
 }
 

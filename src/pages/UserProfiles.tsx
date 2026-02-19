@@ -40,6 +40,21 @@ export default function UserProfiles() {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Check if user is customer from localStorage
+    const [isCustomer, setIsCustomer] = useState(false);
+    
+    useEffect(() => {
+        const authUserStr = localStorage.getItem('auth_user');
+        if (authUserStr) {
+            try {
+                const authUser = JSON.parse(authUserStr);
+                setIsCustomer(authUser.is_customer === true);
+            } catch (error) {
+                console.error('Error parsing auth_user:', error);
+            }
+        }
+    }, []);
+
     // Update form data when profile is loaded
     useEffect(() => {
         if (profile) {
@@ -177,11 +192,20 @@ export default function UserProfiles() {
                                 
                                 <div className="text-center sm:text-left">
                                     <h2 className="text-2xl font-primary-bold text-gray-900 mb-2">
-                                        {profile?.employee_name}
+                                        {isCustomer ? profile?.customer_name : profile?.employee_name}
                                     </h2>
                                     <div className="space-y-1 text-sm text-gray-600">
-                                        <p className="font-medium">{profile?.title_name}</p>
-                                        <p>{profile?.department_name} • {profile?.company_name}</p>
+                                        {isCustomer ? (
+                                            <>
+                                                <p className="font-medium">{profile?.customer_city}, {profile?.customer_state}</p>
+                                                <p>{profile?.customer_country}</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <p className="font-medium">{profile?.title_name}</p>
+                                                <p>{profile?.department_name} • {profile?.company_name}</p>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -201,7 +225,7 @@ export default function UserProfiles() {
                                             Full Name
                                         </Label>
                                         <Input
-                                            value={formData.employee_name}
+                                            value={isCustomer ? (profile?.customer_name || '') : formData.employee_name}
                                             onChange={(e) => setFormData({...formData, employee_name: e.target.value})}
                                             placeholder="Enter full name"
                                             className="w-full text-gray-700 opacity-100"
@@ -224,19 +248,6 @@ export default function UserProfiles() {
 
                                     <div>
                                         <Label className="flex items-center gap-2">
-                                            Department
-                                        </Label>
-                                        <Input
-                                            type="text"
-                                            value={profile?.department_name || ''}
-                                            placeholder="Department"
-                                            className="w-full text-gray-700 opacity-100"
-                                            disabled={true}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label className="flex items-center gap-2">
                                             Position
                                         </Label>
                                         <Input
@@ -248,21 +259,21 @@ export default function UserProfiles() {
                                         />
                                     </div>
 
+
+                                </div>
                                     <div>
                                         <Label className="flex items-center gap-2">
                                             Email Address
                                         </Label>
                                         <Input
                                             type="email"
-                                            value={formData.employee_email}
+                                            value={isCustomer ? (profile?.customer_email || '') : formData.employee_email}
                                             onChange={(e) => setFormData({...formData, employee_email: e.target.value})}
                                             placeholder="Enter email address"
                                             className="w-full text-gray-700 opacity-100"
                                             disabled={true}
                                         />
                                     </div>
-
-                                </div>
 
                             </div>
 

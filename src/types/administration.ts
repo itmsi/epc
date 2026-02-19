@@ -446,6 +446,8 @@ export interface Employee {
     employee_id: string;
     employee_name: string;
     employee_email: string;
+    employee_status: string;
+    is_sales_quotation: boolean;
     title_id: string;
     created_at: string;
     created_by: string | null;
@@ -504,6 +506,8 @@ export interface EmployeeDetailData extends Employee {
 export interface EmployeeFormData {
     employee_name: string;
     employee_email?: string;
+    employee_status: string;
+    is_sales_quotation: boolean | string;
     title_id: string;
     company_id: string;
     department_id: string;
@@ -528,6 +532,8 @@ export interface EmployeeValidationErrors {
     employee_office_number?: string;
     employee_address?: string;
     employee_phone?: string;
+    employee_status?: string;
+    is_sales_quotation?: boolean;
     gender_id?: string;
     island_id?: string;
     employee_foto?: string;
@@ -544,6 +550,8 @@ export interface EmployeeListRequest {
     company_name?: string;
     department_name?: string;
     title_name?: string;
+    is_sales_quotation?: boolean;
+    employee_status?: string;
 }
 
 // Employee list response
@@ -559,12 +567,10 @@ export interface EmployeeListResponse {
 
 // Employee pagination
 export interface EmployeePagination {
-    current_page: number;
-    per_page: number;
+    page: number;
+    limit: number;
     total: number;
-    total_pages: number;
-    has_next_page: boolean;
-    has_prev_page: boolean;
+    totalPages: number;
 }
 
 // Employee filters
@@ -576,6 +582,7 @@ export interface EmployeeFilters {
     title_name: string;
     sort_by: string;
     sort_order: 'asc' | 'desc' | '';
+    employee_status: string;
 }
 
 // Employee detail response

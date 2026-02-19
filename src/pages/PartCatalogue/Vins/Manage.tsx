@@ -47,7 +47,6 @@ export default function ManageVins() {
         {
             name: 'VIN Number',
             selector: (row: Vin) => row.vin_number,
-            sortable: true,
             minWidth: '150px',
             cell: (row: Vin) => (
                 <div className="font-medium text-gray-900">
@@ -68,7 +67,6 @@ export default function ManageVins() {
         {
             name: 'Description',
             selector: (row: Vin) => row.product_description || '',
-            sortable: false,
             minWidth: '250px',
             cell: (row: Vin) => (
                 <div className="text-sm text-gray-600">

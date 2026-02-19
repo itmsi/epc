@@ -91,17 +91,18 @@ export const createDateColumn = (
     format: (row: any) => {
         const date = new Date(row[dateField]);
         return formatOptions 
-            ? date.toLocaleDateString(undefined, formatOptions)
+            ? date.toLocaleDateString('id-ID', formatOptions)
             : date.toLocaleDateString();
     },
     center: true,
-    width: '120px',
+    wrap: true,
+    width: formatOptions ? '180px' : '150px',
 });
 
 export const createActionsColumn = (actions: Array<{
     icon: React.ComponentType<any>;
     onClick: (row: any) => void;
-    permission?: 'create' | 'read' | 'update' | 'delete';
+    permission?: 'create' | 'read' | 'update' | 'delete' | 'duplicate';
     className?: string;
     tooltip?: string;
     condition?: (row: any) => boolean;
