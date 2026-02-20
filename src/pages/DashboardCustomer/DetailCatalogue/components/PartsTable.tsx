@@ -2,12 +2,19 @@ import { useRef } from 'react';
 import { TableColumn } from 'react-data-table-component';
 import { CustomDataTable } from '@/components/ui/table';
 import { PartTableRow } from '../types';
+import { MdAddShoppingCart } from 'react-icons/md';
+import toast from 'react-hot-toast';
+import { useCartContext } from '@/context/CartContext';
 
 interface PartsTableProps {
     parts: PartTableRow[];
     loading: boolean;
     selected: string | null;
     onRowSelect: (targetId: string) => void;
+    // Grouping context
+    vin_number: string;
+    categorySlug: string;
+    categoryName: string;
 }
 
 /**
@@ -18,8 +25,13 @@ export const PartsTable = ({
     loading,
     selected,
     onRowSelect,
+    vin_number,
+    categorySlug,
+    categoryName,
 }: PartsTableProps) => {
     const tableContainerRef = useRef<HTMLDivElement>(null);
+
+    const { addToCart } = useCartContext();
 
     const columns: TableColumn<PartTableRow>[] = [
         {
@@ -52,6 +64,34 @@ export const PartsTable = ({
             name: 'Qty Stock',
             selector: row => row.quantity_stock,
             center: true,
+        },
+        {
+            name: 'Action',
+            width: '60px',
+            center: true,
+            cell: (row: PartTableRow) => (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart({
+                            id: row.id,
+                            part_number: row.part_number,
+                            name_en: row.name_en,
+                            name_cn: row.name_cn,
+                            quantity_needs: row.quantity_needs,
+                            quantity_stock: row.quantity_stock,
+                            vin_number,
+                            categorySlug,
+                            categoryName,
+                        });
+                        toast.success(`${row.part_number} added to cart!`);
+                    }}
+                    title="Add to Cart"
+                    className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all duration-200"
+                >
+                    <MdAddShoppingCart className="w-5 h-5" />
+                </button>
+            ),
         },
     ];
 

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import UserDropdown from "../components/header/UserDropdown";
+import CartDropdown from "../components/header/CartDropdown";
 
 const AppHeader: React.FC = () => {
     const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -112,8 +113,9 @@ const AppHeader: React.FC = () => {
                     <div
                         className={`${
                             isApplicationMenuOpen ? "lg:hidden" : "lg:hidden"
-                        }`}
+                        } flex items-center gap-2`}
                     >
+                        <CartDropdown />
                         <UserDropdown />
                     </div>
                 </div>
@@ -122,7 +124,12 @@ const AppHeader: React.FC = () => {
                         isApplicationMenuOpen ? "flex" : "hidden"
                     } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
                 >
-                    <UserDropdown />
+                    <div className="flex items-center gap-4">
+                        <div className="hidden lg:block">
+                            <CartDropdown />
+                        </div>
+                        <UserDropdown />
+                    </div>
                 </div>
             </div>
         </header>
