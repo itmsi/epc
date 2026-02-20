@@ -12,6 +12,7 @@ export const useCategorySelection = ({
   productId,
   customerId,
   initialLimit = 12,
+  initialPage = 1,
   initialSortBy = 'created_at',
   initialSortOrder = 'desc'
 }: CategorySelectionHookParams = {}) => {
@@ -19,7 +20,7 @@ export const useCategorySelection = ({
     items: [],
     loading: false,
     error: null,
-    currentPage: 1,
+    currentPage: initialPage,
     totalItems: 0,
     totalPages: 0,
     searchQuery: '',
@@ -107,7 +108,7 @@ export const useCategorySelection = ({
   // Load initial data
   useEffect(() => {
     if (stableDokumenIds && productId && finalCustomerId) {
-      loadItems(1, '');
+      loadItems(initialPage, '');
     }
   }, [stableDokumenIds, productId, finalCustomerId]); // Remove loadItems from dependencies
 

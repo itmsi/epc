@@ -51,6 +51,7 @@ export interface CategorySelectionHookParams {
   productId?: string;
   customerId?: string;
   initialLimit?: number;
+  initialPage?: number;
   initialSortBy?: string;
   initialSortOrder?: 'asc' | 'desc';
 }

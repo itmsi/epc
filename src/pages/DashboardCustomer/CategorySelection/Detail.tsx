@@ -10,12 +10,14 @@ import { CategoryChildItem } from './types/categorySelection';
 
 const CategorySelectionDetail = () => {
     const { vinId, categorySlug, masterCategoryId } = useParams<{ vinId: string; categorySlug: string; masterCategoryId: string }>();
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     // const navigate = useNavigate();
 
     // Extract dokumen_ids from query parameters
     const dokumenIdsParam = searchParams.get('dokumen_ids');
+    const pageParam = searchParams.get('page');
     const dokumenIds = dokumenIdsParam ? dokumenIdsParam.split(',') : [];
+    const initialPage = pageParam ? parseInt(pageParam, 10) : 1;
 
     const { vehicleData, productId, loading: vehicleLoading } = useVehicleData(vinId);
 
@@ -41,6 +43,7 @@ const CategorySelectionDetail = () => {
         dokumenIds,
         productId,
         initialLimit: 12,
+        initialPage,
     });
 
     // Extract items yang bisa ditampilkan (kategori dengan id_link + children dengan id_link)
@@ -75,11 +78,21 @@ const CategorySelectionDetail = () => {
         return allItems;
     }, [items]);
 
-    // Handle page change dengan scroll to top
+    // Handle page change dengan update URL dan scroll to top
     const handlePageChange = useCallback((page: number) => {
+        // Update URL dengan page parameter
+        const newSearchParams = new URLSearchParams(searchParams);
+        if (page > 1) {
+            newSearchParams.set('page', page.toString());
+        } else {
+            newSearchParams.delete('page');
+        }
+        setSearchParams(newSearchParams);
+        
         goToPage(page);
+        
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [goToPage]);
+    }, [goToPage, searchParams, setSearchParams]);
 
     const getMasterCategoryName = () => {
         return categorySlug?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Category';
