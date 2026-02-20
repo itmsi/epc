@@ -67,7 +67,6 @@ export const PartsTable = ({
         },
         {
             name: 'Action',
-            width: '60px',
             center: true,
             cell: (row: PartTableRow) => (
                 <button
