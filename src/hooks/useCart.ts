@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { CartService } from '@/services/cartService';
+import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 
 export interface CartItem {
@@ -16,18 +17,16 @@ export interface CartItem {
     categoryName: string;
 }
 
-const getCartKey = (): string => {
-    try {
-        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-        return `cart_items_${authUser.id || 'guest'}`;
-    } catch {
-        return 'cart_items_guest';
-    }
+const getCartKey = (userId: string | undefined): string | null => {
+    if (!userId) return null;
+    return `cart_items_${userId}`;
 };
 
-const loadCart = (): CartItem[] => {
+const loadCart = (userId: string | undefined): CartItem[] => {
     try {
-        const raw = localStorage.getItem(getCartKey());
+        const key = getCartKey(userId);
+        if (!key) return [];
+        const raw = localStorage.getItem(key);
         return raw ? JSON.parse(raw) : [];
     } catch {
         return [];
@@ -35,12 +34,40 @@ const loadCart = (): CartItem[] => {
 };
 
 export const useCart = () => {
-    const [cartItems, setCartItems] = useState<CartItem[]>(loadCart);
+    const { user, isAuthenticated } = useAuth();
+    
+    const currentUserId = useMemo(() => {
+        if (isAuthenticated && user) {
+            return user.user_id || (user as any).id;
+        }
+        
+        try {
+            const stored = localStorage.getItem('auth_user');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                return parsed.user_id || parsed.id;
+            }
+        } catch (e) {
+            // ignore
+        }
+    }, [user, isAuthenticated]);
+    
+    const [cartItems, setCartItems] = useState<CartItem[]>(() => loadCart(currentUserId));
+    const [loadedUserId, setLoadedUserId] = useState<string | null>(currentUserId);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
-    }, [cartItems]);
+        const items = loadCart(currentUserId);
+        setCartItems(items);
+        setLoadedUserId(currentUserId);
+    }, [currentUserId]);
+
+    useEffect(() => {
+        const key = getCartKey(currentUserId);
+        if (key && currentUserId && loadedUserId === currentUserId) {
+            localStorage.setItem(key, JSON.stringify(cartItems));
+        }
+    }, [cartItems, currentUserId, loadedUserId]);
 
     const addToCart = useCallback((item: Omit<CartItem, 'qty'>) => {
         setCartItems(prev => {
@@ -77,8 +104,9 @@ export const useCart = () => {
     const saveCart = useCallback(async () => {
         try {
             setIsSaving(true);
-            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-            if (!authUser.id) {
+            const userId = currentUserId;
+            
+            if (!userId) {
                 toast.error('User not authenticated');
                 return false;
             }
@@ -108,7 +136,7 @@ export const useCart = () => {
             }));
 
             const payload = {
-                customer_id: authUser.id,
+                customer_id: userId,
                 transaction_order_date: new Date().toISOString().split('T')[0],
                 transaction_order_status: "submission",
                 transaction_order_items: {
