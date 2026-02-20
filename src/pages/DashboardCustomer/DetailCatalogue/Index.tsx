@@ -39,7 +39,8 @@ export default function DetailCatalogView() {
         return items.map((item) => ({
             id: item.item_category_detail_id,
             target_id: item.target_id,
-            quantity: item.quantity,
+            quantity_needs: item.quantity_needs,
+            quantity_stock: item.quantity_stock,
             part_number: item.part_number,
             name_en: item.master_item_name_en,
             name_cn: item.master_item_name_ch,

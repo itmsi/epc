@@ -44,9 +44,15 @@ export const PartsTable = ({
             wrap: true,
         },
         {
-            name: 'Qty',
-            selector: row => row.quantity,
-            width: '70px',
+            name: 'Qty Needs',
+            selector: row => row.quantity_needs,
+            width: '90px',
+            center: true,
+        },
+        {
+            name: 'Qty Stock',
+            selector: row => row.quantity_stock,
+            width: '90px',
             center: true,
         },
     ];
