@@ -2,7 +2,8 @@
 export interface PartItem {
     item_category_detail_id: string;
     target_id: string;
-    quantity: number;
+    quantity_needs: number;
+    quantity_stock: number;
     master_item_name_en: string;
     master_item_name_ch: string;
     part_number: string;
@@ -22,7 +23,8 @@ export interface CatalogueHeader {
 export interface PartTableRow {
     id: string;
     target_id: string;
-    quantity: number;
+    quantity_needs: number;
+    quantity_stock: number;
     part_number: string;
     name_en: string;
     name_cn: string;
