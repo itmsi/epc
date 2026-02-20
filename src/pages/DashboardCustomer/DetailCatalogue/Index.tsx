@@ -129,6 +129,9 @@ export default function DetailCatalogView() {
                     loading={loading}
                     selected={selected}
                     onRowSelect={(targetId) => handlePartSelect(targetId, 'table')}
+                    vin_number={vinId || ''}
+                    categorySlug={categorySlug || ''}
+                    categoryName={getCategoryName()}
                 />
             </div>
         </div>
