@@ -110,7 +110,7 @@ export const useCart = () => {
             const payload = {
                 customer_id: authUser.id,
                 transaction_order_date: new Date().toISOString().split('T')[0],
-                transaction_order_status: "Open",
+                transaction_order_status: "submission",
                 transaction_order_items: {
                     data: payloadData
                 },
