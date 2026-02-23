@@ -2,16 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { GrLineChart } from "react-icons/gr";
 import { FiSearch } from "react-icons/fi";
-import { MdTableChart } from "react-icons/md";
+import { MdTableChart, MdReceiptLong } from "react-icons/md";
 
 // Assume these icons are imported from an icon library
 import {
     BoxCubeIcon,
     ChevronDownIcon,
     GridIcon,
-    HorizontaLDots,
-    PlugInIcon,
-    UserIcon,
+    HorizontaLDots
 } from "@/icons";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -64,6 +62,11 @@ const navItems: NavItem[] = [
         ],
     },
     {
+        name: "Transaction",
+        icon: <MdReceiptLong />,
+        path: "/transaction",
+    },
+    {
         name: "EPC",
         icon: <GrLineChart />,
         allowedRoles: ['Dashboard Catalogs', 'Cabin Catalogs', 'Engine Catalogs', 'Axle Catalogs', 'Transmission Catalogs', 'Steering Catalogs'],
@@ -83,66 +86,6 @@ const othersItems: NavItem[] = [
         name: "Master Category",
         allowedRoles: ['Master Category Catalogs'],
         path: "/epc/master-category"
-    },
-    {
-        icon: <BoxCubeIcon />,
-        name: "UI Elements",
-        allowedRoles: ['Alerts', 'Avatar', 'Badge', 'Buttons', 'Images', 'Videos'], // Kosongkan karena tidak ada di auth_menu
-        subItems: [
-            { name: "Alerts", path: "/alerts", allowedRoles: ['Alerts'], },
-            { name: "Avatar", path: "/avatars", allowedRoles: ['Avatar'], },
-            { name: "Badge", path: "/badge", allowedRoles: ['Badge'], },
-            { name: "Buttons", path: "/buttons", allowedRoles: ['Buttons'], },
-            { name: "Images", path: "/images", allowedRoles: ['Images'], },
-            { name: "Videos", path: "/videos", allowedRoles: ['Videos'], },
-        ],
-    },
-    {
-        icon: <PlugInIcon />,
-        name: "Authentication",
-        allowedRoles: ['Sign In', 'Sign Up'], // Kosongkan karena tidak ada di auth_menu
-        subItems: [
-            { name: "Sign In", path: "/signin", allowedRoles: ['Sign In'], },
-            { name: "Sign Up", path: "/signup", allowedRoles: ['Sign Up'], },
-        ],
-    },
-    {
-        icon: <UserIcon />,
-        name: "Administration",
-        subItems: [
-            {
-                name: "Employees",
-                path: "/employees",
-                allowedRoles: ['Employees'],
-            },
-            {
-                name: "Companies",
-                path: "/companies",
-                allowedRoles: ['Companies'],
-            },
-            {
-                name: "Departments",
-                path: "/departments",
-                allowedRoles: ['Departments'],
-            },
-            {
-                name: "Users",
-                path: "/users",
-                allowedRoles: ['Users'],
-            },
-            {
-                name: "Positions",
-                path: "/position",
-                allowedRoles: ['Positions'],
-            },
-            {
-                name: "Roles",
-                path: "/roles",
-                allowedRoles: ['Roles'],
-            },
-            { name: "Menu", path: "/menu", allowedRoles: ['Menu'], },
-            { name: "Sign Up", path: "/signup", allowedRoles: ['Sign Up'], },
-        ],
     },
 ];
 
@@ -180,7 +123,7 @@ const AppSidebar: React.FC = () => {
             
             return navItems.filter((item) => {
                 // Special handling for Search VIN and VIN Management menus - only show to customers
-                if (item.name === "Search VIN" || item.name === "VIN Management") {
+                if (item.name === "Search VIN" || item.name === "VIN Management" || item.name === "Transaction") {
                     return isCustomer;
                 }
                 

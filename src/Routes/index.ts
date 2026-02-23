@@ -30,6 +30,8 @@ const VinManagementDetail = lazy(() => import('@/pages/VinManagement/Detail'));
 const VinDetail = lazy(() => import('@/pages/VinDetail'));
 const CategorySelectionDetail = lazy(() => import('@/pages/DashboardCustomer/CategorySelection/Detail'));
 const DetailCatalogView = lazy(() => import('@/pages/DashboardCustomer/DetailCatalogue/Index'));
+const TransactionView = lazy(() => import('@/pages/DashboardCustomer/Transaction/Manage'));
+const TransactionDetail = lazy(() => import('@/pages/DashboardCustomer/Transaction/Detail'));
 // PowerBiForm is imported by Create and Edit components, no need to add here
 
 export type TAppRoute = {
@@ -269,6 +271,20 @@ export const routes: TAppRoute[] = [
         name: 'VIN Detail',
         isProtected: false,
         component: DetailCatalogView,
+        layout: AppLayout,
+    },
+    {
+        path: '/transaction',
+        name: 'Transaction',
+        isProtected: false,
+        component: TransactionView,
+        layout: AppLayout,
+    },
+    {
+        path: '/transaction/:transactionOrderId',
+        name: 'Transaction',
+        isProtected: false,
+        component: TransactionDetail,
         layout: AppLayout,
     },
 ];

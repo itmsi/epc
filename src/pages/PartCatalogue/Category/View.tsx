@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import Input from "@/components/form/input/InputField";
 import TextArea from "@/components/form/input/TextArea";
@@ -9,8 +9,9 @@ import { TypeCategoryForm } from "@/components/form/TypeForms";
 import { CategoryService } from "@/services/partCatalogueService";
 import { useEditCategory } from "@/hooks/usePartCatalogue";
 import { Category } from "@/types/partCatalogue";
-import { MdEdit, MdKeyboardArrowLeft, MdSave, MdDelete, MdCancel } from "react-icons/md";
+import { MdEdit, MdSave, MdDelete, MdCancel } from "react-icons/md";
 import PageMeta from "@/components/common/PageMeta";
+import HeaderAksi, { TombolAksi } from "@/components/common/HeaderAksi";
 import CustomAsyncSelect from "@/components/form/select/CustomAsyncSelect";
 import { useCreateCategoryEnhanced } from '@/hooks/useCreateCategoryEnhanced';
 
@@ -155,6 +156,42 @@ export default function View() {
     const handleCancel = () => {
         setIsEditMode(false);
     };
+
+    // Konfigurasi tombol aksi berdasarkan mode
+    const tombolAksiViewMode: TombolAksi[] = [
+        {
+            label: 'Edit',
+            icon: <MdEdit size={20} className="text-primary group-hover:text-white" />,
+            onClick: toggleEditMode,
+            variant: 'outline',
+            className: 'ring-[#0253a5] hover:bg-[#0253a5] hover:text-white'
+        },
+        {
+            label: 'Delete',
+            icon: <MdDelete size={20} className="text-red-600 group-hover:text-white" />,
+            onClick: handleDelete,
+            variant: 'outline', 
+            className: 'ring-[#e7000b] hover:bg-red-600 hover:text-white'
+        }
+    ];
+
+    const tombolAksiEditMode: TombolAksi[] = [
+        {
+            label: 'Save',
+            icon: <MdSave size={20} />,
+            onClick: handleSubmit,
+            variant: 'primary',
+            className: 'ring-[#0253a5] bg-[#0253a5] text-white'
+        },
+        {
+            label: 'Cancel',
+            icon: <MdCancel size={20} />,
+            onClick: handleCancel,
+            variant: 'outline',
+            href: '/epc/category'
+        }
+    ];
+
     return (
         <>
             <PageMeta
@@ -166,69 +203,12 @@ export default function View() {
                 <div className="mx-auto p-4 sm:px-3">
 
                     {/* HEADER */}
-                    <div className="flex items-center justify-between h-16 bg-white shadow-sm border-b rounded-2xl p-6 mb-8">
-                        <div className="flex items-center gap-1">
-                            <Link to="/epc/category">
-                                <Button
-                                    variant="outline"
-                                    className="flex items-center gap-2 p-1 rounded-full bg-gray-100 hover:bg-gray-200 ring-0 border-none shadow-none me-1"
-                                >
-                                    <MdKeyboardArrowLeft size={20} />
-                                </Button>
-                            </Link>
-                            <div className="border-l border-gray-300 h-6 mx-3"></div>
-                            <h1 className="ms-2 font-primary-bold font-normal text-xl">
-                                {isEditMode ? 'Edit Category' : 'View Category'}
-                            </h1>
-                        </div>
-                        
-                        {/* Action Buttons */}
-                        <div className='flex gap-3'>
-                            {!isEditMode ? (
-                                // View mode buttons
-                                <>
-                                    <Button
-                                        variant="outline"
-                                        className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 ring-[#0253a5] font-secondary py-2 hover:bg-[#0253a5] hover:text-white"
-                                        onClick={toggleEditMode}
-                                        disabled={loading}
-                                    >
-                                        <MdEdit size={20} className="text-primary group-hover:text-white" /> Edit
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 ring-[#e7000b] font-secondary py-2 hover:bg-red-600 hover:text-white"
-                                        onClick={handleDelete}
-                                        disabled={loading}
-                                    >
-                                        <MdDelete size={20} className="text-red-600 group-hover:text-white" /> Delete
-                                    </Button>
-                                </>
-                            ) : (
-                                // Edit mode buttons
-                                <>
-                                    <Button
-                                        variant="primary"
-                                        className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 ring-[#0253a5] font-secondary py-2 bg-[#0253a5] text-white"
-                                        disabled={loading}
-                                        onClick={handleSubmit}
-                                    >
-                                        <MdSave size={20} /> Save
-                                    </Button>
-                                    <Link to="/epc/category">
-                                        <Button
-                                            variant="outline"
-                                            className="group rounded-lg w-full md:w-30 flex items-center justify-center gap-2 font-secondary py-2"
-                                            disabled={loading}
-                                            onClick={handleCancel}
-                                        >
-                                            <MdCancel size={20} /> Cancel
-                                        </Button>
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-                    </div>
+                    <HeaderAksi 
+                        judul={isEditMode ? 'Edit Category' : 'View Category'}
+                        urlKembali="/epc/category"
+                        tombolAksi={isEditMode ? tombolAksiEditMode : tombolAksiViewMode}
+                        loading={loading}
+                    />
 
                     {/* Form/View Container */}
                     <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm">
