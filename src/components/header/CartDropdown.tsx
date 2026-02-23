@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { MdShoppingCart, MdClose } from 'react-icons/md';
 import { useCartContext } from '@/context/CartContext';
 import { CartItem } from '@/hooks/useCart';
+import Button from '../ui/button/Button';
 
 export default function CartDropdown() {
     const { cartItems, totalItems, removeFromCart, updateQty, saveCart, isSaving } = useCartContext();
@@ -45,13 +46,13 @@ export default function CartDropdown() {
 
             {/* Dropdown Panel - Fullscreen on mobile, Dropdown on desktop */}
             {open && (
-                <div className="fixed inset-0 z-[999] w-full h-full bg-white flex flex-col sm:absolute sm:inset-auto sm:right-0 sm:mt-2 sm:w-[500px] sm:h-auto sm:rounded-xl sm:shadow-xl sm:border sm:border-gray-200">
+                <div className="fixed inset-0 z-[999] w-full h-full bg-white flex flex-col sm:absolute sm:inset-auto sm:right-0 sm:mt-2 sm:w-[580px] sm:h-auto sm:rounded-xl sm:shadow-xl sm:border sm:border-gray-200">
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0">
-                        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                        <h3 className="font-primary-bold text-gray-800 flex items-center gap-2">
                             <MdShoppingCart className="w-5 h-5 text-primary" />
                             Cart
-                            <span className="text-xs font-normal text-gray-400">({totalItems} items)</span>
+                            <span className="text-xs font-normal font-primary text-gray-400">({totalItems} items)</span>
                         </h3>
                         <button
                             onClick={() => setOpen(false)}
@@ -62,7 +63,7 @@ export default function CartDropdown() {
                     </div>
 
                     {/* Items grouped by VIN + Category */}
-                    <div className="flex-1 overflow-y-auto sm:max-h-[420px]">
+                    <div className="flex-1 overflow-y-auto sm:max-h-[420px] p-3 bg-[#dfe8f2] space-y-3">
                         {cartItems.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-10 text-gray-400 h-full">
                                 <MdShoppingCart className="w-16 h-16 mb-4 opacity-20" />
@@ -73,10 +74,10 @@ export default function CartDropdown() {
                             Object.entries(grouped).map(([key, items]) => {
                                 const [vinNumber, categorySlug, categoryName] = key.split('|');
                                 return (
-                                    <div key={key} className="border-b border-gray-100 last:border-b-0">
+                                    <div key={key} className="border-b border-gray-100 last:border-b-0 bg-white rounded-lg">
                                         {/* Group header */}
-                                        <div className="px-4 py-2 bg-gray-50 flex items-center gap-2 sticky top-0 z-10">
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded">
+                                        <div className="px-4 py-2 bg-gray-50 flex items-center gap-2 sticky top-0 z-10 rounded-lg">
+                                            <span className="text-[10px] font-primary-bold tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded">
                                                 VIN: {vinNumber}
                                             </span>
                                             <span className="text-xs text-gray-500">
@@ -91,7 +92,7 @@ export default function CartDropdown() {
                                                 <div key={item.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
                                                     {/* Info */}
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-mono font-semibold text-primary">{item.name_en || item.name_cn || '-'}</p>
+                                                        <p className="text-sm font-mono font-semibold">{item.name_en || item.name_cn || '-'}</p>
                                                         <p className="text-xs text-gray-400 mt-0.5">
                                                             Qty Needs: <span className="font-medium text-gray-600">{item.quantity_needs}</span>
                                                             &nbsp;|&nbsp;
@@ -148,13 +149,13 @@ export default function CartDropdown() {
                     {/* Footer */}
                     {cartItems.length > 0 && (
                         <div className="px-4 py-3 border-t border-gray-100 flex justify-end">
-                            <button
+                            <Button
                                 onClick={async () => {
                                     const success = await saveCart();
                                     if (success) setOpen(false);
                                 }}
                                 disabled={isSaving}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary/90 disabled:opacity-70 disabled:cursor-not-allowed transition-all shadow-sm"
+                                className='px-4 py-2'
                             >
                                 {isSaving ? (
                                     <>
@@ -170,7 +171,7 @@ export default function CartDropdown() {
                                         Save
                                     </>
                                 )}
-                            </button>
+                            </Button>
                         </div>
                     )}
                 </div>

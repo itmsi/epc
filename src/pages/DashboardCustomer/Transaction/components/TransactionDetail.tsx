@@ -216,7 +216,7 @@ const TransactionDetail: React.FC = () => {
                 </div>
 
                 {/* VIN Items */}
-                <div className="space-y-3 md:col-span-2">
+                <div className="space-y-5 md:col-span-2">
                     {transactionDetail.transaction_order_items.data.map((vinData, vinIndex) => (
                         <div key={`vin-${vinIndex}`} className="bg-white shadow rounded-lg">
                             <div className="p-6">
