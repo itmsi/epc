@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { MdExpandMore, MdChevronRight, MdSearch, MdClose } from 'react-icons/md';
 import { CategoryItem, CategoryChildItem } from '../types/categorySelection';
+import Input from '@/components/form/input/InputField';
 
 interface NavigationAccordionProps {
     items: CategoryItem[];
@@ -10,6 +11,9 @@ interface NavigationAccordionProps {
     vinId?: string;
     categorySlug?: string;
     masterCategoryId?: string;
+    onSearch?: (query: string) => void;
+    searchLoading?: boolean;
+    currentSearchQuery?: string;
 }
 
 const NavigationAccordion: React.FC<NavigationAccordionProps> = ({ 
@@ -18,7 +22,10 @@ const NavigationAccordion: React.FC<NavigationAccordionProps> = ({
     dokumenIds,
     vinId,
     categorySlug,
-    masterCategoryId 
+    masterCategoryId,
+    onSearch,
+    searchLoading = false,
+    currentSearchQuery = ''
 }) => {
     const params = useParams();
     // Use passed params or fallback to URL params
@@ -31,49 +38,32 @@ const NavigationAccordion: React.FC<NavigationAccordionProps> = ({
         ? `?dokumen_ids=${encodeURIComponent(dokumenIds.join(','))}`
         : '';
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(currentSearchQuery);
 
-    // Filter items berdasarkan search query
-    const filteredItems = useMemo(() => {
-        if (!searchQuery.trim()) return items;
-
-        const query = searchQuery.toLowerCase();
-        return items
-            .map((category) => {
-                // Pastikan category memiliki child array
-                const categoryChildren = category.child || [];
-                
-                // Filter children yang match
-                const matchedChildren = categoryChildren.filter(
-                    (child) =>
-                        child.name.toLowerCase().includes(query) ||
-                        child.name_cn?.toLowerCase().includes(query)
-                );
-
-                if (
-                    category.name.toLowerCase().includes(query) ||
-                    category.name_cn?.toLowerCase().includes(query) ||
-                    category.id_link || // Category dengan id_link selalu ditampilkan
-                    matchedChildren.length > 0
-                ) {
-                    return {
-                        ...category,
-                        child: matchedChildren.length > 0 ? matchedChildren : categoryChildren,
-                    };
-                }
-                return null;
-            })
-            .filter(Boolean) as CategoryItem[];
-    }, [items, searchQuery]);
-
-    // Auto-expand saat search
+    // Auto-expand saat ada search results
     useMemo(() => {
-        if (searchQuery.trim()) {
+        if (currentSearchQuery.trim() && items.length > 0) {
             const newExpanded = new Set<string>();
-            filteredItems.forEach((item) => newExpanded.add(item.id));
+            items.forEach((item) => newExpanded.add(item.id));
             setExpandedItems(newExpanded);
         }
-    }, [searchQuery, filteredItems]);
+    }, [currentSearchQuery, items]);
+
+    // Handle search by Enter
+    const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && onSearch) {
+            e.preventDefault();
+            onSearch(searchQuery.trim());
+        }
+    };
+
+    // Handle clear search
+    const handleClearSearch = () => {
+        setSearchQuery('');
+        if (onSearch) {
+            onSearch('');
+        }
+    };
 
     const toggleExpand = (id: string) => {
         setExpandedItems((prev) => {
@@ -120,32 +110,49 @@ const NavigationAccordion: React.FC<NavigationAccordionProps> = ({
             <div className="p-4 border-b border-gray-100">
                 <div className="relative">
                     <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
+                    <Input
                         type="text"
-                        placeholder="Search navigation..."
+                        placeholder="Search navigation... (Press Enter to search)"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-10 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleSearch(e);
+                            }
+                        }}
+                        className="pl-10 pr-10 py-2"
+                        disabled={searchLoading}
                     />
-                    {searchQuery && (
+                    {searchLoading && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-600"></div>
+                        </div>
+                    )}
+                    {!searchLoading && (searchQuery || currentSearchQuery) && (
                         <button
-                            onClick={() => setSearchQuery('')}
+                            onClick={handleClearSearch}
                             className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors"
                         >
                             <MdClose className="w-5 h-5" />
                         </button>
                     )}
                 </div>
+                {currentSearchQuery && (
+                    <p className="text-xs text-gray-500 mt-2">
+                        Search results for: "{currentSearchQuery}"
+                    </p>
+                )}
             </div>
 
             {/* Accordion List */}
             <div className="p-2 max-h-[700px] overflow-y-auto">
-                {filteredItems.length === 0 ? (
+                {items.length === 0 && !loading ? (
                     <div className="text-center py-8 text-gray-500 text-sm">
-                        No categories found
+                        {currentSearchQuery ? 'No search results found' : 'No categories found'}
                     </div>
                 ) : (
-                    filteredItems.map((category) => {
+                    items.map((category) => {
                         const isExpanded = expandedItems.has(category.id);
                         const categoryChildren = category.child || [];
                         const childrenWithLink = categoryChildren.filter((c) => c.id_link);

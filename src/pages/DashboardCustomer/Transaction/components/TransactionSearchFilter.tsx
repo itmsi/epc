@@ -24,12 +24,12 @@ const TransactionSearchFilter: React.FC<TransactionSearchFilterProps> = ({
         setSearchTerm(value);
         
         // Debounce search - trigger after user stops typing for 300ms
-        const timeoutId = setTimeout(() => {
-            onSearch(value);
-        }, 300);
+        // const timeoutId = setTimeout(() => {
+        //     onSearch(value);
+        // }, 300);
 
         // Clear previous timeout
-        return () => clearTimeout(timeoutId);
+        // return () => clearTimeout(timeoutId);
     }, [onSearch]);
 
     const handleSubmit = useCallback((e: React.FormEvent) => {

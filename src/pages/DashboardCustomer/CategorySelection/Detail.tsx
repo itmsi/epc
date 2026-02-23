@@ -21,10 +21,12 @@ const CategorySelectionDetail = () => {
 
     const { vehicleData, productId, loading: vehicleLoading } = useVehicleData(vinId);
 
-    // Hook untuk navigation (semua data)
+    // Hook untuk navigation (semua data) dengan search
     const {
         items: navItems,
         loading: navLoading,
+        searchQuery: navSearchQuery,
+        performSearch: performNavSearch
     } = useCategorySelection({
         dokumenIds,
         productId,
@@ -142,6 +144,9 @@ const CategorySelectionDetail = () => {
                         <NavigationAccordion 
                             items={navItems} 
                             loading={navLoading}
+                            searchLoading={navLoading}
+                            currentSearchQuery={navSearchQuery}
+                            onSearch={performNavSearch}
                             dokumenIds={dokumenIds}
                             vinId={vinId}
                             categorySlug={categorySlug}

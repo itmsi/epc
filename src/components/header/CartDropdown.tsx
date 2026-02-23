@@ -63,7 +63,7 @@ export default function CartDropdown() {
                     </div>
 
                     {/* Items grouped by VIN + Category */}
-                    <div className="flex-1 overflow-y-auto sm:max-h-[420px] p-3 bg-[#dfe8f2] space-y-3">
+                    <div className={`flex-1 overflow-y-auto sm:max-h-[420px] p-3 ${cartItems.length === 0 ? 'bg-white' : 'bg-[#dfe8f2]'} space-y-3`}>
                         {cartItems.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-10 text-gray-400 h-full">
                                 <MdShoppingCart className="w-16 h-16 mb-4 opacity-20" />

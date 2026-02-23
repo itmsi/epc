@@ -16,6 +16,7 @@ export default function TransactionView() {
         handlePageChange,
         handleLimitChange,
         handleSearch,
+        handleSort,
         isEmpty
     } = useTransaction({
         initialPage: 1,
@@ -67,8 +68,9 @@ export default function TransactionView() {
                 {/* Search Filter */}
                 <TransactionSearchFilter 
                     onSearch={handleSearch}
+                    onSortOrderChange={(sortOrder) => handleSort('created_at', sortOrder)}
                     loading={loading}
-                    placeholder="Cari berdasarkan nomor transaksi, status, atau deskripsi..."
+                    placeholder="Cari berdasarkan nomor transaksi, status, atau deskripsi... (Press Enter to search)"
                 />
                     {/* Data Table */}
                     {isEmpty ? (
