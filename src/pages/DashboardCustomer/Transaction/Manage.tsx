@@ -37,7 +37,6 @@ export default function TransactionView() {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="text-red-400 text-4xl mb-4">⚠️</div>
                     <p className="text-red-600 text-lg font-medium mb-2">Gagal Memuat Data</p>
                     <p className="text-gray-600">{error}</p>
                     <button 

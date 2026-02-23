@@ -162,9 +162,9 @@ export default function UserProfiles() {
                                                 alt="Profile Preview" 
                                                 className="w-full h-full object-cover"
                                             />
-                                        ) : profile?.employee_foto ? (
+                                        ) : profile?.photo ? (
                                             <img 
-                                                src={profile.employee_foto} 
+                                                src={profile.photo} 
                                                 alt="Profile" 
                                                 className="w-full h-full object-cover"
                                             />

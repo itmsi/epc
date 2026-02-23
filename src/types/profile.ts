@@ -6,7 +6,8 @@ export interface ProfileData {
     employee_mobile: string;
     employee_office_number: string;
     employee_address: string;
-    employee_foto: string;
+    employee_foto?: string;
+    photo: string;
     title_name: string;
     department_name: string;
     company_name: string;

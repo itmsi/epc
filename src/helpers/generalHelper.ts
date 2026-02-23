@@ -436,3 +436,8 @@ export const getIdUsers = (): string => {
     const user = AuthService.getCurrentUser();
     return (user as any)?.id || '';
 };
+// Get company_name from logged in user
+export const getUserPhoto = (): string => {
+    const user = AuthService.getCurrentUser();
+    return (user as any)?.user_foto || '';
+};
