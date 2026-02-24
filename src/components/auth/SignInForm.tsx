@@ -26,13 +26,24 @@ export default function SignInForm() {
     // Redirect if already authenticated
     useEffect(() => {
         if (authState.isAuthenticated) {
+            console.log({
+                a: authState.user,
+                b: authState.user?.is_customer,
+                c: 'ini dalam isAuthenticated'
+            });
+            
             if(authState.user?.is_customer) {
+                
+                console.log({
+                    a: authState.user?.is_customer,
+                    b: 'ini dalam is_customer'
+                });
                 navigate('/search-vin');
                 return;
             }
             navigate('/home');
         }
-    }, [authState.isAuthenticated, navigate]);
+    }, [authState.isAuthenticated, authState.user, navigate]);
 
     const handleInputChange = (field: keyof LoginRequest) => (
         e: React.ChangeEvent<HTMLInputElement>

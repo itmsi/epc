@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router";
 import { EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
@@ -110,17 +109,6 @@ export default function SignUpForm() {
                             </div>
                         </form>
 
-                        <div className="mt-5">
-                            <p className="text-sm font-normal text-center text-gray-700 sm:text-start">
-                                Already have an account? {""}
-                                <Link
-                                    to="/"
-                                    className="text-brand-500 hover:text-brand-600"
-                                >
-                                    Sign In
-                                </Link>
-                            </p>
-                        </div>
                     </div>
                 </div>
             </div>

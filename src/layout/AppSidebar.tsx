@@ -40,16 +40,6 @@ const navItems: NavItem[] = [
         subItems: [{ name: "Main", path: "/home", allowedRoles: ['ADMIN'], }],
     },
     {
-        name: "Power BI",
-        icon: <GrLineChart />,
-        allowedRoles: ['Dashboard Power BI', 'Manage Power BI'],
-        subItems: [
-            { name: "Dashboard", path: "/power-bi/dashboard", allowedRoles: ['Dashboard Power BI'], },
-            { name: "Category", path: "/power-bi/category", allowedRoles: ['Category Power BI'], },
-            { name: "Manage", path: "/power-bi/manage", allowedRoles: ['Manage Power BI'], },
-        ],
-    },
-    {
         name: "Search VIN",
         icon: <FiSearch />,
         path: "/search-vin",
