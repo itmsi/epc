@@ -236,10 +236,9 @@ const TransactionDetail: React.FC = () => {
                                         striped={false}
                                         highlightOnHover
                                         responsive
+                                        persistTableHead
                                         fixedHeader={true}
                                         fixedHeaderScrollHeight={`calc(100vh/${controlHeight})`}
-                                        headerBackground="rgba(2, 83, 165, 0.1)"
-                                        hoverBackground="rgba(223, 232, 242, 0.3)"
                                         borderRadius="8px"
                                     />
                                 </div>

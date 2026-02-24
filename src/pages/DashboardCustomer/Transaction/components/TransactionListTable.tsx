@@ -118,13 +118,12 @@ const TransactionListTable: React.FC<TransactionListTableProps> = ({
                     onLimitChange(newLimit);
                     onPageChange(newPage);
                 }}
-                striped
                 highlightOnHover
                 responsive
                 fixedHeader={true}
+                striped={false}
                 fixedHeaderScrollHeight={`calc(100vh/${controlHeight})`}
-                headerBackground="rgba(2, 83, 165, 0.1)"
-                hoverBackground="rgba(223, 232, 242, 0.3)"
+                persistTableHead
                 borderRadius="8px"
                 onRowClicked={handleViewDetail}
             />
