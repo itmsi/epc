@@ -42,7 +42,10 @@ const Client = ({ children, isProtected, isUnProtected, roles, requiredPermissio
             isAllowed = false;
             navigate('/', { state: { from: location }, replace: true });
         } else if (isUnProtected && authState.isAuthenticated) {
-            navigate('/home', { replace: true });
+            const isCustomer = authState.user?.is_customer === true;
+            
+            const targetRoute = isCustomer ? '/search-vin' : '/home';
+            navigate(targetRoute, { replace: true });
             isAllowed = false;
         } else if (isProtected && authState.isAuthenticated) {
             const currentPath = location.pathname;

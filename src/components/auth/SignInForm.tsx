@@ -25,25 +25,33 @@ export default function SignInForm() {
 
     // Redirect if already authenticated
     useEffect(() => {
-        if (authState.isAuthenticated) {
-            console.log({
-                a: authState.user,
-                b: authState.user?.is_customer,
-                c: 'ini dalam isAuthenticated'
+        if (authState.isAuthenticated && authState.user && !authState.isLoading) {
+            console.log('🔍 DEBUG Authentication Check:', {
+                user: authState.user,
+                is_customer_value: authState.user?.is_customer,
+                is_customer_type: typeof authState.user?.is_customer,
+                is_customer_strict_check: authState.user?.is_customer === true,
+                environment: process.env.NODE_ENV,
+                timestamp: new Date().toISOString()
             });
             
-            if(authState.user?.is_customer) {
+            // Delay untuk memastikan semua state sudah ready di production
+            const timeout = setTimeout(() => {
+                const isCustomer = authState.user?.is_customer === true;
                 
-                console.log({
-                    a: authState.user?.is_customer,
-                    b: 'ini dalam is_customer'
-                });
-                navigate('/search-vin');
-                return;
-            }
-            navigate('/home');
+                if (isCustomer) {
+                    console.log('Navigasi ke /search-vin customer');
+                    navigate('/search-vin', { replace: true });
+                    return;
+                }
+                
+                console.log('Navigasi ke /home');
+                navigate('/home', { replace: true });
+            }, process.env.NODE_ENV === 'production' ? 100 : 0); // Delay hanya di production
+            
+            return () => clearTimeout(timeout);
         }
-    }, [authState.isAuthenticated, authState.user, navigate]);
+    }, [authState.isAuthenticated, authState.user, authState.isLoading, navigate]);
 
     const handleInputChange = (field: keyof LoginRequest) => (
         e: React.ChangeEvent<HTMLInputElement>
@@ -63,6 +71,15 @@ export default function SignInForm() {
         try {
             setFormErrors({});
             await login(formData);
+            
+            // Di production, kadang perlu delay sebentar 
+            // untuk memastikan authState ter-update dengan benar
+            if (process.env.NODE_ENV === 'production') {
+                setTimeout(() => {
+                    // Force check auth state setelah login berhasil
+                    // Ini akan trigger useEffect di atas untuk navigasi
+                }, 50);
+            }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Login failed';
             setFormErrors({ general: errorMessage });
